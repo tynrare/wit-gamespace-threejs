@@ -2,8 +2,8 @@
 
 import * as THREE from "three";
 import Loader from "./loader.js";
-import CameraThirdPerson from "./camera_third_person.js";
-import PawnThirdPerson from "./pawn_third_person.js";
+import CameraTopdown from "./camera_topdown.js";
+import PawnTankA from "./pawn_tank_a.js";
 import { clamp } from "./math.js";
 
 import { InputAction } from "./inputs.js";
@@ -22,9 +22,9 @@ class Playspace {
     this.cube = null;
     /** @type {THREE.Mesh} */
     this.plane = null;
-    /** @type {CameraThirdPerson} */
+    /** @type {CameraTopdown} */
     this.camera_controller = null;
-    /** @type {PawnThirdPerson} */
+    /** @type {PawnTankA} */
     this.pawn_controller = null;
 
 		this.lights = {};
@@ -35,8 +35,8 @@ class Playspace {
    */
   init(scene) {
     this._scene = scene;
-    this.camera_controller = new CameraThirdPerson();
-    this.pawn_controller = new PawnThirdPerson();
+    this.camera_controller = new CameraTopdown();
+    this.pawn_controller = new PawnTankA();
 
     return this;
   }

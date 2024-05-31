@@ -110,7 +110,6 @@ function run_inputs(canvas, app) {
       const d = Math.sqrt(pdx * pdx + pdy * pdy);
       const rdx = pdx * Math.max(1, d);
       const rdy = pdy * Math.max(1, d);
-      console.log(rdx, rdy);
       if (Math.abs(rdx) > 0.9 || Math.abs(rdy) > 0.9) {
         input_activated = true;
       }

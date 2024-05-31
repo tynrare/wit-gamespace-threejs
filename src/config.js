@@ -50,7 +50,7 @@ class RenderConfig {
 }
 
 /**
- * Pawn config for {@link ThirdPersonControllers.PawnThirdPerson}
+ * Pawn config for {@link PawnControllers.PawnTankA}
  *
  * @memberof Config
  */
@@ -63,7 +63,7 @@ class PawnConfig {
      *
      * @type {number}
      */
-    this.rotation_speed = 0.1;
+    this.rotation_speed = 0.07;
     /**
      * @type {number}
      */
@@ -79,7 +79,7 @@ class PawnConfig {
 }
 
 /**
- * Camera config for {@link ThirdPersonControllers.CameraThirdPerson}
+ * Camera config for {@link PawnControllers.CameraTopdown}
  *
  * @memberof Config
  */
@@ -88,48 +88,23 @@ class CameraConfig {
     /**
      * x distance to target
      */
-    this.distance = 20;
+    this.distance = 10;
     /**
      * z height
      */
     this.height = 40;
     /**
+     * rotation
+     */
+    this.rotation = 0;
+    /**
      * how fast camera follows target
      */
-    this.follow_speed = 0.2;
-    /**
-     * how fast camera rotates durning idle
-     */
-    this.rotation_passive_speed = 0.1;
-    /**
-     * how fast camera rotates durning input
-     */
-    this.rotation_active_speed = 0.06;
+    this.follow_speed = 0.4;
     /**
      * actial camera movement speed
      */
-    this.camera_speed = 0.07;
-    /**
-     * scales rotation_speed depends on camera-target radial distance durning idle
-		 *
-		 * After input end, if pawn looks directly at camenra:
-		 * - Value 0.5 - camera quickly turns behind pawn
-		 * - Value 1 - camera looks at pawn for few secs
-		 * - Value 2 - camera looks at pawnwithout turning
-		 * - Value above 2 - camera turns behind pawn really slow
-		 *
-     */
-    this.stick_passive_factor = 0.7;
-    /**
-     * scales rotation_speed depends on camera-target radial distance durning input. 
-		 * Not active while attach_to_pawn==true
-     */
-    this.stick_active_factor = 2;
-		/**
-		 * Camera always follows pawn.
-		 * Pawn able to look at camera if disabled;
-		 */
-		this.attach_to_pawn = true;
+    this.camera_speed = 0.4;
   }
 }
 
