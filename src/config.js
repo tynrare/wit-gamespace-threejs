@@ -34,7 +34,7 @@ class RenderConfig {
 
   constructor() {
     /** @type {number} */
-    this.camera_fov = 75;
+    this.camera_fov = 50;
   }
 
   /**
