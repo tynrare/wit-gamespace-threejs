@@ -51,7 +51,7 @@ class Playspace {
 			const ambient = new THREE.AmbientLight( 0x404040, 1 ); 
 			this._scene.add( ambient );
 			const directional= new THREE.DirectionalLight( 0xffffff, 2 );
-			directional.position.set(100, 100, 100);
+			directional.position.set(10, 50, 100);
 			this._scene.add( directional );
 			const hemisphere = new THREE.HemisphereLight( 0xffffbb, 0xffffbb, 2 );
 			this._scene.add( hemisphere );
