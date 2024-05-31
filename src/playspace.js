@@ -83,27 +83,6 @@ class Playspace {
       this.plane = plane;
     }
 
-		// character
-    {
-      const geometry = new THREE.BoxGeometry(1, 1, 2);
-      const material = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
-      const cube = new THREE.Mesh(geometry, material);
-      this._scene.add(cube);
-      this.cube = cube;
-			this.cube.position.z += 1;
-			cube.castShadow = true;
-			cube.receiveShadow = true;
-    }
-		// character "eyes"
-		{
-      const geometry = new THREE.BoxGeometry(0.6, 0.1, 0.1);
-      const material = new THREE.MeshToonMaterial({ color: 0x777777 });
-      const cube = new THREE.Mesh(geometry, material);
-      this.cube.add(cube);
-			cube.position.y += 0.5;
-			cube.position.z += 0.5;
-		}
-
 		// scene
 		{
 			Loader.instance.get_gltf("scene.glb").then((gltf) => {
