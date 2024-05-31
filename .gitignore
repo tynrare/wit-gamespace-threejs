@@ -1,7 +1,5 @@
 # Dependency directories
 node_modules/
-build/
-build_zip/
 .DS_Store
 .idea
 .pa

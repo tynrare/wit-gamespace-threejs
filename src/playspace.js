@@ -123,12 +123,9 @@ class Playspace {
 					material.metalness = 0;
 				});
 
-				scene.position.y -= 100;
-
 				this._scene.add(scene);
 
 				const pawn = scene.getObjectByName("Tank_blue");
-				scene.position.y -= 100;
 
 				this.camera_controller.set_target(pawn);
 				this.pawn_controller.set_target(pawn);
