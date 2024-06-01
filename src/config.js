@@ -57,17 +57,31 @@ class RenderConfig {
 class PawnConfig {
   constructor() {
     /*
-     * This factor affects only model rotation.
-     * To affect actual rotation speed
-     * change CameraConfig::rotation_active_speed
-     *
      * @type {number}
      */
-    this.rotation_speed = 0.07;
+    this.rotation_speed = 0.04;
+
+    /*
+     * @type {number}
+     */
+		this.acceleration_factor = 0.1;
+
+    /*
+		 * Thresholds backward movement.
+		 * 0 - no threshold
+		 * 1 - no backward movement
+		 *
+     * @type {number}
+     */
+		this.backwards_threshold = 0.5;
+
+		this.input_sensivity_threshold = 0.1;
+
     /**
      * @type {number}
      */
-    this.movement_speed = 4.2;
+    this.movement_speed = 1.0;
+
     /**
      * decreases X movement factor
      * depending on Y
@@ -104,7 +118,7 @@ class CameraConfig {
     /**
      * actial camera movement speed
      */
-    this.camera_speed = 0.4;
+    this.camera_speed = 0.2;
   }
 }
 
