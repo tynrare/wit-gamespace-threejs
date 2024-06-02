@@ -48,6 +48,8 @@ class Render {
     this.scene = scene;
     this.camera = camera;
 
+		this.set_camera_aspect();
+
     logger.log("Render initialized.");
 
     return this;

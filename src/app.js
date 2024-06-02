@@ -43,9 +43,7 @@ class App {
     this.timestamp = performance.now();
 
     this.render.run();
-		this.playspace.run();
-		this.playspace.camera_controller.set_camera(this.render.camera);
-		this.playspace.pawn_controller.set_camera(this.render.camera);
+		this.playspace.run(this.render);
 
     this.loop();
 

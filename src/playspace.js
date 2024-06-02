@@ -5,8 +5,11 @@ import Loader from "./loader.js";
 import CameraTopdown from "./camera_topdown.js";
 import PawnTankA from "./pawn_tank_a.js";
 import { clamp } from "./math.js";
+import Render from "./render.js";
 
 import { InputAction } from "./inputs.js";
+
+import { CSM } from 'three/addons/csm/CSM.js';
 
 /**
  * basic threejs stage
@@ -27,7 +30,14 @@ class Playspace {
     /** @type {PawnTankA} */
     this.pawn_controller = null;
 
-		this.lights = {};
+		this.lights = {
+			/** @type {THREE.DirectionalLight} */
+			directional: null,
+			/** @type {THREE.AmbientLight} */
+			ambient: null,
+			/** @type {THREE.HemisphereLight} */
+			hemisphere: null
+		};
   }
 
   /**
@@ -41,7 +51,10 @@ class Playspace {
     return this;
   }
 
-  run() {
+	/**
+	 * @param {Render} render .
+	 */
+  run(render) {
 		// fog
 		//this._scene.fog = new THREE.Fog( 0x66c4c4, 10, 150 );
 		this._scene.background = new THREE.Color(0x66c0dc);
@@ -50,19 +63,29 @@ class Playspace {
 		{
 			const ambient = new THREE.AmbientLight( 0x404040, 1 ); 
 			this._scene.add( ambient );
-			const directional= new THREE.DirectionalLight( 0xffffff, 2 );
+			const directional = new THREE.DirectionalLight( 0xffffff, 2 );
 			directional.position.set(10, 50, 100);
 			this._scene.add( directional );
 			const hemisphere = new THREE.HemisphereLight( 0xffffbb, 0xffffbb, 2 );
 			this._scene.add( hemisphere );
 
+
+			this.lights.directional = directional;
+			this.lights.ambient = ambient;
+			this.lights.hemisphere = hemisphere;
+
+			this._run_csm(render.camera);
+
+			/*
 			directional.castShadow = true;
-			directional.shadow.mapSize.width = 4096;
-			directional.shadow.mapSize.height = 4096;
-			directional.shadow.camera.left = -64;
-			directional.shadow.camera.bottom = -64;
-			directional.shadow.camera.right = 64;
-			directional.shadow.camera.top = 64;
+			directional.shadow.mapSize.width = 256;
+			directional.shadow.mapSize.height = 256;
+			directional.shadow.camera.left = -32;
+			directional.shadow.camera.bottom = -32;
+			directional.shadow.camera.right = 32;
+			directional.shadow.camera.top = 32;
+			directional.shadow.camera.far = 10000;
+			*/
 		}
 
 		// floor
@@ -100,6 +123,8 @@ class Playspace {
 					/** @type {THREE.MeshStandardMaterial} */
 					const material = /** @type {any} */ (m.material);
 					material.metalness = 0;
+
+					this.csm?.setupMaterial(material);
 				});
 
 				this._scene.add(scene);
@@ -111,13 +136,31 @@ class Playspace {
 			});
 		}
 
+		this.camera_controller.set_camera(render.camera);
+		this.pawn_controller.set_camera(render.camera);
 
     return this;
   }
 
+	_run_csm(camera) {
+		const lightDirection = this.lights.directional.position.clone().normalize().negate();
+		this.csm = new CSM( {
+			maxFar: 1000,
+			cascades: 4,
+			mode: 'practical',
+			parent: this._scene,
+			shadowMapSize: 1024,
+			lightDirection,
+			camera
+		} );
+		console.log(this.csm);
+	}
+
+
   step(dt) {
     this.camera_controller.step(dt);
     this.pawn_controller.step(dt);
+		this.csm?.update();
   }
 
   /**
@@ -144,6 +187,11 @@ class Playspace {
     this.plane = null;
 		this._scene.fog = null;
 		this._scene.background = null;
+
+		for(const k in this.lights) {
+			this.lights[k].removeFromParent();
+			this.lights[k] = null;
+		}
   }
 
   dispose() {
