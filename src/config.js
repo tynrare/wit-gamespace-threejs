@@ -66,17 +66,6 @@ class PawnConfig {
      */
 		this.acceleration_factor = 0.1;
 
-    /*
-		 * Thresholds backward movement.
-		 * 0 - no threshold
-		 * 1 - no backward movement
-		 *
-     * @type {number}
-     */
-		this.backwards_threshold = 0.5;
-
-		this.input_sensivity_threshold = 0.1;
-
     /**
      * @type {number}
      */

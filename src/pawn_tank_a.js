@@ -41,37 +41,38 @@ class PawnTankA {
 			.copy(Vec3Forward)
 			.applyAxisAngle(Vec3Up, this._target.rotation.z);
 
-		let input_factor = this.direction.length();
-		let angle_d = 0;
+		let accelerate = this.direction.length();
+		let rotate = 0;
 
-    if (input_factor > this.config.input_sensivity_threshold) {
+    if (accelerate > 0) {
 			let input_direction = this.cache.v3.copy(this.direction).normalize();
 
 			const direction_d = facing_direction.dot(input_direction);
-			const direction_d_sign = Math.sign(direction_d + this.config.backwards_threshold);
+
+			// allows backward movement. But does not work smooth enough
+			// direction dot sign
+			//const dds = Math.sign(direction_d);
+			const dds = 1;
+
 			const direction_angle = Math.atan2(
-				-this.direction.x * direction_d_sign,
-				this.direction.y * direction_d_sign,
+				-this.direction.x * dds,
+				this.direction.y * dds,
 			);
 
-			input_factor *= direction_d_sign;
 
-			angle_d =
+			rotate =
 				angle_sub(this._target.rotation.z, direction_angle) *
 				this.config.rotation_speed *
-				Math.abs(input_factor);
+				accelerate;
 
-			if (angle_d > Math.PI / 2) {
-				angle_d -= Math.PI / 2;
-			}
-
+			accelerate *= dds;
     }
 
 		// rotate
-		this._target.rotation.z += angle_d;
+		this._target.rotation.z += rotate;
 
 		// move
-		this.lacceleration = lerp(this.lacceleration, input_factor, this.config.acceleration_factor);
+		this.lacceleration = lerp(this.lacceleration, accelerate, this.config.acceleration_factor);
 		const speed = this.lacceleration * this.config.movement_speed;
 
 		facing_direction.multiplyScalar(speed);
