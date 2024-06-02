@@ -149,7 +149,7 @@ class Playspace {
 			cascades: 4,
 			mode: 'practical',
 			parent: this._scene,
-			shadowMapSize: 1024,
+			shadowMapSize: 2048,
 			lightDirection,
 			camera
 		} );
