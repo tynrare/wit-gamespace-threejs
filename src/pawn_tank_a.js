@@ -36,12 +36,14 @@ class PawnTankA {
       return;
     }
 
+		const df = dt / 30;
+
 
 		const facing_direction = this.cache.v3_0
 			.copy(Vec3Forward)
 			.applyAxisAngle(Vec3Up, this._target.rotation.z);
 
-		let accelerate = this.direction.length();
+		let accelerate = this.direction.length() * df;
 		let rotate = 0;
 
     if (accelerate > 0) {
