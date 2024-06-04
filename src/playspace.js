@@ -108,27 +108,7 @@ class Playspace {
 
 		// scene
 		{
-			Loader.instance.get_gltf("scene.glb").then((gltf) => {
-				console.log(gltf);
-				/** @type {THREE.Object3D} */
-				const scene = gltf.scene;
-				scene.traverse((o) => {
-					/** @type {THREE.Mesh} */
-					const m = /** @type {any} */ (o);
-					if (!m.isMesh) {
-						return;
-					}
-					m.castShadow = true;
-					m.receiveShadow = true;
-					/** @type {THREE.MeshStandardMaterial} */
-					const material = /** @type {any} */ (m.material);
-					material.metalness = 0;
-
-					this.csm?.setupMaterial(material);
-				});
-
-				this._scene.add(scene);
-
+			this.add_gltf("scene.glb").then((scene) => {
 				const pawn = scene.getObjectByName("Tank_blue");
 
 				this.camera_controller.set_target(pawn);
@@ -141,6 +121,32 @@ class Playspace {
 
     return this;
   }
+
+	add_gltf(url) {
+		return Loader.instance.get_gltf(url).then((gltf) => {
+			console.log(gltf);
+			/** @type {THREE.Object3D} */
+			const scene = gltf.scene;
+			scene.traverse((o) => {
+				/** @type {THREE.Mesh} */
+				const m = /** @type {any} */ (o);
+				if (!m.isMesh) {
+					return;
+				}
+				m.castShadow = true;
+				m.receiveShadow = true;
+				/** @type {THREE.MeshStandardMaterial} */
+				const material = /** @type {any} */ (m.material);
+				material.metalness = 0;
+
+				this.csm?.setupMaterial(material);
+			});
+
+			this._scene.add(scene);
+
+			return gltf.scene;
+		});
+	}
 
 	_run_csm(camera) {
 		const lightDirection = this.lights.directional.position.clone().normalize().negate();

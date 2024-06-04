@@ -5,6 +5,7 @@ import logger from "./logger.js";
 import { InputAction } from "./inputs.js";
 import Playspace from "./playspace.js";
 import { lerp } from "./math.js";
+import Stats from "./stats.js";
 
 /**
  * Core class
@@ -26,13 +27,15 @@ class App {
 		 *
 		 * @type {number} 
 		 */
-		this.ldt = 0;
+		this.ldt = 100;
   }
 
   init() {
     logger.log("App initializing..");
     this.render = new Render().init();
     this.playspace = new Playspace().init(this.render.scene);
+
+		Stats.instance.init();
 
     logger.log("App initialized.");
     return this;
@@ -59,7 +62,7 @@ class App {
 
     const now = performance.now();
     const dt = Math.min(100, now - this.timestamp);
-		this.ldt = lerp(this.ldt, dt, 1e-2);
+		this.ldt = lerp(this.ldt, dt, 1e-1);
     this.timestamp = now;
 
     this.step(this.ldt);
@@ -68,6 +71,7 @@ class App {
   }
 
   step(dt) {
+		Stats.instance.show_fps(dt);
     this.render.step(dt);
 		this.playspace.step(dt);
   }

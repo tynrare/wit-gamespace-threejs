@@ -3,6 +3,23 @@ body html {
 	margin: 0;
 }
 
+#stats {
+	position: absolute;
+	margin: 16px;
+	color: white;
+	text-shadow: 1px 1px black;
+
+	#loading_stat {
+		transition-duration: 500ms;
+		transition-property: opacity;
+		opacity: 0;
+
+		&.active {
+			opacity: 1;
+		}
+	}
+}
+
 #screen_joystick {
 	position: absolute;
 	width: min(30vw, 30vh);

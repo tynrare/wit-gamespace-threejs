@@ -2,6 +2,7 @@
 
 import * as THREE from "three";
 import logger from "./logger.js";
+import Stats from "./stats.js";
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 /**
@@ -24,6 +25,7 @@ class Loader {
   static _instance;
 
   constructor() {
+		this.loadings = 0;
     this.cache = new LoaderCache();
 		this._gltf_loader = new GLTFLoader();
   }
@@ -50,8 +52,11 @@ class Loader {
       return this.cache.textures[url];
     }
 
+		this.notify_loading();
+
     logger.log(`Loader::get_texture texture ${url} loading..`);
     const texture = new THREE.TextureLoader().load(url, () => {
+			this.confirm_loading();
       logger.log(`Loader::get_texture texture ${url} loaded.`);
     });
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -69,11 +74,14 @@ class Loader {
 			if (this.cache.gltfs[url]) {
 				logger.log(`Loader::get_gltf gltf ${url} fetched from cache..`);
 				resolve(this.cache.gltfs[url]);
+				return;
 			}
 
+			this.notify_loading();
 			logger.log(`Loader::get_gltf gltf ${url} loading..`);
 			this._gltf_loader.load(url, 
 				(gltf) => {
+					this.confirm_loading();
 					logger.log(`Loader::get_gltf gltf ${url} loaded.`);
 					this.cache.gltfs[url] = gltf;
 					resolve(gltf);
@@ -81,10 +89,21 @@ class Loader {
 				(xhr) => {
 				},
 				(error) => {
+					this.confirm_loading(true);
 					logger.error(`Loader::get_gltf gltf error: `, error);
 					reject(error);
 				})
 		});
+	}
+
+	notify_loading() {
+		this.loadings += 1;
+		Stats.instance.show_loading(this.loadings > 0);
+	}
+
+	confirm_loading(error = false) {
+		this.loadings -= 1;
+		Stats.instance.show_loading(this.loadings > 0);
 	}
 }
 
