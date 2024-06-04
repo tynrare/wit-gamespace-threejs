@@ -58,7 +58,7 @@ class Render {
   run() {
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(this.viewport_w, this.viewport_h);
-		renderer.shadowMap.enabled = true;
+		renderer.shadowMap.enabled = this.config.shadows;
 		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 

@@ -35,6 +35,12 @@ class RenderConfig {
   constructor() {
     /** @type {number} */
     this.camera_fov = 50;
+
+    /** @type {boolean} */
+		this.shadows = false;
+
+    /** @type {boolean} */
+		this.cascaded_shadow_maps = false;
   }
 
   /**
@@ -69,7 +75,7 @@ class PawnConfig {
     /**
      * @type {number}
      */
-    this.movement_speed = 1.0;
+    this.movement_speed = 0.4;
 
     /**
      * decreases X movement factor
@@ -91,11 +97,11 @@ class CameraConfig {
     /**
      * x distance to target
      */
-    this.distance = 10;
+    this.distance = 3;
     /**
      * z height
      */
-    this.height = 40;
+    this.height = 10;
     /**
      * rotation
      */

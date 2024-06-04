@@ -6,6 +6,7 @@ import { InputAction } from "./inputs.js";
 import Playspace from "./playspace.js";
 import { lerp } from "./math.js";
 import Stats from "./stats.js";
+import Menu from "./menu.js";
 
 /**
  * Core class

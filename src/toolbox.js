@@ -19,9 +19,12 @@ function run_toolbox(app) {
 	const app_conf = AppConfig.instance;
   const camera_conf = app.playspace.camera_controller.config;
   const pawn_conf = app.playspace.pawn_controller.config;
+  const render_conf = app.render.config;
 
   const fapp = gui.addFolder("app");
-
+  const frender = gui.addFolder("render");
+	//frender.add(render_conf, "shadows")
+	
   const fcamera = gui.addFolder("camera");
 	fcamera.add(camera_conf, "distance", 1, 100);
 	fcamera.add(camera_conf, "height", 1, 100);
