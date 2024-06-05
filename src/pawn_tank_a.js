@@ -48,6 +48,7 @@ class PawnTankA {
 
     if (accelerate > 0) {
 			let input_direction = this.cache.v3.copy(this.direction).normalize();
+			input_direction.applyAxisAngle(Vec3Up, this._camera.rotation.z);
 
 			const direction_d = facing_direction.dot(input_direction);
 
@@ -57,8 +58,8 @@ class PawnTankA {
 			const dds = 1;
 
 			const direction_angle = Math.atan2(
-				-this.direction.x * dds,
-				this.direction.y * dds,
+				-input_direction.x * dds,
+				input_direction.y * dds,
 			);
 
 

@@ -65,7 +65,7 @@ class PawnConfig {
     /*
      * @type {number}
      */
-    this.rotation_speed = 0.04;
+    this.rotation_speed = 0.17;
 
     /*
      * @type {number}
