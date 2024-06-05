@@ -26,6 +26,7 @@ class LightsA {
     const scene = render.scene;
     const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
+		ambient.intensity
     const directional = new THREE.DirectionalLight(0xffffff, 1);
     directional.position.set(10, 50, 100);
     scene.add(directional);

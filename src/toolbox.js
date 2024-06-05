@@ -23,6 +23,10 @@ function run_toolbox(app) {
 
   const fapp = gui.addFolder("app");
   const frender = gui.addFolder("render");
+	const flights = frender.addFolder("lights");
+	flights.add(app.playspace.lights.lights.ambient, "intensity", 0, 10).name("ambient");
+	flights.add(app.playspace.lights.lights.directional, "intensity", 0, 10).name("directional");
+	flights.add(app.playspace.lights.lights.hemisphere, "intensity", 0, 10).name("hemisphere");
 	//frender.add(render_conf, "shadows")
 	
   const fcamera = gui.addFolder("camera");
