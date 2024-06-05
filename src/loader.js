@@ -43,6 +43,25 @@ class Loader {
 
   /**
    * @param {string} url .
+   * @returns {Promise<object>} .
+   * @throws error
+   */
+  async get_json(url) {
+		this.notify_loading();
+    return fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+				this.confirm_loading();
+				return data;
+      })
+      .catch((error) => {
+				this.confirm_loading(true);
+        logger.warn("Loader::get_json error:", error);
+      });
+  }
+
+  /**
+   * @param {string} url .
    * @returns {THREE.Texture} .
    */
   get_texture(url) {
@@ -76,6 +95,7 @@ class Loader {
   /**
    * @param {string} url .
    * @returns {Promise<any>} gltf data
+   * @throws error
    */
   get_gltf(url) {
     return new Promise((resolve, reject) => {

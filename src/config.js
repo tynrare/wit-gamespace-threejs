@@ -97,7 +97,7 @@ class CameraConfig {
     /**
      * x distance to target
      */
-    this.distance = 3;
+    this.distance = 10;
     /**
      * z height
      */
@@ -105,7 +105,7 @@ class CameraConfig {
     /**
      * rotation
      */
-    this.rotation = 0;
+    this.rotation = 2;
     /**
      * how fast camera follows target
      */

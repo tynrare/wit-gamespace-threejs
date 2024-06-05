@@ -74,21 +74,12 @@ class Playspace {
 
     // scene
     {
-      this.add_gltf("scene.glb").then((scene) => {
-        const conf = {};
-        conf["Green_ostrov"] = "shadowmaps/GreenOstrovIllumination.png";
-        conf["Ser_ostrov"] = "shadowmaps/SerOstrovIllumination.png";
-        conf["Det"] = { channel: 1, path: "shadowmaps/DetIllumination.png" };
-        conf["Trees_group_1"] = {
-          channel: 1,
-          path: "shadowmaps/Trees_group_1Illumination.png",
-        };
-        conf["Trees_group_2"] = {
-          channel: 1,
-          path: "shadowmaps/Trees_group_2Illumination.png",
-        };
-				console.log(JSON.stringify(conf));
-        LightsA.apply_shadowmaps(scene, conf);
+      Loader.instance.get_json("shadowmaps/config.json").then((config) => {
+        this.add_gltf("scene.glb").then((scene) => {
+          if (config) {
+						LightsA.apply_shadowmaps(scene, config);
+          }
+        });
       });
       this.add_gltf("pawn.glb").then((scene) => {
         const pawn = scene.getObjectByName("Tank");
