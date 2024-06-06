@@ -34,7 +34,7 @@ class RenderConfig {
 
   constructor() {
     /** @type {number} */
-    this.camera_fov = 50;
+    this.camera_fov = 22;
 
 		/**
 		 * @type {number} 
@@ -117,11 +117,11 @@ class CameraConfig {
     /**
      * x distance to target
      */
-    this.distance = 10;
+    this.distance = 17;
     /**
      * z height
      */
-    this.height = 10;
+    this.height = 19;
     /**
      * rotation
      */
