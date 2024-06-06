@@ -27,10 +27,10 @@ class LightsA {
     const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
     ambient.intensity;
-    const directional = new THREE.DirectionalLight(0xffffff, 1);
+    const directional = new THREE.DirectionalLight(0xffffff, 0);
     directional.position.set(10, 50, 100);
     scene.add(directional);
-    const hemisphere = new THREE.HemisphereLight(0xffffbb, 0xffffbb, 1);
+    const hemisphere = new THREE.HemisphereLight(0xffffbb, 0xffffbb, 0);
     scene.add(hemisphere);
 
     this.lights.directional = directional;

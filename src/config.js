@@ -39,14 +39,14 @@ class RenderConfig {
 		/**
 		 * @type {number} 
 		 */
-		this.lightmaps_intensity = 1;
+		this.lightmaps_intensity = 3;
 
     /** 
 		 * Enables threejs lights
 		 *
 		 * @type {boolean} 
 		 */
-		this.lights = false;
+		this.lights = true;
 
     /** 
 		 * Enables threejs shadows
