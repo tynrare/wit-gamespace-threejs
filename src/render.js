@@ -36,7 +36,7 @@ class Render {
     logger.log("Render initializing..");
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
-      75,
+			this.config.camera_fov,
       this.viewport_w / this.viewport_h,
       0.1,
       1000,
@@ -56,7 +56,10 @@ class Render {
   }
 
   run() {
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({
+			antialias: true
+		});
+		renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize(this.viewport_w, this.viewport_h);
 		renderer.shadowMap.enabled = this.config.shadows;
 		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -97,13 +100,18 @@ class Render {
   }
 
   // ---
+	
+	get render_scale() {
+		const scale = 1;
+		return scale;
+	}
 
   get viewport_w() {
-    return window.innerWidth;
+    return window.innerWidth * this.render_scale;
   }
 
   get viewport_h() {
-    return window.innerHeight;
+    return window.innerHeight * this.render_scale;
   }
 
   /**

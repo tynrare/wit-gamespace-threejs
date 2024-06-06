@@ -25,6 +25,9 @@ function run_toolbox(app) {
   const fapp = gui.addFolder("app");
 
   const frender = gui.addFolder("render");
+	frender.add(render_conf, "camera_fov", 10, 100).onChange((v) => {
+		app.render.set_camera_aspect();
+	});
 
 	const flights = frender.addFolder("lights");
 	flights.add(render_conf, "lightmaps_intensity", 0, 10).onChange((v) => {
