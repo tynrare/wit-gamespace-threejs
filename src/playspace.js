@@ -83,10 +83,8 @@ class Playspace {
         });
       });
       this.add_gltf("pawn.glb").then((scene) => {
-        const pawn = scene.getObjectByName("Tank");
-
-        this.camera_controller.set_target(pawn);
-        this.pawn_controller.set_target(pawn);
+        this.camera_controller.set_target(scene);
+        this.pawn_controller.set_target(scene);
 				LightsA.apply_lightmaps_white(scene);
       });
     }
@@ -97,7 +95,7 @@ class Playspace {
     return this;
   }
 
-  add_gltf(url) {
+  add_gltf(url, add_to_scene = true) {
     return Loader.instance.get_gltf(url).then((gltf) => {
       console.log(gltf);
       /** @type {THREE.Object3D} */

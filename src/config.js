@@ -90,7 +90,7 @@ class PawnConfig {
     /*
      * @type {number}
      */
-		this.acceleration_factor = 0.1;
+		this.acceleration_factor = 0.2;
 
     /**
      * @type {number}

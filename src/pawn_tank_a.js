@@ -5,6 +5,8 @@ import { Vector3 } from "three";
 import { InputAction } from "./inputs.js";
 import { Vec3Up, Vec3Forward, angle_sub, lerp } from "./math.js";
 import { PawnConfig } from "./config.js";
+import VfxMeshWobble from "./vfx_mesh_wobble.js";
+import VfxPawnTankA from "./vfx_pawn_tank_a.js";
 
 /**
  * Controls pawn.
@@ -18,6 +20,10 @@ class PawnTankA {
     this._camera = null;
     /** @type {THREE.Object3D} */
     this._target = null;
+    /** @type {VfxMeshWobble} */
+		this.vfx_mesh_wobble = new VfxMeshWobble();
+    /** @type {VfxPawnTankA} */
+		this.vfx_pawn_tank = new VfxPawnTankA();
 
     this.direction = new THREE.Vector3();
 
@@ -53,15 +59,16 @@ class PawnTankA {
 			const direction_d = facing_direction.dot(input_direction);
 
 			// allows backward movement. But does not work smooth enough
-			// direction dot sign
-			//const dds = Math.sign(direction_d);
-			const dds = 1;
+			// "direction dot sign"
+			// also added lacceleration factor - if in movin forwads
+			// thiere is less chance to trigger backward movement
+			const dds = Math.sign(direction_d + this.lacceleration);
+			//const dds = 1;
 
 			const direction_angle = Math.atan2(
 				-input_direction.x * dds,
 				input_direction.y * dds,
 			);
-
 
 			rotate =
 				angle_sub(this._target.rotation.z, direction_angle) *
@@ -81,6 +88,9 @@ class PawnTankA {
 		facing_direction.multiplyScalar(speed);
 
 		this._target.position.add(facing_direction);
+
+		this.vfx_mesh_wobble.step(dt);
+		this.vfx_pawn_tank.step(dt);
   }
 
   /**
@@ -141,11 +151,15 @@ class PawnTankA {
    */
   set_target(target) {
     this._target = target;
+		this.vfx_mesh_wobble.set_target(target);
+		this.vfx_pawn_tank.set_target(target);
   }
 
   cleanup() {
     this._camera = null;
     this._target = null;
+		this.vfx_mesh_wobble.cleanup();
+		this.vfx_pawn_tank.cleanup();
   }
 }
 
