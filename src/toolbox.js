@@ -1,5 +1,6 @@
 /** @namespace Core */
 
+import * as THREE from "three";
 import App from "./app.js";
 import GUI from "lil-gui";
 import { AppConfig } from "./config.js";
@@ -22,7 +23,24 @@ function run_toolbox(app) {
   const render_conf = app.render.config;
 
   const fapp = gui.addFolder("app");
+
   const frender = gui.addFolder("render");
+	frender.add(render_conf, "shadowmaps_intensity", 0, 1).onChange((v) => {
+		app.playspace._scene.traverse((o) => {
+			/** @type {THREE.Mesh} */
+			const m = /** @type {any} */ (o);
+			if (!m.material) {
+				return;
+			}
+			/** @type {THREE.MeshStandardMaterial} */
+			const material = /** @type {any} */ (m.material);
+			if (!material.aoMap) {
+				return;
+			}
+			material.aoMapIntensity = v;
+		});
+	});
+
 	const flights = frender.addFolder("lights");
 	flights.add(app.playspace.lights.lights.ambient, "intensity", 0, 10).name("ambient");
 	flights.add(app.playspace.lights.lights.directional, "intensity", 0, 10).name("directional");

@@ -115,6 +115,7 @@ class LightsA {
 			/** @type {THREE.MeshStandardMaterial} */
 			const material = /** @type {any} */ (m.material);
 			material.aoMap = Loader.instance.get_texture(path);
+			material.aoMapIntensity = RenderConfig.instance.shadowmaps_intensity;
 			material.aoMap.channel = channel;
 			material.aoMap.flipY = false;
 		}

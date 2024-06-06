@@ -36,10 +36,24 @@ class RenderConfig {
     /** @type {number} */
     this.camera_fov = 50;
 
-    /** @type {boolean} */
+		/**
+		 * Only for baked shadows
+		 * @type {number} 
+		 */
+		this.shadowmaps_intensity = 0.7;
+
+    /** 
+		 * Enables threejs shadows
+		 *
+		 * @type {boolean} 
+		 */
 		this.shadows = false;
 
-    /** @type {boolean} */
+    /**
+		 * Enabless threejs csm
+		 * 
+		 * @type {boolean} 
+		 */
 		this.cascaded_shadow_maps = false;
   }
 
