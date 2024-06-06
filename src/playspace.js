@@ -74,11 +74,12 @@ class Playspace {
 
     // scene
     {
-      Loader.instance.get_json("shadowmaps/config.json").then((config) => {
+      Loader.instance.get_json("lightmaps/config.json").then((config) => {
         this.add_gltf("scene.glb").then((scene) => {
           if (config) {
-						LightsA.apply_shadowmaps(scene, config);
+						LightsA.apply_lightmaps(scene, config);
           }
+					LightsA.apply_lightmaps_white(scene);
         });
       });
       this.add_gltf("pawn.glb").then((scene) => {
@@ -86,6 +87,7 @@ class Playspace {
 
         this.camera_controller.set_target(pawn);
         this.pawn_controller.set_target(pawn);
+				LightsA.apply_lightmaps_white(scene);
       });
     }
 

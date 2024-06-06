@@ -25,7 +25,9 @@ function run_toolbox(app) {
   const fapp = gui.addFolder("app");
 
   const frender = gui.addFolder("render");
-	frender.add(render_conf, "shadowmaps_intensity", 0, 1).onChange((v) => {
+
+	const flights = frender.addFolder("lights");
+	flights.add(render_conf, "lightmaps_intensity", 0, 10).onChange((v) => {
 		app.playspace._scene.traverse((o) => {
 			/** @type {THREE.Mesh} */
 			const m = /** @type {any} */ (o);
@@ -34,14 +36,15 @@ function run_toolbox(app) {
 			}
 			/** @type {THREE.MeshStandardMaterial} */
 			const material = /** @type {any} */ (m.material);
-			if (!material.aoMap) {
+			if (!material.lightMap) {
 				return;
 			}
-			material.aoMapIntensity = v;
+			material.lightMapIntensity = v;
 		});
 	});
-
-	const flights = frender.addFolder("lights");
+	flights.add(render_conf, "lights").onChange((v) => {
+		app.playspace.lights.enable(v);
+	});
 	flights.add(app.playspace.lights.lights.ambient, "intensity", 0, 10).name("ambient");
 	flights.add(app.playspace.lights.lights.directional, "intensity", 0, 10).name("directional");
 	flights.add(app.playspace.lights.lights.hemisphere, "intensity", 0, 10).name("hemisphere");

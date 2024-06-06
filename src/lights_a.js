@@ -26,7 +26,7 @@ class LightsA {
     const scene = render.scene;
     const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
-		ambient.intensity
+    ambient.intensity;
     const directional = new THREE.DirectionalLight(0xffffff, 1);
     directional.position.set(10, 50, 100);
     scene.add(directional);
@@ -36,6 +36,7 @@ class LightsA {
     this.lights.directional = directional;
     this.lights.ambient = ambient;
     this.lights.hemisphere = hemisphere;
+		this.enable(RenderConfig.instance.lights);
 
     if (RenderConfig.instance.shadows) {
       if (RenderConfig.instance.cascaded_shadow_maps) {
@@ -53,6 +54,13 @@ class LightsA {
     }
 
     return this;
+  }
+
+  enable(enabled = true) {
+    for (const k in this.lights) {
+      const l = this.lights[k];
+      l.visible = enabled;
+    }
   }
 
   _run_csm(camera, scene) {
@@ -85,41 +93,66 @@ class LightsA {
     this.csm = null;
   }
 
-	/**
-	 * @param {THREE.Object3D} scene
-	 * @param {Object} conf
-	 */
-	static apply_shadowmaps(scene, conf) {
-		for(const name in conf) {
-			const prop = conf[name];
-			let path = prop;
-			let channel = 0;
-			if (typeof prop == "object") {
-				path = prop.path;
-				channel = prop.channel;
-			}
-			const o =  scene.getObjectByName(name);
-			if (!o) {
-				logger.warn(`LightsA::apply_shadowmaps: no ${name} found in scene.`);
-				continue;
-			}
+  /**
+   * @param {THREE.Object3D} scene
+   * @param {Object} conf
+   */
+  static apply_lightmaps(scene, conf) {
+    for (const name in conf) {
+      const prop = conf[name];
+      let path = prop;
+      let channel = 0;
+      if (typeof prop == "object") {
+        path = prop.path;
+        channel = prop.channel;
+      }
+      const o = scene.getObjectByName(name);
+      if (!o) {
+        logger.warn(`LightsA::apply_lightmaps: no ${name} found in scene.`);
+        continue;
+      }
 
-			/** @type {THREE.Mesh} */
-			const m = /** @type {any} */ (o);
-			if (!m.material) {
-				logger.warn(`LightsA::apply_shadowmaps: object ${name} has no material.`);
-				continue;
-			}
+      /** @type {THREE.Mesh} */
+      const m = /** @type {any} */ (o);
+      if (!m.material) {
+        logger.warn(
+          `LightsA::apply_lightmaps: object ${name} has no material.`,
+        );
+        continue;
+      }
 
+      /** @type {THREE.MeshStandardMaterial} */
+      const material = /** @type {any} */ (m.material);
+      material.lightMap = Loader.instance.get_texture(path);
+      material.lightMapIntensity = RenderConfig.instance.lightmaps_intensity;
+      material.lightMap.channel = channel;
+      material.lightMap.flipY = false;
+    }
+  }
 
-			/** @type {THREE.MeshStandardMaterial} */
-			const material = /** @type {any} */ (m.material);
-			material.aoMap = Loader.instance.get_texture(path);
-			material.aoMapIntensity = RenderConfig.instance.shadowmaps_intensity;
-			material.aoMap.channel = channel;
-			material.aoMap.flipY = false;
-		}
-	}
+  /**
+   * Puts white lightmap to all meshes
+   * @param {THREE.Object3D} scene
+   * @param {boolean} only_empty puts lightmap only if it impty
+   */
+  static apply_lightmaps_white(scene, only_empty = true) {
+    const texture = Loader.instance.get_texture("lightmaps/white.png");
+    scene.traverse((o) => {
+      /** @type {THREE.Mesh} */
+      const m = /** @type {any} */ (o);
+      if (!m.isMesh) {
+        return;
+      }
+      /** @type {THREE.MeshStandardMaterial} */
+      const material = /** @type {any} */ (m.material);
+      if (only_empty && material.lightMap) {
+        return;
+      }
+
+      material.lightMap = texture;
+      material.lightMapIntensity = RenderConfig.instance.lightmaps_intensity;
+    });
+  }
 }
 
 export default LightsA;
