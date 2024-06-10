@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "vite",
+    "start": "vite --host",
     "build": "vite build",
 		"doc": "jsdoc src -d dist/docs -R README.md",
 		"build-n-doc": "npm run build && (npm run doc || true)"

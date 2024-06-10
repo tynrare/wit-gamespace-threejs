@@ -162,10 +162,15 @@ class Playspace {
     this.camera_controller.direction.set(d.x, d.y);
   }
 
-  input_analog(x, y) {
-    this.pawn_controller.input_analog(clamp(-1, 1, x), clamp(-1, 1, y));
-    const d = this.pawn_controller.direction;
-    this.camera_controller.direction.set(d.x, d.y);
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {string} tag
+	*/
+  input_analog(x, y, tag) {
+		this.pawn_controller.input_analog(clamp(-1, 1, x), clamp(-1, 1, y), tag);
+		const d = this.pawn_controller.direction;
+		this.camera_controller.direction.set(d.x, d.y);
   }
 
   stop() {

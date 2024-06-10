@@ -89,12 +89,17 @@ class App {
     this.playspace.input(action, start);
   }
 
-	input_analog(x, y) {
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {string} tag
+	*/
+	input_analog(x, y, tag) {
     if (!this.active) {
       return;
     }
 
-    this.playspace.input_analog(x, y);
+    this.playspace.input_analog(x, y, tag);
 	}
 
   stop() {

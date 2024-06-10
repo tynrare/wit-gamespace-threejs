@@ -21,13 +21,13 @@ class PawnTankA {
     /** @type {THREE.Object3D} */
     this._target = null;
     /** @type {VfxMeshWobble} */
-		this.vfx_mesh_wobble = new VfxMeshWobble();
+    this.vfx_mesh_wobble = new VfxMeshWobble();
     /** @type {VfxPawnTankA} */
-		this.vfx_pawn_tank = new VfxPawnTankA();
+    this.vfx_pawn_tank = new VfxPawnTankA();
 
     this.direction = new THREE.Vector3();
 
-		this.lacceleration = 0;
+    this.lacceleration = 0;
 
     this.cache = {
       v3: new Vector3(),
@@ -42,55 +42,58 @@ class PawnTankA {
       return;
     }
 
-		const df = dt / 30;
+    const df = dt / 30;
 
+    const facing_direction = this.cache.v3_0
+      .copy(Vec3Forward)
+      .applyAxisAngle(Vec3Up, this._target.rotation.z);
 
-		const facing_direction = this.cache.v3_0
-			.copy(Vec3Forward)
-			.applyAxisAngle(Vec3Up, this._target.rotation.z);
-
-		let accelerate = this.direction.length() * df;
-		let rotate = 0;
+    let accelerate = this.direction.length() * df;
+    let rotate = 0;
 
     if (accelerate > 0) {
-			let input_direction = this.cache.v3.copy(this.direction).normalize();
-			input_direction.applyAxisAngle(Vec3Up, this._camera.rotation.z);
+      let input_direction = this.cache.v3.copy(this.direction).normalize();
+      input_direction.applyAxisAngle(Vec3Up, this._camera.rotation.z);
 
-			const direction_d = facing_direction.dot(input_direction);
+      const direction_d = facing_direction.dot(input_direction);
 
-			// allows backward movement. But does not work smooth enough
-			// "direction dot sign"
-			// also added lacceleration factor - if in movin forwads
-			// thiere is less chance to trigger backward movement
-			const dds = Math.sign(direction_d + this.lacceleration);
-			//const dds = 1;
+      // allows backward movement. But does not work smooth enough
+      // "direction dot sign"
+      // also added lacceleration factor - if in movin forwads
+      // thiere is less chance to trigger backward movement
+      const dds = Math.sign(direction_d + this.lacceleration);
+      //const dds = 1;
 
-			const direction_angle = Math.atan2(
-				-input_direction.x * dds,
-				input_direction.y * dds,
-			);
+      const direction_angle = Math.atan2(
+        -input_direction.x * dds,
+        input_direction.y * dds,
+      );
 
-			rotate =
-				angle_sub(this._target.rotation.z, direction_angle) *
-				this.config.rotation_speed *
-				accelerate;
+      rotate =
+        angle_sub(this._target.rotation.z, direction_angle) *
+        this.config.rotation_speed *
+        accelerate;
 
-			accelerate *= dds;
+      accelerate *= dds;
     }
 
-		// rotate
-		this._target.rotation.z += rotate;
+    // rotate
+    this._target.rotation.z += rotate;
 
-		// move
-		this.lacceleration = lerp(this.lacceleration, accelerate, this.config.acceleration_factor);
-		const speed = this.lacceleration * this.config.movement_speed;
+    // move
+    this.lacceleration = lerp(
+      this.lacceleration,
+      accelerate,
+      this.config.acceleration_factor,
+    );
+    const speed = this.lacceleration * this.config.movement_speed;
 
-		facing_direction.multiplyScalar(speed);
+    facing_direction.multiplyScalar(speed);
 
-		this._target.position.add(facing_direction);
+    this._target.position.add(facing_direction);
 
-		this.vfx_mesh_wobble.step(dt);
-		this.vfx_pawn_tank.step(dt);
+    this.vfx_mesh_wobble.step(dt);
+    this.vfx_pawn_tank.step(dt);
   }
 
   /**
@@ -128,15 +131,30 @@ class PawnTankA {
     if (factor !== null && axis !== null) {
       const direction = { x: this.direction.x, y: this.direction.y };
       direction[axis] = factor;
-      this.input_analog(direction.x, direction.y);
+      this.input_analog(direction.x, direction.y, "movement");
     }
   }
 
-  input_analog(x, y) {
-    const fx = Math.abs(y * this.config.steer_threshold);
-    const nx = Math.max(0, Math.abs(x) - fx) * Math.sin(x);
-    this.direction.x = -nx;
-    this.direction.y = y;
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param {string} tag
+   */
+  input_analog(x, y, tag) {
+    switch (tag) {
+      case "movement":
+        const fx = Math.abs(y * this.config.steer_threshold);
+        const nx = Math.max(0, Math.abs(x) - fx) * Math.sin(x);
+        this.direction.x = -nx;
+        this.direction.y = y;
+        break;
+      case "attack":
+				let input_direction = this.cache.v3.set(-x, y, 0).normalize();
+				input_direction.applyAxisAngle(Vec3Up, this._camera.rotation.z);
+				input_direction.applyAxisAngle(Vec3Up, -this._target.rotation.z);
+				this.vfx_pawn_tank.look_at(input_direction.x, input_direction.y);
+        break;
+    }
   }
 
   /**
@@ -151,15 +169,15 @@ class PawnTankA {
    */
   set_target(target) {
     this._target = target;
-		this.vfx_mesh_wobble.set_target(target);
-		this.vfx_pawn_tank.set_target(target);
+    this.vfx_mesh_wobble.set_target(target);
+    this.vfx_pawn_tank.set_target(target);
   }
 
   cleanup() {
     this._camera = null;
     this._target = null;
-		this.vfx_mesh_wobble.cleanup();
-		this.vfx_pawn_tank.cleanup();
+    this.vfx_mesh_wobble.cleanup();
+    this.vfx_pawn_tank.cleanup();
   }
 }
 
