@@ -136,7 +136,7 @@ class LightsA {
    * @param {boolean} only_empty puts lightmap only if it impty
    */
   static apply_lightmaps_white(scene, only_empty = true) {
-    const texture = Loader.instance.get_texture("lightmaps/white.png");
+    const texture = Loader.instance.get_texture("tex_white.png");
     scene.traverse((o) => {
       /** @type {THREE.Mesh} */
       const m = /** @type {any} */ (o);

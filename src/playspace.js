@@ -21,6 +21,8 @@ class Playspace {
   constructor() {
     /** @type {THREE.Scene} */
     this._scene = null;
+    /** @type {THREE.Object3D} */
+    this.playscene = null;
     /** @type {THREE.Mesh} */
     this.cube = null;
     /** @type {THREE.Mesh} */
@@ -74,14 +76,7 @@ class Playspace {
 
     // scene
     {
-      Loader.instance.get_json("lightmaps/config.json").then((config) => {
-        this.add_gltf("scene.glb").then((scene) => {
-          if (config) {
-						LightsA.apply_lightmaps(scene, config);
-          }
-					LightsA.apply_lightmaps_white(scene);
-        });
-      });
+			this.open_playscene("b");
       this.add_gltf("pawn.glb").then((scene) => {
         this.camera_controller.set_target(scene);
         this.pawn_controller.set_target(scene);
@@ -94,6 +89,25 @@ class Playspace {
 
     return this;
   }
+
+	open_playscene(name, lightmaps = true) {
+		const load = (config) => {
+			this.add_gltf(`scenes/${name}/scene.glb`).then((scene) => {
+				if (config) {
+					LightsA.apply_lightmaps(scene, config);
+				}
+				LightsA.apply_lightmaps_white(scene);
+			});
+		}
+
+		if (lightmaps) {
+			Loader.instance.get_json(`scenes/${name}/lightmaps/config.json`).then((config) => {
+				load(config);
+			});
+		} else {
+				load(null);
+		}
+	}
 
   add_gltf(url, add_to_scene = true) {
     return Loader.instance.get_gltf(url).then((gltf) => {
@@ -144,13 +158,13 @@ class Playspace {
   }
 
   stop() {
-    this.cube?.removeFromParent();
-    this.cube = null;
     this.plane?.removeFromParent();
     this.plane = null;
     this._scene.fog = null;
     this._scene.background = null;
     this.lights.stop();
+		this.playscene?.removeFromParent();
+		this.playscene = null;
   }
 
   dispose() {
