@@ -95,9 +95,10 @@ class LightsA {
 
   /**
    * @param {THREE.Object3D} scene
+   * @param {string} root_path
    * @param {Object} conf
    */
-  static apply_lightmaps(scene, conf) {
+  static apply_lightmaps(scene, root_path, conf) {
     for (const name in conf) {
       const prop = conf[name];
       let path = prop;
@@ -123,7 +124,7 @@ class LightsA {
 
       /** @type {THREE.MeshStandardMaterial} */
       const material = /** @type {any} */ (m.material);
-      material.lightMap = Loader.instance.get_texture(path);
+      material.lightMap = Loader.instance.get_texture(root_path + path);
       material.lightMapIntensity = RenderConfig.instance.lightmaps_intensity;
       material.lightMap.channel = channel;
       material.lightMap.flipY = false;

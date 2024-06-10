@@ -64,6 +64,23 @@ function run_toolbox(app) {
 	fpawn.add(pawn_conf, "movement_speed", 1e-4, 10);
 	fpawn.add(pawn_conf, "rotation_speed", 1e-4, 1);
 
+	{
+
+		const scenes = {
+			a: () => {
+				app.playspace.open_playscene("a");
+			},
+			b: () => {
+				app.playspace.open_playscene("b");
+			}
+		}
+
+		const fscenes = gui.addFolder("scenes");
+		fscenes.add(scenes, "a");
+		fscenes.add(scenes, "b");
+
+	}
+
 
 	{
 		const scenes = [];

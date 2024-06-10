@@ -76,11 +76,11 @@ class Playspace {
 
     // scene
     {
-			this.open_playscene("b");
+      this.open_playscene("b");
       this.add_gltf("pawn.glb").then((scene) => {
         this.camera_controller.set_target(scene);
         this.pawn_controller.set_target(scene);
-				LightsA.apply_lightmaps_white(scene);
+        LightsA.apply_lightmaps_white(scene);
       });
     }
 
@@ -90,24 +90,35 @@ class Playspace {
     return this;
   }
 
-	open_playscene(name, lightmaps = true) {
-		const load = (config) => {
-			this.add_gltf(`scenes/${name}/scene.glb`).then((scene) => {
-				if (config) {
-					LightsA.apply_lightmaps(scene, config);
-				}
-				LightsA.apply_lightmaps_white(scene);
-			});
-		}
+  open_playscene(name, lightmaps = true) {
+		const root_path = `scenes/${name}/`;
+    const load = (config) => {
+      this.close_playscene();
 
-		if (lightmaps) {
-			Loader.instance.get_json(`scenes/${name}/lightmaps/config.json`).then((config) => {
-				load(config);
-			});
-		} else {
-				load(null);
-		}
-	}
+      this.add_gltf(root_path + `scene.glb`).then((scene) => {
+        this.playscene = scene;
+        if (config) {
+          LightsA.apply_lightmaps(scene, config);
+        }
+        LightsA.apply_lightmaps_white(scene);
+      });
+    };
+
+    if (lightmaps) {
+      Loader.instance
+        .get_json(root_path + `lightmaps/config.json`)
+        .then((config) => {
+          load(config);
+        });
+    } else {
+      load(null);
+    }
+  }
+
+  close_playscene() {
+    this.playscene?.removeFromParent();
+    this.playscene = null;
+  }
 
   add_gltf(url, add_to_scene = true) {
     return Loader.instance.get_gltf(url).then((gltf) => {
@@ -131,7 +142,7 @@ class Playspace {
 
       this._scene.add(scene);
 
-      return gltf.scene;
+      return scene;
     });
   }
 
@@ -163,8 +174,7 @@ class Playspace {
     this._scene.fog = null;
     this._scene.background = null;
     this.lights.stop();
-		this.playscene?.removeFromParent();
-		this.playscene = null;
+    this.close_playscene();
   }
 
   dispose() {
