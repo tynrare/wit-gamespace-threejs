@@ -131,7 +131,7 @@ function run_inputs(canvas, app) {
   function pointerdown(ev) {
     const start_x = ev.clientX ?? ev.changedTouches[0]?.clientX ?? 0;
     const start_y = ev.clientY ?? ev.changedTouches[0]?.clientY ?? 0;
-		const touch_identifier = ev.changedTouches[0]?.identifier ?? 0;
+		const touch_identifier = (ev.changedTouches && ev.changedTouches[0]?.identifier) ?? 0;
 
     /** @type {JoystickEl} */
 		let joystick = null;
@@ -214,7 +214,7 @@ function run_inputs(canvas, app) {
 	}
 
   function pointermove(ev) {
-		if (ev.touches.length) {
+		if (ev.touches?.length) {
 			for (let i = 0; i < ev.touches?.length; i++) {
 				const touch = ev.touches[i];
 				const touch_identifier = touch.identifier;
@@ -229,7 +229,7 @@ function run_inputs(canvas, app) {
   }
 
   function pointerup(ev) {
-		const touch_identifier = ev.changedTouches[0]?.identifier ?? 0;
+		const touch_identifier = (ev.changedTouches && ev.changedTouches[0]?.identifier) ?? 0;
 
 		/** @type {JoystickEl} */
 		let joystick = null;

@@ -70,7 +70,7 @@ class LightsA {
       .negate();
     this.csm = new CSM({
       maxFar: 1000,
-      cascades: 4,
+      cascades: 6,
       mode: "practical",
       parent: scene,
       shadowMapSize: 2048,
