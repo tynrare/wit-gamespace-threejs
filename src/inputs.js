@@ -98,6 +98,11 @@ function run_inputs(canvas, app) {
     return joystick;
   };
 
+	const tag_to_action = {
+		"movement": InputAction.action_a,
+		"attack": InputAction.action_b
+	}
+
 	access_joystick('movement', "screen_joystic_movement");
 	access_joystick('attack', "screen_joystic_attack");
 
@@ -160,6 +165,8 @@ function run_inputs(canvas, app) {
     const threshold = AppConfig.instance.input_movement_threshold;
     joystick.deadzone.style.width = threshold * 100 + "%";
     joystick.deadzone.style.height = threshold * 100 + "%";
+
+		app.input(tag_to_action[joystick.tag], true);
 
     ev.preventDefault();
     ev.stopImmediatePropagation();
@@ -253,6 +260,7 @@ function run_inputs(canvas, app) {
     joystick.pimp.classList.remove("active");
     joystick.pimp.classList.remove("visible");
 
+		app.input(tag_to_action[joystick.tag], false);
     app.input_analog(0, 0, joystick.tag);
 
     ev.preventDefault();

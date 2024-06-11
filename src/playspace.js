@@ -1,9 +1,10 @@
-/** @namespace Render */
+/** @namespace Gamespace */
 
 import * as THREE from "three";
 import Loader from "./loader.js";
 import CameraTopdown from "./camera_topdown.js";
 import PawnTankA from "./pawn_tank_a.js";
+import ProjectilesSystem from "./projectiles_system.js";
 import { clamp } from "./math.js";
 import Render from "./render.js";
 import { RenderConfig } from "./config.js";
@@ -15,7 +16,7 @@ import { InputAction } from "./inputs.js";
  * basic threejs stage
  *
  * @class Playspace
- * @memberof Render
+ * @memberof Gamespace
  */
 class Playspace {
   constructor() {
@@ -31,8 +32,14 @@ class Playspace {
     this.camera_controller = null;
     /** @type {PawnTankA} */
     this.pawn_controller = null;
+    /** @type {ProjectilesSystem} */
+    this.projectiles_system = null;
     /** @type {LightsA} */
     this.lights = null;
+
+    this.cache = {
+      v3: new THREE.Vector3(),
+    };
   }
 
   /**
@@ -42,6 +49,7 @@ class Playspace {
     this._scene = scene;
     this.camera_controller = new CameraTopdown();
     this.pawn_controller = new PawnTankA();
+		this.projectiles_system = new ProjectilesSystem().init(scene);
 
     return this;
   }
@@ -86,6 +94,7 @@ class Playspace {
 
     this.camera_controller.set_camera(render.camera);
     this.pawn_controller.set_camera(render.camera);
+    this.pawn_controller.set_scene(this._scene);
 
     return this;
   }
@@ -150,6 +159,7 @@ class Playspace {
     this.camera_controller.step(dt);
     this.pawn_controller.step(dt);
     this.lights.step();
+		this.projectiles_system.step(dt);
   }
 
   /**
@@ -158,8 +168,20 @@ class Playspace {
    */
   input(action, start) {
     this.pawn_controller.input(action, start);
-    const d = this.pawn_controller.direction;
-    this.camera_controller.direction.set(d.x, d.y);
+		const gun = this.pawn_controller.pawn_tank_gun_a;
+
+		switch(action) {
+			case InputAction.action_b:
+				if (!start) {
+					this.projectiles_system.spawn(gun.origin, gun.direction);
+					/*
+					const dir = this.cache.v3.copy(gun.direction).negate();
+					dir.multiplyScalar(1e-1);
+					this.pawn_controller._target.position.add(dir);
+					*/
+				}
+				break;
+		}
   }
 
 	/**
@@ -169,8 +191,6 @@ class Playspace {
 	*/
   input_analog(x, y, tag) {
 		this.pawn_controller.input_analog(clamp(-1, 1, x), clamp(-1, 1, y), tag);
-		const d = this.pawn_controller.direction;
-		this.camera_controller.direction.set(d.x, d.y);
   }
 
   stop() {
@@ -189,6 +209,8 @@ class Playspace {
     this.camera_controller = null;
     this.pawn_controller?.cleanup();
     this.pawn_controller = null;
+		this.projectiles_system?.dispose();
+    this.projectiles_system = null;
   }
 }
 

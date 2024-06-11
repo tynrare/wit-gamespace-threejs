@@ -21,9 +21,6 @@ class CameraTopdown {
     this._target_lpos = new Vector3();
     this._camera_lpos = new Vector3();
 
-    // input pawn direction update required to correct target angles
-    this.direction = new Vector2();
-
     this.cache = {
       v3: new Vector3(),
     };

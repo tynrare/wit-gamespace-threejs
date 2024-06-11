@@ -7,6 +7,7 @@ import { Vec3Up, Vec3Forward, angle_sub, lerp } from "./math.js";
 import { PawnConfig } from "./config.js";
 import VfxMeshWobble from "./vfx_mesh_wobble.js";
 import VfxPawnTankA from "./vfx_pawn_tank_a.js";
+import PawnTankGunA from "./pawn_tank_gun_a.js";
 
 /**
  * Controls pawn.
@@ -20,10 +21,14 @@ class PawnTankA {
     this._camera = null;
     /** @type {THREE.Object3D} */
     this._target = null;
+    /** @type {THREE.Scene} */
+    this._scene = null;
     /** @type {VfxMeshWobble} */
     this.vfx_mesh_wobble = new VfxMeshWobble();
     /** @type {VfxPawnTankA} */
     this.vfx_pawn_tank = new VfxPawnTankA();
+    /** @type {PawnTankGunA} */
+		this.pawn_tank_gun_a = new PawnTankGunA();
 
     this.direction = new THREE.Vector3();
 
@@ -150,7 +155,13 @@ class PawnTankA {
         break;
       case "attack":
 				let input_direction = this.cache.v3.set(-x, y, 0).normalize();
+				// camera-space rotation
 				input_direction.applyAxisAngle(Vec3Up, this._camera.rotation.z);
+
+				// set shoot direction
+				this.pawn_tank_gun_a.set_direction(this._target.position, input_direction);
+
+				// substract local rotation
 				input_direction.applyAxisAngle(Vec3Up, -this._target.rotation.z);
 				this.vfx_pawn_tank.look_at(input_direction.x, input_direction.y);
         break;
@@ -165,6 +176,14 @@ class PawnTankA {
   }
 
   /**
+   * @param {THREE.Scene} scene .
+   */
+  set_scene(scene) {
+    this._scene = scene;
+    this.pawn_tank_gun_a.set_scene(scene);
+  }
+
+  /**
    * @param {THREE.Object3D} target .
    */
   set_target(target) {
@@ -176,8 +195,10 @@ class PawnTankA {
   cleanup() {
     this._camera = null;
     this._target = null;
+    this._scene = null;
     this.vfx_mesh_wobble.cleanup();
     this.vfx_pawn_tank.cleanup();
+		this.pawn_tank_gun_a.cleanup();
   }
 }
 
