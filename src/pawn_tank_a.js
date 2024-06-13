@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { InputAction } from "./inputs.js";
-import { Vec3Up, Vec3Forward, angle_sub, lerp } from "./math.js";
+import { Vec3Up, Vec3Forward, angle_sub, dlerp } from "./math.js";
 import { PawnConfig } from "./config.js";
 import VfxMeshWobble from "./vfx_mesh_wobble.js";
 import VfxPawnTankA from "./vfx_pawn_tank_a.js";
@@ -38,6 +38,8 @@ class PawnTankA {
       v3: new Vector3(),
       v3_0: new Vector3(),
     };
+
+		this.impulse = new Vector3();
 
     this.config = new PawnConfig();
   }
@@ -85,17 +87,26 @@ class PawnTankA {
     // rotate
     this._target.rotation.z += rotate;
 
-    // move
-    this.lacceleration = lerp(
+    // move - inputs
+    this.lacceleration = dlerp(
       this.lacceleration,
       accelerate,
       this.config.acceleration_factor,
+			dt * 1e-3
     );
     const speed = this.lacceleration * this.config.movement_speed;
 
     facing_direction.multiplyScalar(speed);
 
     this._target.position.add(facing_direction);
+
+		// d240613 move - impulse
+		const step_impulse = this.cache.v3.copy(this.impulse);
+		step_impulse.multiplyScalar(1 / this.config.mass * df);
+		this.impulse.sub(step_impulse);
+    this._target.position.add(step_impulse);
+
+		this.vfx_mesh_wobble.impulse.copy(step_impulse.negate());
 
     this.vfx_mesh_wobble.step(dt);
     this.vfx_pawn_tank.step(dt);

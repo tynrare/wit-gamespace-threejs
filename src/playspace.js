@@ -174,11 +174,9 @@ class Playspace {
 			case InputAction.action_b:
 				if (!start) {
 					this.projectiles_system.spawn(gun.origin, gun.direction);
-					/*
 					const dir = this.cache.v3.copy(gun.direction).negate();
-					dir.multiplyScalar(1e-1);
-					this.pawn_controller._target.position.add(dir);
-					*/
+					//dir.multiplyScalar(1e-1);
+					this.pawn_controller.impulse.add(dir);
 				}
 				break;
 		}

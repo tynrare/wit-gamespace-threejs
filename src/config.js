@@ -90,7 +90,7 @@ class PawnConfig {
     /*
      * @type {number}
      */
-		this.acceleration_factor = 0.2;
+		this.acceleration_factor = 0.4;
 
     /**
      * @type {number}
@@ -104,6 +104,8 @@ class PawnConfig {
      * @type {number}
      */
     this.steer_threshold = 0;
+
+		this.mass = 10;
   }
 }
 

@@ -1,5 +1,12 @@
 import * as THREE from "three";
-import { Vec3Up, Vec3Forward, Vec3Right, angle_sub, lerp } from "./math.js";
+import {
+  Vec3Up,
+  Vec3Forward,
+  Vec3Right,
+  angle_sub,
+  dlerp,
+  dlerp_vec3,
+} from "./math.js";
 
 class VfxMeshWobble {
   constructor() {
@@ -8,15 +15,17 @@ class VfxMeshWobble {
     this.velocity = new THREE.Vector3();
     this.acceleration = new THREE.Vector3();
     this.position = new THREE.Vector3();
-		this.torque = new THREE.Vector3();
-		this.rotation = new THREE.Vector3();
+    this.torque = new THREE.Vector3();
+    this.rotation = new THREE.Vector3();
+    this.impulse = new THREE.Vector3();
 
     this.cache = {
       v3: new THREE.Vector3(),
       v3_0: new THREE.Vector3(),
+      v3_1: new THREE.Vector3(),
     };
 
-		this.max_z = 0;
+    this.max_z = 0;
     this.origins = {};
   }
 
@@ -25,7 +34,9 @@ class VfxMeshWobble {
       return;
     }
 
-		// --- calc properties
+    const sdt = dt * 1e-3;
+
+    // --- calc properties
 
     const velocity = this.cache.v3
       .copy(this._target.position)
@@ -33,16 +44,23 @@ class VfxMeshWobble {
       .applyAxisAngle(Vec3Up, -this._target.rotation.z);
 
     const acceleration = this.cache.v3_0.copy(velocity).sub(this.velocity);
+		acceleration.multiplyScalar(6);
+
+    const impulse = this.cache.v3_1
+      .copy(this.impulse)
+      .multiplyScalar(6)
+      .applyAxisAngle(Vec3Up, -this._target.rotation.z);
+		acceleration.add(impulse);
 
     this.velocity.copy(velocity);
-    this.acceleration.lerp(acceleration, 0.1);
+    dlerp_vec3(this.acceleration, acceleration, 0.6, sdt);
     this.position.copy(this._target.position);
 
-		this.torque.copy(this.rotation.sub(this._target.rotation));
-		this.rotation.copy(this._target.rotation);
+    this.torque.copy(this.rotation.sub(this._target.rotation));
+    this.rotation.copy(this._target.rotation);
 
-		// --- apply wobble
-		
+    // --- apply wobble
+
     this._target.traverse((o) => {
       if (o === this._target) {
         return;
@@ -51,18 +69,20 @@ class VfxMeshWobble {
       const origin = this.origins[o.id];
       const pos = this.cache.v3.copy(origin);
 
-			const f0 = origin.z / this.max_z;
+      const f0 = origin.z / this.max_z;
 
-      const rotx = this.acceleration.y * f0 * 10;
-      const roty = (this.acceleration.x - this.torque.z) * f0;
+      const rot = this.cache.v3_0.copy(origin);
+			rot.x = this.acceleration.y * f0;
+			rot.y = -(this.acceleration.x + this.torque.z * 2) * f0;
+			//rot.applyAxisAngle(Vec3Up, o.rotation.z);
 
-      pos.applyAxisAngle(Vec3Right, rotx);
-      pos.applyAxisAngle(Vec3Forward, roty * 0.3);
+      pos.applyAxisAngle(Vec3Right, rot.x);
+      pos.applyAxisAngle(Vec3Forward, rot.y * 0.3);
 
-      o.position.lerp(pos, 0.1);
+      dlerp_vec3(o.position, pos, 1, sdt);
 
-      o.rotation.x = lerp(o.rotation.x, rotx, 0.3);
-      o.rotation.y = lerp(o.rotation.y, roty, 0.3);
+      o.rotation.x = dlerp(o.rotation.x, rot.x, 0.3, sdt);
+      o.rotation.y = dlerp(o.rotation.y, rot.y, 0.3, sdt);
     });
   }
 
@@ -75,17 +95,17 @@ class VfxMeshWobble {
     this.acceleration.set(0, 0, 0);
     this.velocity.set(0, 0, 0);
     this.origins = {};
-		this.max_z = 0;
+    this.max_z = 0;
 
     target.traverse((o) => {
       this.origins[o.id] = new THREE.Vector3().copy(o.position);
-			this.max_z = Math.max(this.max_z, o.position.y);
+      this.max_z = Math.max(this.max_z, o.position.y);
     });
   }
 
   cleanup() {
     this._target = null;
-		this.max_z = 0;
+    this.max_z = 0;
     this.origins = {};
   }
 }
