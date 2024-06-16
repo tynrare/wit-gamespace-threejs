@@ -9,6 +9,7 @@ import { clamp } from "./math.js";
 import Render from "./render.js";
 import { RenderConfig } from "./config.js";
 import LightsA from "./lights_a.js";
+import Navmesh from "./navmesh.js";
 
 import { InputAction } from "./inputs.js";
 
@@ -36,6 +37,8 @@ class Playspace {
     this.projectiles_system = null;
     /** @type {LightsA} */
     this.lights = null;
+    /** @type {Navmesh} */
+    this.navmesh = null;
 
     this.cache = {
       v3: new THREE.Vector3(),
@@ -49,7 +52,8 @@ class Playspace {
     this._scene = scene;
     this.camera_controller = new CameraTopdown();
     this.pawn_controller = new PawnTankA();
-		this.projectiles_system = new ProjectilesSystem().init(scene);
+    this.projectiles_system = new ProjectilesSystem().init(scene);
+    this.navmesh = new Navmesh();
 
     return this;
   }
@@ -84,12 +88,18 @@ class Playspace {
 
     // scene
     {
-      this.open_playscene("b");
-      this.add_gltf("pawn.glb").then((scene) => {
+      const p1 = this.open_playscene("b");
+      const p2 = this.add_gltf("pawn.glb").then((scene) => {
         this.camera_controller.set_target(scene);
         this.pawn_controller.set_target(scene);
         LightsA.apply_lightmaps_white(scene);
       });
+
+      const load_callback = () => {
+        const id = this.navmesh.register(this.pawn_controller._target.position);
+        this.pawn_controller.navmesh_id = id;
+      };
+      Promise.all([p1, p2]).then(load_callback);
     }
 
     this.camera_controller.set_camera(render.camera);
@@ -100,28 +110,38 @@ class Playspace {
   }
 
   open_playscene(name, lightmaps = true) {
-		const root_path = `scenes/${name}/`;
-    const load = (config) => {
-      this.close_playscene();
+    return new Promise((resolve, reject) => {
+      const root_path = `scenes/${name}/`;
+      const load = (config) => {
+        this.close_playscene();
 
-      this.add_gltf(root_path + `scene.glb`).then((scene) => {
-        this.playscene = scene;
-        if (config) {
-          LightsA.apply_lightmaps(scene, config);
-        }
-        LightsA.apply_lightmaps_white(scene);
-      });
-    };
+        this.add_gltf(root_path + `scene.glb`).then((scene) => {
+          this.playscene = scene;
+          /** @type {THREE.Mesh} */
+          const navmesh = /** @type {any} */ (scene.getObjectByName("navmesh"));
+          if (navmesh) {
+            navmesh.material.wireframe = true;
+            this.navmesh.build(navmesh);
+          }
+          if (config) {
+            LightsA.apply_lightmaps(scene, config);
+          }
+          LightsA.apply_lightmaps_white(scene);
 
-    if (lightmaps) {
-      Loader.instance
-        .get_json(root_path + `lightmaps/config.json`)
-        .then((config) => {
-          load(config);
+          resolve();
         });
-    } else {
-      load(null);
-    }
+      };
+
+      if (lightmaps) {
+        Loader.instance
+          .get_json(root_path + `lightmaps/config.json`)
+          .then((config) => {
+            load(config);
+          });
+      } else {
+        load(null);
+      }
+    });
   }
 
   close_playscene() {
@@ -159,7 +179,17 @@ class Playspace {
     this.camera_controller.step(dt);
     this.pawn_controller.step(dt);
     this.lights.step();
-		this.projectiles_system.step(dt);
+    this.projectiles_system.step(dt);
+
+		const nid = this.pawn_controller.navmesh_id;
+		if (nid) {
+      const p = this.navmesh.move(
+        nid, 
+        this.pawn_controller._target.position,
+      );
+
+			this.pawn_controller._target.position.copy(p);
+    }
   }
 
   /**
@@ -168,27 +198,27 @@ class Playspace {
    */
   input(action, start) {
     this.pawn_controller.input(action, start);
-		const gun = this.pawn_controller.pawn_tank_gun_a;
+    const gun = this.pawn_controller.pawn_tank_gun_a;
 
-		switch(action) {
-			case InputAction.action_b:
-				if (!start) {
-					this.projectiles_system.spawn(gun.origin, gun.direction);
-					const dir = this.cache.v3.copy(gun.direction).negate();
-					//dir.multiplyScalar(1e-1);
-					this.pawn_controller.impulse.add(dir);
-				}
-				break;
-		}
+    switch (action) {
+      case InputAction.action_b:
+        if (!start) {
+          this.projectiles_system.spawn(gun.origin, gun.direction);
+          const dir = this.cache.v3.copy(gun.direction).negate();
+          //dir.multiplyScalar(1e-1);
+          this.pawn_controller.impulse.add(dir);
+        }
+        break;
+    }
   }
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {string} tag
-	*/
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param {string} tag
+   */
   input_analog(x, y, tag) {
-		this.pawn_controller.input_analog(clamp(-1, 1, x), clamp(-1, 1, y), tag);
+    this.pawn_controller.input_analog(clamp(-1, 1, x), clamp(-1, 1, y), tag);
   }
 
   stop() {
@@ -198,16 +228,18 @@ class Playspace {
     this._scene.background = null;
     this.lights.stop();
     this.close_playscene();
+    this.navmesh?.dispose();
   }
 
   dispose() {
     this.stop();
     this._scene = null;
+    this.navmesh = null;
     this.camera_controller?.cleanup();
     this.camera_controller = null;
     this.pawn_controller?.cleanup();
     this.pawn_controller = null;
-		this.projectiles_system?.dispose();
+    this.projectiles_system?.dispose();
     this.projectiles_system = null;
   }
 }

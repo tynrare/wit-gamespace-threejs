@@ -29,6 +29,8 @@ class PawnTankA {
     this.vfx_pawn_tank = new VfxPawnTankA();
     /** @type {PawnTankGunA} */
 		this.pawn_tank_gun_a = new PawnTankGunA();
+		/** @type {string} */
+		this.navmesh_id = null;
 
     this.direction = new THREE.Vector3();
 
