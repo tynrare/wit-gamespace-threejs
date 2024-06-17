@@ -10,6 +10,7 @@ import Render from "./render.js";
 import { RenderConfig } from "./config.js";
 import LightsA from "./lights_a.js";
 import Navmesh from "./navmesh.js";
+import MovementSystem from "./movement_system.js";
 
 import { InputAction } from "./inputs.js";
 
@@ -39,6 +40,8 @@ class Playspace {
     this.lights = null;
     /** @type {Navmesh} */
     this.navmesh = null;
+    /** @type {MovementSystem} */
+    this.movement_system = null;
 
     this.cache = {
       v3: new THREE.Vector3(),
@@ -52,8 +55,13 @@ class Playspace {
     this._scene = scene;
     this.camera_controller = new CameraTopdown();
     this.pawn_controller = new PawnTankA();
-    this.projectiles_system = new ProjectilesSystem().init(scene);
     this.navmesh = new Navmesh();
+    this.movement_system = new MovementSystem().init(this.navmesh);
+    this.projectiles_system = new ProjectilesSystem().init(
+      scene,
+      this.navmesh,
+      this.movement_system,
+    );
 
     return this;
   }
@@ -96,8 +104,20 @@ class Playspace {
       });
 
       const load_callback = () => {
-        const id = this.navmesh.register(this.pawn_controller._target.position);
-        this.pawn_controller.navmesh_id = id;
+        const pawn_entity = this.movement_system.add(
+          {
+            velocity: this.pawn_controller.velocity,
+            torque: this.pawn_controller.torque,
+          },
+          this.pawn_controller._target,
+        );
+
+        const npoint = this.navmesh.register(
+          this.pawn_controller._target.position,
+        );
+        this.pawn_controller.entity_id = pawn_entity.id;
+        pawn_entity.navmesh_id = npoint.id;
+        npoint.mask = 0xff0000;
       };
       Promise.all([p1, p2]).then(load_callback);
     }
@@ -180,16 +200,7 @@ class Playspace {
     this.pawn_controller.step(dt);
     this.lights.step();
     this.projectiles_system.step(dt);
-
-		const nid = this.pawn_controller.navmesh_id;
-		if (nid) {
-      const p = this.navmesh.move(
-        nid, 
-        this.pawn_controller._target.position,
-      );
-
-			this.pawn_controller._target.position.copy(p);
-    }
+    this.movement_system.step(dt);
   }
 
   /**
@@ -203,7 +214,13 @@ class Playspace {
     switch (action) {
       case InputAction.action_b:
         if (!start) {
-          this.projectiles_system.spawn(gun.origin, gun.direction);
+          const pawn_entity =
+            this.movement_system.entities[this.pawn_controller.entity_id];
+          this.projectiles_system.spawn(
+            pawn_entity.navmesh_id,
+            gun.origin,
+            gun.direction,
+          );
           const dir = this.cache.v3.copy(gun.direction).negate();
           //dir.multiplyScalar(1e-1);
           this.pawn_controller.impulse.add(dir);
@@ -241,6 +258,8 @@ class Playspace {
     this.pawn_controller = null;
     this.projectiles_system?.dispose();
     this.projectiles_system = null;
+    this.movement_system?.dispose();
+    this.movement_system = null;
   }
 }
 

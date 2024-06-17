@@ -1,13 +1,10 @@
  /** @namespace Core */
 
-import { Vector3, } from "three";
+import { Vector3, Color } from "three";
 
 export const Vec3Up = new Vector3(0, 0, 1);
 export const Vec3Forward = new Vector3(0, 1, 0);
 export const Vec3Right = new Vector3(1, 0, 0);
-export const v3cache = {
-	v_0: new Vector3()
-}
 
 /**
  * @param {import("three").Vector3} v1 changed inplace
@@ -74,7 +71,8 @@ export const cache = {
 		v7: new Vector3(),
 		v8: new Vector3(),
 		v9: new Vector3()
-	}
+	},
+	color0: new Color()
 };
 
 // buffer vectors

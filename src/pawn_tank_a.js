@@ -29,12 +29,17 @@ class PawnTankA {
     this.vfx_pawn_tank = new VfxPawnTankA();
     /** @type {PawnTankGunA} */
 		this.pawn_tank_gun_a = new PawnTankGunA();
-		/** @type {string} */
-		this.navmesh_id = null;
 
     this.direction = new THREE.Vector3();
 
+		/** @type {string?} */
+		this.entity_id = null;
+
     this.lacceleration = 0;
+
+		// interface for MovementSystem
+		this.velocity = new THREE.Vector3();
+		this.torque = new THREE.Vector3();
 
     this.cache = {
       v3: new Vector3(),
@@ -87,7 +92,7 @@ class PawnTankA {
     }
 
     // rotate
-    this._target.rotation.z += rotate;
+		this.torque.z = rotate;
 
     // move - inputs
     this.lacceleration = dlerp(
@@ -100,13 +105,13 @@ class PawnTankA {
 
     facing_direction.multiplyScalar(speed);
 
-    this._target.position.add(facing_direction);
+		this.velocity.copy(facing_direction);
 
 		// d240613 move - impulse
 		const step_impulse = this.cache.v3.copy(this.impulse);
 		step_impulse.multiplyScalar(1 / this.config.mass * df);
 		this.impulse.sub(step_impulse);
-    this._target.position.add(step_impulse);
+		this.velocity.add(step_impulse);
 
 		this.vfx_mesh_wobble.impulse.copy(step_impulse.negate());
 
