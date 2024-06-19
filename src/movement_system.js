@@ -1,7 +1,7 @@
 /** @namespace Gamespace */
 import * as THREE from "three";
 import Navmesh from "./navmesh.js";
-import { cache, Vec3Up, Vec3Right, Vec3Forward } from "./math.js";
+import { vec_align_to_normal, cache, Vec3Up, Vec3Right, Vec3Forward } from "./math.js";
 
 /**
  * @typedef MovementEntityProperties
@@ -66,20 +66,18 @@ class MovementSystem {
         continue;
       }
 
-      const pos = cache.vec3.v0.copy(e.target.position);
-			const a = cache.vec3.v1.copy(Vec3Up);
-			const b = cache.vec3.v2.copy(Vec3Forward);
-			const vel = cache.vec3.v3.copy(e.properties.velocity);
-
-			b.applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(e.target.matrixWorld));
-			var quaternion = new THREE.Quaternion();
-			quaternion.setFromAxisAngle( a.add(b) , Math.PI );
-			//vel.applyQuaternion( quaternion );
-      pos.add(vel);
+      const pos = cache.vec3.v6.copy(e.target.position);
+			const vel = cache.vec3.v7.copy(e.properties.velocity);
 
       if (e.navmesh_id) {
+				const point = this._navmesh.points[e.navmesh_id];
+				//vel.copy(vec_align_to_normal(vel, point.face.normal, e.target.matrixWorld));
+				pos.add(vel);
         pos.copy(this._navmesh.move(e.navmesh_id, pos));
-      }
+				//obj_align_to_normal(e.target, point.face.normal, e.target.matrixWorld);
+      } else {
+				pos.add(vel);
+			}
 
       e.target.position.copy(pos);
       if (e.properties.torque) {

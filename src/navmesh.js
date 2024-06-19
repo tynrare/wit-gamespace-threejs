@@ -213,11 +213,11 @@ class Navmesh {
    * @returns {number} .
    */
   _fohash(a, b, c = 1.1) {
-    const hash =
-      a * 100 -
-      b * 10 -
-      c +
-      Math.log(Math.abs((a * 100 || 1.1) / (b * 10 || 1.1) / (c || 1.1)) + 1);
+		const aa = ((a || 1.1) + 1.1) * 100;
+		const bb = ((b || 1.1) + 1.1) * 10;
+		const cc = ((c || 1.1) + 1.1) * 1;
+    const hash = aa - bb - cc +
+      Math.log(Math.abs(aa / bb / cc) + 1);
     return hash;
   }
 

@@ -1,6 +1,6 @@
  /** @namespace Core */
 
-import { Vector3, Color } from "three";
+import { Object3D, Quaternion, Matrix4, Vector3, Color } from "three";
 
 export const Vec3Up = new Vector3(0, 0, 1);
 export const Vec3Forward = new Vector3(0, 1, 0);
@@ -74,7 +74,8 @@ export const cache = {
 		v8: new Vector3(),
 		v9: new Vector3()
 	},
-	color0: new Color()
+	color0: new Color(),
+	quaternion0: new Quaternion()
 };
 
 // buffer vectors
@@ -84,6 +85,38 @@ const vec2 = cache.vec3.v2;
 const vec3 = cache.vec3.v3;
 const vec4 = cache.vec3.v4;
 const vecR = cache.vec3.v5; // functions return this vector
+
+/**
+ * https://github.com/BabylonJS/Babylon.js/blob/master/src/Maths/math.vector.ts#L1585
+ *
+ * @param {Vector3} axis local axis
+ * @param {Matrix4} matrix world matrix
+ * @returns {Vector3} world axis
+ */
+export function get_direction(axis, matrix) {
+	const mat = matrix.elements;
+
+	return vecR.set(
+		axis.x * mat[0] + axis.y * mat[4] + axis.z * mat[8],
+		axis.x * mat[1] + axis.y * mat[5] + axis.z * mat[9],
+		axis.x * mat[2] + axis.y * mat[6] + axis.z * mat[10]
+	);
+}
+
+/**
+ * @param {Vector3} vector vector to rotate
+ * @param {Vector3} normal .
+ * @param {Matrix4} matrix .
+ */
+export function vec_align_to_normal(vector, normal, matrix) {
+	const nx = vec0.copy(get_direction(Vec3Forward, matrix));
+	const nz = vec1.copy(get_direction(Vec3Right, matrix));
+	const vec = vecR.copy(vector);
+	vec.applyAxisAngle(Vec3Right, normal.dot(nx));
+	vec.applyAxisAngle(Vec3Up, normal.dot(nz));
+
+	return vec;
+}
 
 /**
  * @param {Vector3} a .
