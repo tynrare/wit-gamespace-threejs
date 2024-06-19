@@ -74,8 +74,8 @@ class MovementSystem {
 			b.applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(e.target.matrixWorld));
 			var quaternion = new THREE.Quaternion();
 			quaternion.setFromAxisAngle( a.add(b) , Math.PI );
-			vel.applyQuaternion( quaternion );
-      pos.sub(vel);
+			//vel.applyQuaternion( quaternion );
+      pos.add(vel);
 
       if (e.navmesh_id) {
         pos.copy(this._navmesh.move(e.navmesh_id, pos));
