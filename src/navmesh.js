@@ -194,11 +194,52 @@ class Navmesh {
    * @param {number} a
    * @param {number} b
    * @param {number} [c]
-   * @returns {string} .
+   * @returns {number} .
+   */
+  _fhash(a, b, c = 1.1) {
+    const hash =
+      a + b + c + Math.log(Math.abs((a || 1.1) * (b || 1.1) * (c || 1.1)) + 1);
+    return hash;
+  }
+
+  /**
+   * @param {number} a
+   * @param {number} b
+   * @param {number} [c]
+   * @returns {number} .
    */
   _hash(a, b, c = 1.1) {
-    const hash = a + b + c + Math.log(a * b * c + 1) / (a + b + c);
-    return "h" + Math.round(hash * 1e12);
+    return Math.round(this._fhash(a, b, c) * 1e10);
+  }
+
+  /**
+   * @param {number} a
+   * @param {number} b
+   * @param {number} [c]
+   * @returns {string} .
+   */
+  _shash(a, b, c = 1.1) {
+    return "h" + this._hash(a, b, c);
+  }
+
+  /**
+   * @param {...number} args
+   * @returns {string} .
+   */
+  _slhash(...args) {
+    return this._shash(
+      this._fhash(args[0] ?? 1.1, args[1] ?? 1.1, args[2] ?? 1.1),
+      this._fhash(args[3] ?? 1.1, args[4] ?? 1.1, args[5] ?? 1.1),
+    );
+  }
+
+  /**
+   * @param {THREE.Vector3} v1
+   * @param {THREE.Vector3} v2
+   * @returns {string} .
+   */
+  _svechash(v1, v2) {
+    return this._slhash(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
   }
 
   /**
@@ -389,16 +430,21 @@ class Navmesh {
           c[id3 + 2],
         ));
 
-      const hash1 = this._hash(id1, id2);
-      const hash2 = this._hash(id2, id3);
-      const hash3 = this._hash(id3, id1);
+			/*
+      const hash1 = this._svechash(v1.pos, v2.pos);
+      const hash2 = this._svechash(v2.pos, v3.pos);
+      const hash3 = this._svechash(v3.pos, v1.pos);
+			*/
+			const hash1 = this._shash(id1, id2);
+			const hash2 = this._shash(id2, id3);
+			const hash3 = this._shash(id3, id1);
       const e1 =
         this.edges[hash1] ?? (this.edges[hash1] = new Edge(hash1, v1, v2));
       const e2 =
         this.edges[hash2] ?? (this.edges[hash2] = new Edge(hash2, v2, v3));
       const e3 =
         this.edges[hash3] ?? (this.edges[hash3] = new Edge(hash3, v3, v1));
-      const hashf = this._hash(id1, id2, id3);
+      const hashf = this._shash(id1, id2, id3);
       const face = new Face(hashf, v1, v2, v3, e1, e2, e3);
       this.faces[hashf] = face;
     }
@@ -409,6 +455,7 @@ class Navmesh {
       this.faces[k].dispose();
     }
 
+    this.points = {};
     this.verticies = {};
     this.edges = {};
     this.faces = {};

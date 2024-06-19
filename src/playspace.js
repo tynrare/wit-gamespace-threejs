@@ -165,6 +165,7 @@ class Playspace {
   }
 
   close_playscene() {
+		this.navmesh?.dispose();
     this.playscene?.removeFromParent();
     this.playscene = null;
   }
