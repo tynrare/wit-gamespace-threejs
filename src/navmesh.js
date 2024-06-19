@@ -191,6 +191,8 @@ class Navmesh {
   }
 
   /**
+   * Base hash value. Unordered
+   *
    * @param {number} a
    * @param {number} b
    * @param {number} [c]
@@ -203,6 +205,25 @@ class Navmesh {
   }
 
   /**
+   * Base hash value. Ordered
+   *
+   * @param {number} a
+   * @param {number} b
+   * @param {number} [c]
+   * @returns {number} .
+   */
+  _fohash(a, b, c = 1.1) {
+    const hash =
+      a * 100 -
+      b * 10 -
+      c +
+      Math.log(Math.abs((a * 100 || 1.1) / (b * 10 || 1.1) / (c || 1.1)) + 1);
+    return hash;
+  }
+
+  /**
+   * Default has value
+   *
    * @param {number} a
    * @param {number} b
    * @param {number} [c]
@@ -213,6 +234,8 @@ class Navmesh {
   }
 
   /**
+   * hash string
+   *
    * @param {number} a
    * @param {number} b
    * @param {number} [c]
@@ -223,23 +246,17 @@ class Navmesh {
   }
 
   /**
-   * @param {...number} args
-   * @returns {string} .
-   */
-  _slhash(...args) {
-    return this._shash(
-      this._fhash(args[0] ?? 1.1, args[1] ?? 1.1, args[2] ?? 1.1),
-      this._fhash(args[3] ?? 1.1, args[4] ?? 1.1, args[5] ?? 1.1),
-    );
-  }
-
-  /**
+   * Hash from vectors
+   *
    * @param {THREE.Vector3} v1
    * @param {THREE.Vector3} v2
    * @returns {string} .
    */
   _svechash(v1, v2) {
-    return this._slhash(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+    return this._shash(
+      this._fohash(v1.x, v1.y, v1.z),
+      this._fohash(v2.x, v2.y, v2.z),
+    );
   }
 
   /**
@@ -430,14 +447,14 @@ class Navmesh {
           c[id3 + 2],
         ));
 
-			/*
       const hash1 = this._svechash(v1.pos, v2.pos);
       const hash2 = this._svechash(v2.pos, v3.pos);
       const hash3 = this._svechash(v3.pos, v1.pos);
-			*/
+      /*
 			const hash1 = this._shash(id1, id2);
 			const hash2 = this._shash(id2, id3);
 			const hash3 = this._shash(id3, id1);
+			*/
       const e1 =
         this.edges[hash1] ?? (this.edges[hash1] = new Edge(hash1, v1, v2));
       const e2 =

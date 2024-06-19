@@ -46,6 +46,8 @@ export function dlerp(a, b, decay, dt) {
 	return b + (a - b) * Math.exp(-d * dt);
 }
 
+// -- hashes
+
 // -- 3d math
 
 /**
