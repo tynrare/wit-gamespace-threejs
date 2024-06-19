@@ -72,12 +72,20 @@ function run_toolbox(app) {
 			},
 			b: () => {
 				app.playspace.open_playscene("b");
-			}
+			},
+			c0: () => {
+				app.playspace.open_playscene("c0");
+			},
+			c1: () => {
+				app.playspace.open_playscene("c1");
+			},
 		}
 
 		const fscenes = gui.addFolder("scenes");
 		fscenes.add(scenes, "a");
 		fscenes.add(scenes, "b");
+		fscenes.add(scenes, "c0");
+		fscenes.add(scenes, "c1");
 
 	}
 
