@@ -18,6 +18,7 @@ class App {
   constructor() {
     this.active = false;
     this.timestamp = -1;
+		this.framelimit = 16;
 
     /** @type {Render} */
     this.render = null;
@@ -63,6 +64,10 @@ class App {
 
     const now = performance.now();
     const dt = Math.min(100, now - this.timestamp);
+		if (dt < this.framelimit) {
+			requestAnimationFrame(this.loop.bind(this));
+			return;
+		}
 		this.ldt = lerp(this.ldt, dt, 1e-1);
     this.timestamp = now;
 

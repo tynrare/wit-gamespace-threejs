@@ -23,6 +23,7 @@ function run_toolbox(app) {
   const render_conf = app.render.config;
 
   const fapp = gui.addFolder("app");
+	fapp.add(app, "framelimit", 2, 100);
 
   const frender = gui.addFolder("render");
 	frender.add(render_conf, "camera_fov", 10, 100).onChange((v) => {
