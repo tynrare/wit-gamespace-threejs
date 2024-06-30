@@ -2,10 +2,15 @@
 
 import * as THREE from "three";
 import Loader from "./loader.js";
+import CameraTopdown from "./camera_topdown.js";
+import PawnTankA from "./pawn_tank_a.js";
+import ProjectilesSystem from "./projectiles_system.js";
 import { clamp } from "./math.js";
 import Render from "./render.js";
 import { RenderConfig } from "./config.js";
 import LightsA from "./lights_a.js";
+import Navmesh from "./navmesh.js";
+import MovementSystem from "./movement_system.js";
 
 import { InputAction } from "./inputs.js";
 
@@ -25,6 +30,18 @@ class Playspace {
     this.cube = null;
     /** @type {THREE.Mesh} */
     this.plane = null;
+    /** @type {CameraTopdown} */
+    this.camera_controller = null;
+    /** @type {PawnTankA} */
+    this.pawn_controller = null;
+    /** @type {ProjectilesSystem} */
+    this.projectiles_system = null;
+    /** @type {LightsA} */
+    this.lights = null;
+    /** @type {Navmesh} */
+    this.navmesh = null;
+    /** @type {MovementSystem} */
+    this.movement_system = null;
 
     this.cache = {
       v3: new THREE.Vector3(),
@@ -36,6 +53,15 @@ class Playspace {
    */
   init(scene) {
     this._scene = scene;
+    this.camera_controller = new CameraTopdown();
+    this.pawn_controller = new PawnTankA();
+    this.navmesh = new Navmesh();
+    this.movement_system = new MovementSystem().init(this.navmesh);
+    this.projectiles_system = new ProjectilesSystem().init(
+      scene,
+      this.navmesh,
+      this.movement_system,
+    );
 
     return this;
   }
@@ -70,7 +96,35 @@ class Playspace {
 
     // scene
     {
+      const p1 = this.open_playscene("b");
+      const p2 = this.add_gltf("pawn.glb").then((scene) => {
+        this.camera_controller.set_target(scene);
+        this.pawn_controller.set_target(scene);
+        LightsA.apply_lightmaps_white(scene);
+      });
+
+      const load_callback = () => {
+        const pawn_entity = this.movement_system.add(
+          {
+            velocity: this.pawn_controller.velocity,
+            torque: this.pawn_controller.torque,
+          },
+          this.pawn_controller._target,
+        );
+
+        const npoint = this.navmesh.register(
+          this.pawn_controller._target.position,
+        );
+        this.pawn_controller.entity_id = pawn_entity.id;
+        pawn_entity.navmesh_id = npoint.id;
+        npoint.mask = 0xff0000;
+      };
+      Promise.all([p1, p2]).then(load_callback);
     }
+
+    this.camera_controller.set_camera(render.camera);
+    this.pawn_controller.set_camera(render.camera);
+    this.pawn_controller.set_scene(this._scene);
 
     return this;
   }
@@ -83,6 +137,12 @@ class Playspace {
 
         this.add_gltf(root_path + `scene.glb`).then((scene) => {
           this.playscene = scene;
+          /** @type {THREE.Mesh} */
+          const navmesh = /** @type {any} */ (scene.getObjectByName("navmesh"));
+          if (navmesh) {
+            navmesh.material.wireframe = true;
+            this.navmesh.build(navmesh);
+          }
           if (config) {
             LightsA.apply_lightmaps(scene, config);
           }
@@ -105,6 +165,7 @@ class Playspace {
   }
 
   close_playscene() {
+		this.navmesh?.dispose();
     this.playscene?.removeFromParent();
     this.playscene = null;
   }
@@ -136,7 +197,11 @@ class Playspace {
   }
 
   step(dt) {
+    this.camera_controller.step(dt);
+    this.pawn_controller.step(dt);
     this.lights.step();
+    this.projectiles_system.step(dt);
+    this.movement_system.step(dt);
   }
 
   /**
@@ -144,6 +209,25 @@ class Playspace {
    * @param {boolean} start .
    */
   input(action, start) {
+    this.pawn_controller.input(action, start);
+    const gun = this.pawn_controller.pawn_tank_gun_a;
+
+    switch (action) {
+      case InputAction.action_b:
+        if (!start) {
+          const pawn_entity =
+            this.movement_system.entities[this.pawn_controller.entity_id];
+          this.projectiles_system.spawn(
+            pawn_entity.navmesh_id,
+            gun.origin,
+            gun.direction,
+          );
+          const dir = this.cache.v3.copy(gun.direction).negate();
+          //dir.multiplyScalar(1e-1);
+          this.pawn_controller.impulse.add(dir);
+        }
+        break;
+    }
   }
 
   /**
@@ -152,6 +236,7 @@ class Playspace {
    * @param {string} tag
    */
   input_analog(x, y, tag) {
+    this.pawn_controller.input_analog(clamp(-1, 1, x), clamp(-1, 1, y), tag);
   }
 
   stop() {
@@ -161,11 +246,21 @@ class Playspace {
     this._scene.background = null;
     this.lights.stop();
     this.close_playscene();
+    this.navmesh?.dispose();
   }
 
   dispose() {
     this.stop();
     this._scene = null;
+    this.navmesh = null;
+    this.camera_controller?.cleanup();
+    this.camera_controller = null;
+    this.pawn_controller?.cleanup();
+    this.pawn_controller = null;
+    this.projectiles_system?.dispose();
+    this.projectiles_system = null;
+    this.movement_system?.dispose();
+    this.movement_system = null;
   }
 }
 
