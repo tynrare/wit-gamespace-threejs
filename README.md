@@ -2,7 +2,7 @@
 
 d240630
 
-frozen for now. look at [wit-gamespace-route](https://github.com/tynrare/wit-gamespace-route) for more information.
+frozen for now. look at [witgs-route](https://github.com/tynrare/witgs-route) for more information.
 
 d240531
 
