@@ -1,0 +1,13 @@
+#approot
+	page#doc: include:markdown-it(html plugins=['markdown-it-anchor']) index.md
+	page#mainmenu
+		root
+			a(href="#testcase1") test 1
+	page#testcase1
+		render.fill-abs
+		ui.abs
+
+	ui#stats.abs
+		a(href="#mainmenu") menu
+		#fps_stat x fps.
+		#loading_stat.hidden Loading...

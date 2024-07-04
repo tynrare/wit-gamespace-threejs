@@ -25,9 +25,12 @@ class Render {
     this.camera = null;
     /** @type {THREE.WebGLRenderer} */
     this.renderer = null;
+    /** @type {HTMLElement} */
+    this.htmlcontainer = null;
 
     this.cache = new RenderCache();
-    this.config = new RenderConfig();
+		/** @type {RenderConfig} */
+    this.config = Object.create(RenderConfig);
 
     this.active = false;
   }
@@ -41,7 +44,7 @@ class Render {
       0.1,
       1000,
     );
-    camera.position.y = -5;
+    camera.position.y = 5;
     camera.position.z = 5;
     camera.lookAt(0, 0, 0);
 
@@ -55,15 +58,20 @@ class Render {
     return this;
   }
 
-  run() {
+  /**
+   * @param {HTMLElement} container .
+   */
+  run(container) {
+		this.htmlcontainer = container;
     const renderer = new THREE.WebGLRenderer({
-			antialias: true
+			antialias: this.config.antialias
 		});
 		renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize(this.viewport_w, this.viewport_h);
 		renderer.shadowMap.enabled = this.config.shadows;
 		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.body.appendChild(renderer.domElement);
+
+    this.htmlcontainer.appendChild(renderer.domElement);
 
     this.renderer = renderer;
     this._equilizer();
@@ -84,11 +92,15 @@ class Render {
 
   stop() {
     this.active = false;
+    this.scene?.clear();
+    this.camera?.clear();
     this.renderer?.domElement?.parentElement?.removeChild(
       this.renderer.domElement,
     );
     this.renderer?.dispose();
     this.renderer = null;
+
+    logger.log("Render stopped.");
   }
 
   dispose() {
@@ -97,6 +109,8 @@ class Render {
     this.scene = null;
     this.camera?.clear();
     this.camera = null;
+
+    logger.log("Render disposed.");
   }
 
   // ---

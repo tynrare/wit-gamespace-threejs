@@ -18,7 +18,7 @@ class Stats {
 	}
 
 	show_loading(active) {
-		this.loading_el.classList[active ? "add" : "remove"]("active");
+		this.loading_el.classList[active ? "remove" : "add"]("hidden");
 	}
 
   /**

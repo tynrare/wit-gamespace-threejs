@@ -1,23 +1,25 @@
 {
-  "name": "camera-thirdperson-threejs",
+  "name": "witgs-threejs",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
     "start": "vite --host",
     "build": "vite build",
     "doc": "jsdoc src -d dist/docs -R README.md",
     "build-n-doc": "npm run build && (npm run doc || true)"
   },
-  "author": "",
+  "author": "tynroar",
   "license": "ISC",
-  "dependencies": {
-    "lil-gui": "^0.19.2",
-    "three": "^0.164.1"
-  },
+  "description": "",
   "devDependencies": {
     "jsdoc": "^4.0.3",
+    "jstransformer-markdown-it": "^3.0.0",
     "less": "^4.2.0",
-    "vite": "^5.2.11"
+    "markdown-it-anchor": "^9.0.1",
+    "vite": "^5.3.2",
+    "vite-plugin-pug": "^0.3.2"
+  },
+  "dependencies": {
+    "three": "^0.166.1"
   }
 }

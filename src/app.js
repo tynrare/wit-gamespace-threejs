@@ -1,125 +1,166 @@
- /** @namespace Core */
+/** @namespace Core */
 
-import Render from "./render.js";
+import PageBase from "./page_base.js";
+import PageMainmenu from "./page_mainmenu.js";
+import PageTestcase1 from "./tests/page_testcase1.js";
 import logger from "./logger.js";
-import { InputAction } from "./inputs.js";
-import Playspace from "./playspace.js";
-import { lerp } from "./math.js";
+import Render from "./render.js";
 import Stats from "./stats.js";
-import Menu from "./menu.js";
+import Loop from "./loop.js";
 
 /**
- * Core class
- * @example new App().init().run()
+ * Core class. Handles hash changes and switches subapps
+ *
+ * @example App.instance.init().run()
  * @class App
  * @memberof Core
  */
 class App {
+  /**
+   * @private
+   */
   constructor() {
-    this.active = false;
-    this.timestamp = -1;
-		this.framelimit = 16;
+    this.config = {
+      base_location: "doc",
+    };
+    /** @type {PageBase} */
+    this.activepage = null;
+    /** @type {Object<string, PageBase>} */
+    this.pages = {
+      mainmenu: new PageMainmenu(),
+      testcase1: new PageTestcase1(),
+    };
 
     /** @type {Render} */
     this.render = null;
-    /** @type {Playspace} */
-    this.playspace = null;
-    /** 
-		 * in threejs dt has to be lerped for proper smooth movemets
-		 *
-		 * @type {number} 
-		 */
-		this.ldt = 100;
-  }
 
-  init() {
-    logger.log("App initializing..");
-    this.render = new Render().init();
-    this.playspace = new Playspace().init(this.render.scene);
+    /** @type {Loop} */
+    this.loop = null;
 
-		Stats.instance.init();
-
-    logger.log("App initialized.");
-    return this;
-  }
-
-  run() {
-    this.active = true;
-    this.timestamp = performance.now();
-
-    this.render.run();
-		this.playspace.run(this.render);
-
-    this.loop();
-
-    logger.log("App ran.");
-
-    return this;
-  }
-
-  loop() {
-    if (!this.active) {
-      return;
-    }
-
-    const now = performance.now();
-    const dt = Math.min(100, now - this.timestamp);
-		if (dt < this.framelimit) {
-			requestAnimationFrame(this.loop.bind(this));
-			return;
-		}
-		this.ldt = lerp(this.ldt, dt, 1e-1);
-    this.timestamp = now;
-
-    this.step(this.ldt);
-
-    requestAnimationFrame(this.loop.bind(this));
-  }
-
-  step(dt) {
-		Stats.instance.show_fps(dt);
-    this.render.step(dt);
-		this.playspace.step(dt);
+    /** @type {HTMLElement} */
+    this.container = null;
   }
 
   /**
-   * @param {InputAction} action .
-   * @param {boolean} start .
+   * @param {number} dt .
    */
-  input(action, start) {
-    if (!this.active) {
-      return;
+  step(dt) {
+    if (this.activepage) {
+      this.activepage.step(dt);
     }
-
-    this.playspace.input(action, start);
+    this.render.step(dt);
   }
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {string} tag
-	*/
-	input_analog(x, y, tag) {
-    if (!this.active) {
-      return;
-    }
+  /**
+   * starts loop
+   * @param {HTMLElement} container .
+   */
+  start(container) {
+    this.render.run(container);
+    this.loop.start();
+  }
 
-    this.playspace.input_analog(x, y, tag);
-	}
+  /**
+   * pauses loop
+   */
+  pause() {
+    this.render.stop();
+    this.loop.pause();
+  }
 
-  stop() {
-    this.active = false;
-    this.timestamp = -1;
-		this.playspace?.stop();
-    this.render?.stop();
+  /**
+   * @param {HTMLElement} container .
+   */
+  init(container) {
+    this.container = container;
+    this.render = new Render().init();
+    this.loop = new Loop().run();
+    this.loop.step = this.step.bind(this);
+
+    Stats.instance.init();
+
+    return this;
   }
 
   dispose() {
-    this.stop();
+    this.container = null;
     this.render?.dispose();
     this.render = null;
-		this.playspace?.dispose();
-		this.playspace = null;
+    this.loop?.stop();
+    this.loop = null;
+  }
+
+  run() {
+    if (!window.location.hash) {
+      window.location.hash = this.config.base_location;
+    }
+
+    this.onhashchange();
+
+    this._hashchange_listener = this.onhashchange.bind(this);
+    window.addEventListener("hashchange", this._hashchange_listener);
+
+    return this;
+  }
+
+  stop() {
+    window.removeEventListener("hashchange", this._hashchange_listener);
+    this._hashchange_listener = null;
+
+    this.closepage();
+  }
+
+  openpage(name) {
+    const page = this.pages[name];
+    if (!page) {
+      logger.warn(`App::openpage - page ${name} not found`);
+      return;
+    }
+
+    const containername = `page#${name}`;
+    const container = this.container.querySelector(containername);
+    if (!container) {
+      logger.error(
+        `App::openpage error - no container "${containername}" found`,
+      );
+      return;
+    }
+
+    this.activepage = page.init(container);
+    this.activepage.run();
+
+    logger.log(`App::openpage - page ${name} opened`);
+  }
+
+  closepage() {
+    if (!this.activepage) {
+      return;
+    }
+
+    this.activepage.stop();
+    this.activepage.dispose();
+    this.activepage = null;
+
+    logger.log(`App::closepage - active page closed`);
+  }
+
+  onhashchange() {
+    const hash = window.location.hash;
+    const pagename = hash.substring(1);
+
+    this.closepage();
+    this.openpage(pagename);
+  }
+
+  /**
+   * @returns {App} .
+   */
+  static get instance() {
+    if (!App._instance) {
+      App._instance = new App();
+    }
+
+    return App._instance;
   }
 }
 

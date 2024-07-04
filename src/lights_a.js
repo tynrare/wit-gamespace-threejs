@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import Render from "./render.js";
 import { CSM } from "three/addons/csm/CSM.js";
-import { RenderConfig } from "./config.js";
 import logger from "./logger.js";
 import Loader from "./loader.js";
 
@@ -36,10 +35,10 @@ class LightsA {
     this.lights.directional = directional;
     this.lights.ambient = ambient;
     this.lights.hemisphere = hemisphere;
-		this.enable(RenderConfig.instance.lights);
+		this.enable(render.config.lights);
 
-    if (RenderConfig.instance.shadows) {
-      if (RenderConfig.instance.cascaded_shadow_maps) {
+    if (render.config.shadows) {
+      if (render.config.cascaded_shadow_maps) {
         this._run_csm(render.camera, scene);
       } else {
         directional.castShadow = true;
@@ -125,7 +124,7 @@ class LightsA {
       /** @type {THREE.MeshStandardMaterial} */
       const material = /** @type {any} */ (m.material);
       material.lightMap = Loader.instance.get_texture(root_path + path);
-      material.lightMapIntensity = RenderConfig.instance.lightmaps_intensity;
+      material.lightMapIntensity = render.config.lightmaps_intensity;
       material.lightMap.channel = channel;
       material.lightMap.flipY = false;
     }
@@ -151,7 +150,7 @@ class LightsA {
       }
 
       material.lightMap = texture;
-      material.lightMapIntensity = RenderConfig.instance.lightmaps_intensity;
+      material.lightMapIntensity = render.config.lightmaps_intensity;
     });
   }
 }

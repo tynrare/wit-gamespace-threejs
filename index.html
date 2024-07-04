@@ -11,36 +11,14 @@
 		<meta name="x5-fullscreen" content="true"/>
 		<meta name="360-fullscreen" content="true"/>
 
-		<title>wit-gamespace-threejs</title>
+		<title>witgs-threejs</title>
 		<style>
 			body { margin: 0; }
 		</style>
 		<link rel="stylesheet" href="src/index.less">
 	</head>
 	<body>
-		<div id="stats">
-			<div id="fps_stat">x fps</div>
-			<div id="loading_stat">Loading...</div>
-		</div>
-		<div id="menu">
-		</div>
-
-		<div id="screen_joystic_movement" class="screen_joystick_root">
-			<div class="screen_joystick">
-				<div class="screen_joystick_deadzone">
-				</div>
-			</div>
-			<div class="screen_joystick_pimp"></div>
-		</div>
-
-		<div id="screen_joystic_attack" class="screen_joystick_root">
-			<div class="screen_joystick">
-				<div class="screen_joystick_deadzone">
-				</div>
-			</div>
-			<div class="screen_joystick_pimp"></div>
-		</div>
-
+		<pug src="src/index.pug" />
 		<script type="module" src="src/index.js"></script>
 	</body>
 </html>

@@ -2,7 +2,7 @@
 
 d240630
 
-frozen for now. look at [witgs-route](https://github.com/tynrare/witgs-route) for more information.
+look at [witgs-route](https://github.com/tynrare/witgs-route) for more information.
 
 d240531
 
@@ -29,3 +29,4 @@ build:
 ```
 > npm run build
 ```
+
