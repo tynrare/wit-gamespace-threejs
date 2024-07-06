@@ -7,6 +7,7 @@ import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
 import Loop from "./loop.js";
+import Session from "./session.js";
 
 /**
  * Core class. Handles hash changes and switches subapps
@@ -39,7 +40,12 @@ class App {
 
     /** @type {HTMLElement} */
     this.container = null;
-  }
+
+		/** @type {Session} */
+		this.session = null;
+		/** @type {Session} */
+		this.playsession = null;
+	}
 
   /**
    * @param {number} dt .
@@ -51,11 +57,21 @@ class App {
     this.render.step(dt);
   }
 
+	routine() {
+		this.session.save();
+		this.playsession.save();
+		Stats.instance.show_elapsed(this.session.elapsed);
+		Stats.instance.show_elapsed_global(this.session.elapsed_global);
+		Stats.instance.show_elapsed_play(this.playsession.elapsed);
+		Stats.instance.show_elapsed_play_global(this.playsession.elapsed_global);
+	}
+
   /**
    * starts loop
    * @param {HTMLElement} container .
    */
   start(container) {
+		this.playsession.start();
     this.render.run(container);
     this.loop.start();
   }
@@ -65,6 +81,7 @@ class App {
    */
   pause() {
     this.render.stop();
+		this.playsession.stop();
     this.loop.pause();
   }
 
@@ -73,8 +90,12 @@ class App {
    */
   init(container) {
     this.container = container;
+
+		this.session = new Session();
+		this.playsession = new Session("play");
+
     this.render = new Render().init();
-    this.loop = new Loop().run();
+    this.loop = new Loop();
     this.loop.step = this.step.bind(this);
 
     Stats.instance.init();
@@ -88,9 +109,14 @@ class App {
     this.render = null;
     this.loop?.stop();
     this.loop = null;
+		this.session = null;
+		this.playsession = null;
   }
 
   run() {
+		this.session.start();
+		this.loop.run();
+
     if (!window.location.hash) {
       window.location.hash = this.config.base_location;
     }
@@ -100,12 +126,18 @@ class App {
     this._hashchange_listener = this.onhashchange.bind(this);
     window.addEventListener("hashchange", this._hashchange_listener);
 
+		this.routine();
+		this._routine_timer_id = setInterval(this.routine.bind(this), 1000);
+
     return this;
   }
 
   stop() {
     window.removeEventListener("hashchange", this._hashchange_listener);
     this._hashchange_listener = null;
+
+		stopInterval(this._routine_timer_id);
+		this._routine_timer_id = null;
 
     this.closepage();
   }

@@ -1,13 +1,17 @@
 #approot
+	page#ds
+		p Этот мир добр, он не дает тебе сдохнуть. Окончательная смерть будет твоим и только твоим выбором. Как и не дает провалить…"обучение". Хочешь его прервать? Портал Отказа. Нет? Преподаватели сделают всё, чтобы ты получил необходимые знания, навыки и умения. Но тебе это не понравится, потому что твои интересы и пожелания не учитываются. Скорее, наоборот.
 	page#doc
-		root: include:markdown-it(html plugins=['markdown-it-anchor']) index.md
+		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) index.md
+	page#log
+		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) log.md
 	page#mainmenu
-		root
-			h3 tests
+		root.cardstyle-a
+			h3 :
+			a(href="#testsmenu") tests
+	page#testsmenu
+		root.cardstyle-a
 			a(href="#testcase1") test 1
-			h3 game
-			h3 other
-			a(href="#doc") doc
 	page#testcase1
 		render.fill-abs
 		ui.abs
@@ -16,3 +20,7 @@
 		a(href="#mainmenu") menu
 		#fps_stat x fps.
 		#loading_stat.hidden Loading...
+		#elapsed_stat.minor 0m0s
+		#elapsed_total_stat.minor 0m0s
+		#elapsed_play_stat.minor 0m0s
+		#elapsed_play_total_stat.minor 0m0s
