@@ -7,13 +7,21 @@
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) log.md
 	page#mainmenu
 		root.cardstyle-a
-			h3: a(href="#testsmenu") tests
+			a.btn(href="#testsmenu") tests
+			a.btn(href="#achievements") achievements
 	page#testsmenu
 		root.cardstyle-a
 			a(href="#testcase1") test 1
 	page#testcase1
 		render.fill-abs
 		ui.abs
+	page#achievements
+		root.cardstyle-a
+			.card-h
+				img.ico
+				name first times
+				description открыть приложение на 10 секунд
+				progressbar(style="--progress: 50%" data-text="0/10")
 
 	ui#stats.abs
 		a(href="#mainmenu") menu
