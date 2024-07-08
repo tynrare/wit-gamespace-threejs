@@ -1,0 +1,16 @@
+{
+    "Green_ostrov": "lightmaps/GreenOstrovIllumination.png",
+    "Ser_ostrov": "lightmaps/SerOstrovIllumination.png",
+    "Det": {
+        "channel": 1,
+        "path": "lightmaps/DetIllumination.png"
+    },
+    "Trees_group_1": {
+        "channel": 1,
+        "path": "lightmaps/Trees_group_1Illumination.png"
+    },
+    "Trees_group_2": {
+        "channel": 1,
+        "path": "lightmaps/Trees_group_2Illumination.png"
+    }
+}

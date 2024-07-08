@@ -3,6 +3,7 @@
 import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";
 import PageTestcase1 from "./tests/page_testcase1.js";
+import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
 import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
@@ -30,6 +31,7 @@ class App {
     this.pages = {
       mainmenu: new PageMainmenu(),
       testcase1: new PageTestcase1(),
+      testcase2: new PageTestcase2Tanks(),
     };
 
     /** @type {Render} */

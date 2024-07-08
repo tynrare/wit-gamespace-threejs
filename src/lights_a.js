@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import Render from "./render.js";
+import App from "./app.js";
 import { CSM } from "three/addons/csm/CSM.js";
 import logger from "./logger.js";
 import Loader from "./loader.js";
@@ -124,7 +125,7 @@ class LightsA {
       /** @type {THREE.MeshStandardMaterial} */
       const material = /** @type {any} */ (m.material);
       material.lightMap = Loader.instance.get_texture(root_path + path);
-      material.lightMapIntensity = render.config.lightmaps_intensity;
+      material.lightMapIntensity = App.instance.render.config.lightmaps_intensity;
       material.lightMap.channel = channel;
       material.lightMap.flipY = false;
     }
@@ -150,7 +151,7 @@ class LightsA {
       }
 
       material.lightMap = texture;
-      material.lightMapIntensity = render.config.lightmaps_intensity;
+      material.lightMapIntensity = App.instance.render.config.lightmaps_intensity;
     });
   }
 }
