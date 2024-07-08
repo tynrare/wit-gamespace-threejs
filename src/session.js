@@ -1,7 +1,9 @@
+import Datawork from "./datawork.js";
 
 class Session {
 	constructor(name = "x") {
 		this.name = name;
+		this.datawork = new Datawork(name);
 		this.timestamp_start = 0;
 		this.timestamp_stop = 0;
 		this._selapsed = 0;
@@ -21,20 +23,11 @@ class Session {
 	}
 
 	_load_key(key) {
-		const val = Number(localStorage.getItem(this.name + key) ?? 0);
-		if (isNaN(val)) {
-			return 0;
-		}
-
-		return val;
+		return this.datawork.load(key);
 	}
 
 	_save_key(key, value) {
-		if (typeof value !== "number") {
-			throw new Error("Cannot save not-number values");
-		}
-
-		localStorage.setItem(this.name + key, value);
+		this.datawork.save(key, value);
 	}
 
 	load() {

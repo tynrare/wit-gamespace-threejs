@@ -68,8 +68,9 @@ class PlayspaceTanks {
 
   /**
    * @param {Render} render .
+	 * @param {string?} mapname
    */
-  run(render) {
+  run(render, mapname) {
     // fog
     //this._scene.fog = new THREE.Fog( 0x66c4c4, 10, 150 );
     this._scene.background = new THREE.Color(0x66c0dc);
@@ -96,7 +97,7 @@ class PlayspaceTanks {
 
     // scene
     {
-      const p1 = this.open_playscene("b");
+      const p1 = this.open_playscene(mapname ?? "b");
       const p2 = this.add_gltf("tanks/pawn.glb").then((scene) => {
         this.camera_controller.set_target(scene);
         this.pawn_controller.set_target(scene);
@@ -116,8 +117,10 @@ class PlayspaceTanks {
           this.pawn_controller._target.position,
         );
         this.pawn_controller.entity_id = pawn_entity.id;
-        pawn_entity.navmesh_id = npoint.id;
-        npoint.mask = 0xff0000;
+				if (npoint) {
+					pawn_entity.navmesh_id = npoint.id;
+					npoint.mask = 0xff0000;
+				}
       };
       Promise.all([p1, p2]).then(load_callback);
     }
@@ -144,7 +147,7 @@ class PlayspaceTanks {
             this.navmesh.build(navmesh);
           }
           if (config) {
-            LightsA.apply_lightmaps(scene, config);
+            LightsA.apply_lightmaps(scene, root_path, config);
           }
           LightsA.apply_lightmaps_white(scene);
 

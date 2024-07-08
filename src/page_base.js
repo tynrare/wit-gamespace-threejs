@@ -27,6 +27,11 @@ class PageBase {
    */
   step(dt) {}
   /**
+	 * low freq update
+   * @virtual
+   */
+  routine() {}
+  /**
    * @virtual
    */
   run() {}

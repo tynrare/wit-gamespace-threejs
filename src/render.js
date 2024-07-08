@@ -3,7 +3,9 @@
 import * as THREE from "three";
 import logger from "./logger.js";
 import { Vector2 } from "three";
+import { Vec3Up } from "./math.js";
 import { RenderConfig } from "./config.js";
+import App from "./app.js";
 
 export class RenderCache {
   constructor() {
@@ -37,21 +39,9 @@ class Render {
 
   init() {
     logger.log("Render initializing..");
+
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-			this.config.camera_fov,
-      this.viewport_w / this.viewport_h,
-      0.1,
-      1000,
-    );
-    camera.position.y = 5;
-    camera.position.z = 5;
-    camera.lookAt(0, 0, 0);
-
     this.scene = scene;
-    this.camera = camera;
-
-		this.set_camera_aspect();
 
     logger.log("Render initialized.");
 
@@ -64,7 +54,7 @@ class Render {
   run(container) {
 		this.htmlcontainer = container;
     const renderer = new THREE.WebGLRenderer({
-			antialias: this.config.antialias
+			antialias: App.instance.settings.antialias
 		});
 		renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize(this.viewport_w, this.viewport_h);
@@ -75,6 +65,18 @@ class Render {
 
     this.renderer = renderer;
     this._equilizer();
+		
+    const camera = new THREE.PerspectiveCamera(
+			this.config.camera_fov,
+      this.viewport_w / this.viewport_h,
+      0.1,
+      1000,
+    );
+    camera.position.y = 5;
+    camera.position.z = 5;
+    camera.lookAt(0, 0, 0);
+    this.camera = camera;
+		this.set_camera_aspect();
 
     this.active = true;
     logger.log("Render ran.");
@@ -116,7 +118,7 @@ class Render {
   // ---
 	
 	get render_scale() {
-		const scale = 1;
+		const scale = App.instance.settings.render_quality;
 		return scale;
 	}
 

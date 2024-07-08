@@ -11,7 +11,8 @@ class PageMainmenu extends PageBase {
 		super();
   }
 
-  run() {}
+  run() {
+	}
   stop() {}
 }
 

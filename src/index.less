@@ -70,20 +70,19 @@ page {
     background-color: #fff5;
     border-radius: 4px;
     box-shadow: 2px 2px 0px #00000044;
-    min-width: 300px;
+		min-width: min(600px, 50%);
     backdrop-filter: blur(1px);
 
-    a {
+    a.btn, .btn {
       transition-duration: 100ms;
       transition-property: letter-spacing;
       &:hover {
         letter-spacing: 2px;
       }
       color: black;
-    }
-
-    a.btn {
       font-size: 2em;
+			cursor: pointer;
+			user-select: none;
     }
   }
 }
@@ -141,6 +140,12 @@ page {
     width: 100%;
     height: 100%;
   }
+
+  render.fill-abs canvas {
+		width: 100% !important;
+		height: 100% !important;
+		image-rendering: pixelated;
+	}
 
   .abs {
     position: absolute;

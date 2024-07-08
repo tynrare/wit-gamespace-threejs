@@ -2,6 +2,7 @@
 
 import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";
+import PageSettings from "./page_settings.js";
 import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
 import logger from "./logger.js";
@@ -9,6 +10,7 @@ import Render from "./render.js";
 import Stats from "./stats.js";
 import Loop from "./loop.js";
 import Session from "./session.js";
+import Settings from "./settings.js";
 
 /**
  * Core class. Handles hash changes and switches subapps
@@ -25,11 +27,13 @@ class App {
     this.config = {
       base_location: "doc",
     };
+    this.settings = new Settings();
     /** @type {PageBase} */
     this.activepage = null;
     /** @type {Object<string, PageBase>} */
     this.pages = {
       mainmenu: new PageMainmenu(),
+      settings: new PageSettings(),
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
     };
@@ -43,11 +47,11 @@ class App {
     /** @type {HTMLElement} */
     this.container = null;
 
-		/** @type {Session} */
-		this.session = null;
-		/** @type {Session} */
-		this.playsession = null;
-	}
+    /** @type {Session} */
+    this.session = null;
+    /** @type {Session} */
+    this.playsession = null;
+  }
 
   /**
    * @param {number} dt .
@@ -59,21 +63,25 @@ class App {
     this.render.step(dt);
   }
 
-	routine() {
-		this.session.save();
-		this.playsession.save();
-		Stats.instance.show_elapsed(this.session.elapsed);
-		Stats.instance.show_elapsed_global(this.session.elapsed_global);
-		Stats.instance.show_elapsed_play(this.playsession.elapsed);
-		Stats.instance.show_elapsed_play_global(this.playsession.elapsed_global);
-	}
+  routine() {
+    if (this.activepage) {
+      this.activepage.routine();
+    }
+
+    this.session.save();
+    this.playsession.save();
+    Stats.instance.show_elapsed(this.session.elapsed);
+    Stats.instance.show_elapsed_global(this.session.elapsed_global);
+    Stats.instance.show_elapsed_play(this.playsession.elapsed);
+    Stats.instance.show_elapsed_play_global(this.playsession.elapsed_global);
+  }
 
   /**
    * starts loop
    * @param {HTMLElement} container .
    */
   start(container) {
-		this.playsession.start();
+    this.playsession.start();
     this.render.run(container);
     this.loop.start();
   }
@@ -83,7 +91,7 @@ class App {
    */
   pause() {
     this.render.stop();
-		this.playsession.stop();
+    this.playsession.stop();
     this.loop.pause();
   }
 
@@ -93,8 +101,8 @@ class App {
   init(container) {
     this.container = container;
 
-		this.session = new Session();
-		this.playsession = new Session("play");
+    this.session = new Session();
+    this.playsession = new Session("play");
 
     this.render = new Render().init();
     this.loop = new Loop();
@@ -111,13 +119,13 @@ class App {
     this.render = null;
     this.loop?.stop();
     this.loop = null;
-		this.session = null;
-		this.playsession = null;
+    this.session = null;
+    this.playsession = null;
   }
 
   run() {
-		this.session.start();
-		this.loop.run();
+    this.session.start();
+    this.loop.run();
 
     if (!window.location.hash) {
       window.location.hash = this.config.base_location;
@@ -128,8 +136,8 @@ class App {
     this._hashchange_listener = this.onhashchange.bind(this);
     window.addEventListener("hashchange", this._hashchange_listener);
 
-		this.routine();
-		this._routine_timer_id = setInterval(this.routine.bind(this), 1000);
+    this.routine();
+    this._routine_timer_id = setInterval(this.routine.bind(this), 1000);
 
     return this;
   }
@@ -138,8 +146,8 @@ class App {
     window.removeEventListener("hashchange", this._hashchange_listener);
     this._hashchange_listener = null;
 
-		stopInterval(this._routine_timer_id);
-		this._routine_timer_id = null;
+    stopInterval(this._routine_timer_id);
+    this._routine_timer_id = null;
 
     this.closepage();
   }
@@ -179,6 +187,11 @@ class App {
   }
 
   onhashchange() {
+    if (this._ignore_hashchange) {
+      this._ignore_hashchange = false;
+      return;
+    }
+
     const hash = window.location.hash;
     const pagename = hash.substring(1);
 

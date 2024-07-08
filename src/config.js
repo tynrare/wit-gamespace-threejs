@@ -4,7 +4,6 @@
  * @memberof Config
  */
 const RenderConfig = {
-	antialias: true,
   camera_fov: 22,
   shadows: true,
 	lights: true,

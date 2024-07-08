@@ -31,8 +31,12 @@ class PageTestcase2Tanks extends PageBase {
   run() {
     const render_container = this.container.querySelector("render");
     App.instance.start(render_container);
+
+		const urlParams = new URLSearchParams(window.location.search);
+		const map = urlParams.get('map');
+
     this.playspace = new PlayspaceTanks();
-    this.playspace.init(App.instance.render.scene).run(App.instance.render);
+    this.playspace.init(App.instance.render.scene).run(App.instance.render, map);
 
     this.inputs = new InputsTanks(
       this.container,

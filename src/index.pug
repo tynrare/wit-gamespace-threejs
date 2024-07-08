@@ -11,11 +11,16 @@
 			a.btn(href="#achievements") achievements
 			h3 ч1. Бег в никуда
 			h3 extras
+			a.btn(href="#settings") settings
 			a.btn(href="#testsmenu") tests
+	page#settings
+		root.cardstyle-a
+			#btn_render_quality.btn render quality
+			#btn_antialias.btn antialias
 	page#testsmenu
 		root.cardstyle-a
 			a(href="#testcase1") test 1
-			a(href="#testcase2") test 2 - tanks
+			a(href="?#testcase2") test 2 - tanks
 	page#testcase1
 		render.fill-abs
 		ui.abs
