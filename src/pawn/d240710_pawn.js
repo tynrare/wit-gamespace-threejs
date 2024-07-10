@@ -81,7 +81,7 @@ class PawnDrawA {
 
 		if (goal_delta.length() > 1e-1) {
 			this._target.position.add(facing_direction.multiplyScalar(df * 0.04));
-			this._target.rotation.y += rotate * df;
+			this._target.rotation.y += rotate * df * 0.1;
 		}
 		if (goal_delta.length() > 1) {
 		}
