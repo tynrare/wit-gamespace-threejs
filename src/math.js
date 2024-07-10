@@ -2,9 +2,9 @@
 
 import { Object3D, Quaternion, Matrix4, Vector3, Color } from "three";
 
-export const Vec3Up = new Vector3(0, 0, 1);
-export const Vec3Forward = new Vector3(0, 1, 0);
-export const Vec3Right = new Vector3(1, 0, 0);
+export const Vec3Up = new Vector3(0, 1, 0);
+export const Vec3Forward = new Vector3(1, 0, 0);
+export const Vec3Right = new Vector3(0, 0, 1);
 
 /**
  * @param {import("three").Vector3} v1 changed inplace

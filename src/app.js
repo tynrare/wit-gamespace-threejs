@@ -5,6 +5,7 @@ import PageMainmenu from "./page_mainmenu.js";
 import PageSettings from "./page_settings.js";
 import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
+import PageTestcase3 from "./tests/page_testcase3.js";
 import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
@@ -36,6 +37,7 @@ class App {
       settings: new PageSettings(),
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
+      testcase3: new PageTestcase3(),
     };
 
     /** @type {Render} */

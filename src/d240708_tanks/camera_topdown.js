@@ -2,8 +2,9 @@
 
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
-import { Vec3Up, angle_sub } from "../math.js";
+import { angle_sub } from "../math.js";
 import { CameraConfig } from "./config.js";
+import { Vec3Up } from "./consts.js";
 
 /**
  * Controls camera.

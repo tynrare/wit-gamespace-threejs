@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { Vec3Up, Vec3Forward, Vec3Right, angle_sub, lerp } from "../math.js";
+import { angle_sub, lerp } from "../math.js";
+import { Vec3Up, Vec3Right, Vec3Forward } from "./consts.js";
 
 class VfxPawnTankA {
   constructor() {

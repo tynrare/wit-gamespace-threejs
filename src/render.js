@@ -6,6 +6,9 @@ import { Vector2 } from "three";
 import { Vec3Up } from "./math.js";
 import { RenderConfig } from "./config.js";
 import App from "./app.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPixelatedPass } from "three/addons/postprocessing/RenderPixelatedPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 export class RenderCache {
   constructor() {
@@ -21,6 +24,7 @@ export class RenderCache {
  */
 class Render {
   constructor() {
+    this.scale = 1;
     /** @type {THREE.Scene} */
     this.scene = null;
     /** @type {THREE.PerspectiveCamera} */
@@ -29,9 +33,11 @@ class Render {
     this.renderer = null;
     /** @type {HTMLElement} */
     this.htmlcontainer = null;
+    /** @type {EffectComposer} */
+		this.composer = null;
 
     this.cache = new RenderCache();
-		/** @type {RenderConfig} */
+    /** @type {RenderConfig} */
     this.config = Object.create(RenderConfig);
 
     this.active = false;
@@ -52,22 +58,22 @@ class Render {
    * @param {HTMLElement} container .
    */
   run(container) {
-		this.htmlcontainer = container;
+    this.htmlcontainer = container;
     const renderer = new THREE.WebGLRenderer({
-			antialias: App.instance.settings.antialias
-		});
-		renderer.setPixelRatio( window.devicePixelRatio );
+      antialias: App.instance.settings.antialias,
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(this.viewport_w, this.viewport_h);
-		renderer.shadowMap.enabled = this.config.shadows;
-		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = this.config.shadows;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.htmlcontainer.appendChild(renderer.domElement);
 
     this.renderer = renderer;
     this._equilizer();
-		
+
     const camera = new THREE.PerspectiveCamera(
-			this.config.camera_fov,
+      this.config.camera_fov,
       this.viewport_w / this.viewport_h,
       0.1,
       1000,
@@ -76,7 +82,7 @@ class Render {
     camera.position.z = 5;
     camera.lookAt(0, 0, 0);
     this.camera = camera;
-		this.set_camera_aspect();
+    this.set_camera_aspect();
 
     this.active = true;
     logger.log("Render ran.");
@@ -89,7 +95,11 @@ class Render {
 
     this._equilizer();
 
-    this.renderer.render(this.scene, this.camera);
+		if (this.composer) {
+			this.composer.render();
+		} else {
+			this.renderer.render(this.scene, this.camera);
+		}
   }
 
   stop() {
@@ -115,12 +125,33 @@ class Render {
     logger.log("Render disposed.");
   }
 
-  // ---
-	
-	get render_scale() {
-		const scale = App.instance.settings.render_quality;
-		return scale;
+	pixelate(enable) {
+		if (!enable) {
+			this.composer = null;
+			this.scale = 1;
+			
+			return;
+		}
+
+		this.scale = 0.5;
+
+		this.composer = new EffectComposer( this.renderer );
+		const renderPixelatedPass = new RenderPixelatedPass( 1, this.scene, this.camera );
+		this.composer.addPass( renderPixelatedPass );
+
+		const outputPass = new OutputPass();
+		this.composer.addPass( outputPass );
+
+		renderPixelatedPass.normalEdgeStrength = 0;
+		renderPixelatedPass.depthEdgeStrength = 1;
 	}
+
+  // ---
+
+  get render_scale() {
+    const scale = App.instance.settings.render_quality;
+    return scale * this.scale;
+  }
 
   get viewport_w() {
     return window.innerWidth * this.render_scale;
@@ -139,6 +170,7 @@ class Render {
     const h = this.viewport_h;
     if (size.width != w || size.height != h) {
       this.renderer.setSize(w, h);
+			this.composer?.setSize(w, h);
       this.set_camera_aspect(w, h);
     }
   }

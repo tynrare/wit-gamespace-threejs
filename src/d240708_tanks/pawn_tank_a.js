@@ -3,7 +3,8 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { InputAction } from "./inputs.js";
-import { Vec3Up, Vec3Forward, angle_sub, dlerp } from "../math.js";
+import { angle_sub, dlerp } from "../math.js";
+import { Vec3Up, Vec3Right, Vec3Forward } from "./consts.js";
 import { PawnConfig } from "./config.js";
 import VfxMeshWobble from "./vfx_mesh_wobble.js";
 import VfxPawnTankA from "./vfx_pawn_tank_a.js";

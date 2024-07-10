@@ -47,15 +47,15 @@ class Loader {
    * @throws error
    */
   async get_json(url) {
-		this.notify_loading();
+    this.notify_loading();
     return fetch(url)
       .then((response) => response.json())
       .then((data) => {
-				this.confirm_loading();
-				return data;
+        this.confirm_loading();
+        return data;
       })
       .catch((error) => {
-				this.confirm_loading(true);
+        this.confirm_loading(true);
         logger.warn("Loader::get_json error:", error);
       });
   }
@@ -64,11 +64,25 @@ class Loader {
    * @param {string} url .
    * @returns {THREE.Texture} .
    */
-  get_texture(url) {
+  get_texture(url, pixelate = false) {
+    const postprocess_texture = (texture) => {
+			if (pixelate) {
+				texture.minFilter = THREE.NearestFilter;
+				texture.magFilter = THREE.NearestFilter;
+			} else {
+				texture.minFilter = THREE.LinearFilter;
+				texture.magFilter = THREE.LinearFilter;
+			}
+			texture.generateMipmaps = !pixelate;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    };
     if (this.cache.textures[url]) {
       logger.log(`Loader::get_texture texture ${url} fetched from cache..`);
       // should be cloned probably
-      return this.cache.textures[url];
+      return postprocess_texture(this.cache.textures[url]);
     }
 
     this.notify_loading();
@@ -86,10 +100,9 @@ class Loader {
         logger.error(`Loader::get_texture texture error: `, error);
       },
     );
-    texture.colorSpace = THREE.SRGBColorSpace;
     this.cache.textures[url] = texture;
 
-    return texture;
+    return postprocess_texture(texture);
   }
 
   /**

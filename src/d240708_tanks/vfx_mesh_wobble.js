@@ -1,12 +1,6 @@
 import * as THREE from "three";
-import {
-  Vec3Up,
-  Vec3Forward,
-  Vec3Right,
-  angle_sub,
-  dlerp,
-  dlerp_vec3,
-} from "../math.js";
+import { angle_sub, dlerp, dlerp_vec3 } from "../math.js";
+import { Vec3Up, Vec3Right, Vec3Forward } from "./consts.js";
 
 class VfxMeshWobble {
   constructor() {
@@ -44,13 +38,13 @@ class VfxMeshWobble {
       .applyAxisAngle(Vec3Up, -this._target.rotation.z);
 
     const acceleration = this.cache.v3_0.copy(velocity).sub(this.velocity);
-		acceleration.multiplyScalar(6);
+    acceleration.multiplyScalar(6);
 
     const impulse = this.cache.v3_1
       .copy(this.impulse)
       .multiplyScalar(6)
       .applyAxisAngle(Vec3Up, -this._target.rotation.z);
-		acceleration.add(impulse);
+    acceleration.add(impulse);
 
     this.velocity.copy(velocity);
     dlerp_vec3(this.acceleration, acceleration, 0.6, sdt);
@@ -72,9 +66,9 @@ class VfxMeshWobble {
       const f0 = origin.z / this.max_z;
 
       const rot = this.cache.v3_0.copy(origin);
-			rot.x = this.acceleration.y * f0;
-			rot.y = -(this.acceleration.x + this.torque.z * 2) * f0;
-			//rot.applyAxisAngle(Vec3Up, o.rotation.z);
+      rot.x = this.acceleration.y * f0;
+      rot.y = -(this.acceleration.x + this.torque.z * 2) * f0;
+      //rot.applyAxisAngle(Vec3Up, o.rotation.z);
 
       pos.applyAxisAngle(Vec3Right, rot.x);
       pos.applyAxisAngle(Vec3Forward, rot.y * 0.3);

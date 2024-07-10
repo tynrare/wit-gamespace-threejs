@@ -1,8 +1,9 @@
 /** @namespace Gamespace */
 import * as THREE from "three";
 import Navmesh from "./navmesh.js";
-import { vec_align_to_normal, cache, Vec3Up, Vec3Right, Vec3Forward } from "../math.js";
+import { vec_align_to_normal, cache } from "../math.js";
 
+import { Vec3Up, Vec3Right, Vec3Forward } from "./consts.js";
 /**
  * @typedef MovementEntityProperties
  * @property {THREE.Vector3} velocity
@@ -67,17 +68,17 @@ class MovementSystem {
       }
 
       const pos = cache.vec3.v6.copy(e.target.position);
-			const vel = cache.vec3.v7.copy(e.properties.velocity);
+      const vel = cache.vec3.v7.copy(e.properties.velocity);
 
       if (e.navmesh_id) {
-				const point = this._navmesh.points[e.navmesh_id];
-				//vel.copy(vec_align_to_normal(vel, point.face.normal, e.target.matrixWorld));
-				pos.add(vel);
+        const point = this._navmesh.points[e.navmesh_id];
+        //vel.copy(vec_align_to_normal(vel, point.face.normal, e.target.matrixWorld));
+        pos.add(vel);
         pos.copy(this._navmesh.move(e.navmesh_id, pos));
-				//obj_align_to_normal(e.target, point.face.normal, e.target.matrixWorld);
+        //obj_align_to_normal(e.target, point.face.normal, e.target.matrixWorld);
       } else {
-				pos.add(vel);
-			}
+        pos.add(vel);
+      }
 
       e.target.position.copy(pos);
       if (e.properties.torque) {

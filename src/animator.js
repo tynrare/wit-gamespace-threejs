@@ -215,8 +215,6 @@ class AnimationMachine {
  * Core behaviour inspired by animation - https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html#statemachine
  */
 class Animator {
-	gltf: any;
-
 	constructor() {
 		/** @type {THREE.AnimationMixer} */
 		this.animation_mixer = null;
@@ -226,6 +224,7 @@ class Animator {
 		this.animations_actions_cache = null;
 		/** @type {THREE.Scene} */
 		this.scene = null;
+		this.gltf = null;
 		this.animation_time_scale = 1;
 		this.fadetime = 0.1;
 	}
