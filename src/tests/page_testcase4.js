@@ -38,7 +38,7 @@ class PageTestcase1 extends PageBase {
    */
   step(dt) {
     this.controls.update();
-    this.world.step(1/60);
+    this.world.step(1 / 60);
 
     (function updateObject3D(mesh) {
       if (mesh.rigid_body) {
@@ -68,6 +68,7 @@ class PageTestcase1 extends PageBase {
 
     scene.background = new THREE.Color(0x66c0dc);
     this.lights = new LightsA().run(App.instance.render);
+		this.lights.lights.directional.intensity = 1.5;
 
     // floor
     {
@@ -131,8 +132,11 @@ class PageTestcase1 extends PageBase {
     body.setAutoSleep(false); // ? why it autosleeps in midair
 
     let geometry = new THREE.BoxGeometry(w, h, d);
-    let material = new THREE.MeshBasicMaterial({
+    let material = new THREE.MeshPhongMaterial({
       color,
+      emissive: 0x4f7e8b,
+      shininess: 10,
+      specular: 0xffffff,
     });
     let mesh = new THREE.Mesh(geometry, material);
     mesh.rigid_body = body;
