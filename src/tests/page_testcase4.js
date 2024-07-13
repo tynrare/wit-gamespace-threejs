@@ -84,6 +84,8 @@ class PageTestcase1 extends PageBase {
 
     this._init_oimo();
     this._create_boxes();
+
+		render.pixelate(true);
   }
 
   _init_oimo() {
@@ -129,7 +131,7 @@ class PageTestcase1 extends PageBase {
     const shape = new oimo.dynamics.rigidbody.Shape(shape_config);
     body.addShape(shape);
     this.world.addRigidBody(body);
-    body.setAutoSleep(false); // ? why it autosleeps in midair
+    //body.setAutoSleep(false); // ? why it autosleeps in midair
 
     let geometry = new THREE.BoxGeometry(w, h, d);
     let material = new THREE.MeshPhongMaterial({
@@ -138,7 +140,9 @@ class PageTestcase1 extends PageBase {
       shininess: 10,
       specular: 0xffffff,
     });
+		this.lights.csm?.setupMaterial(material);
     let mesh = new THREE.Mesh(geometry, material);
+		mesh.castShadow = true;
     mesh.rigid_body = body;
     this.meshes.push(mesh);
     App.instance.render.scene.add(mesh);
@@ -181,6 +185,7 @@ class PageTestcase1 extends PageBase {
     this.controls = null;
     this.world = null;
     this.meshes.length = 0;
+		App.instance.render.pixelate(false);
     App.instance.pause();
   }
 }

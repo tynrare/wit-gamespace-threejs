@@ -8,6 +8,7 @@ import { RenderConfig } from "./config.js";
 import App from "./app.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPixelatedPass } from "three/addons/postprocessing/RenderPixelatedPass.js";
+import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 export class RenderCache {
@@ -34,7 +35,7 @@ class Render {
     /** @type {HTMLElement} */
     this.htmlcontainer = null;
     /** @type {EffectComposer} */
-		this.composer = null;
+    this.composer = null;
 
     this.cache = new RenderCache();
     /** @type {RenderConfig} */
@@ -95,11 +96,11 @@ class Render {
 
     this._equilizer();
 
-		if (this.composer) {
-			this.composer.render();
-		} else {
-			this.renderer.render(this.scene, this.camera);
-		}
+    if (this.composer) {
+      this.composer.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   stop() {
@@ -125,26 +126,41 @@ class Render {
     logger.log("Render disposed.");
   }
 
-	pixelate(enable) {
-		if (!enable) {
-			this.composer = null;
-			this.scale = 1;
-			
-			return;
-		}
+  pixelate(enable) {
+    if (!enable) {
+      this.composer = null;
+      this.scale = 1;
 
-		this.scale = 0.5;
+      return;
+    }
 
-		this.composer = new EffectComposer( this.renderer );
-		const renderPixelatedPass = new RenderPixelatedPass( 1, this.scene, this.camera );
-		this.composer.addPass( renderPixelatedPass );
+    this.scale = 0.5;
 
-		const outputPass = new OutputPass();
-		this.composer.addPass( outputPass );
+    this.composer = new EffectComposer(this.renderer);
+    const renderPixelatedPass = new RenderPixelatedPass(
+      1,
+      this.scene,
+      this.camera,
+    );
+    renderPixelatedPass.normalEdgeStrength = 1;
+    renderPixelatedPass.depthEdgeStrength = 1;
+    this.composer.addPass(renderPixelatedPass);
 
-		renderPixelatedPass.normalEdgeStrength = 0;
-		renderPixelatedPass.depthEdgeStrength = 1;
-	}
+    const gtao = false;
+    if (gtao) {
+      const renderGTAOPass = new GTAOPass(
+        this.scene,
+        this.camera,
+        this.viewport_w,
+        this.viewport_h,
+      );
+      renderGTAOPass.radius = 0.03;
+      this.composer.addPass(renderGTAOPass);
+    }
+
+    const outputPass = new OutputPass();
+    this.composer.addPass(outputPass);
+  }
 
   // ---
 
@@ -170,7 +186,7 @@ class Render {
     const h = this.viewport_h;
     if (size.width != w || size.height != h) {
       this.renderer.setSize(w, h);
-			this.composer?.setSize(w, h);
+      this.composer?.setSize(w, h);
       this.set_camera_aspect(w, h);
     }
   }
