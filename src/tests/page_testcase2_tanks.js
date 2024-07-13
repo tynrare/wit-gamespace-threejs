@@ -44,6 +44,7 @@ class PageTestcase2Tanks extends PageBase {
       this.playspace.input.bind(this.playspace),
       this.playspace.input_analog.bind(this.playspace),
     );
+		this.inputs.run();
 
     const render = App.instance.render;
     const scene = render.scene;
@@ -52,7 +53,7 @@ class PageTestcase2Tanks extends PageBase {
   stop() {
     this.playspace.dispose();
     App.instance.pause();
-		this.inputs.dispose();
+		this.inputs.stop();
 		this.inputs = null;
 		this.playspace = null;
   }

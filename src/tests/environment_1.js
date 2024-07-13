@@ -21,7 +21,7 @@ class Environment1 {
     this.lights = null;
   }
 
-  run() {
+  run(opts = { floor: true }) {
     const render = App.instance.render;
     const scene = render.scene;
 
@@ -32,7 +32,7 @@ class Environment1 {
     this.lights.lights.hemisphere.intensity = 1;
 
     // floor
-    {
+    if (opts.floor) {
       const plane = createFloorPlane(1, true);
       scene.add(plane);
       this.plane = plane;

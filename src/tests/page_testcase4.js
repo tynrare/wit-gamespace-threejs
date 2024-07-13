@@ -11,11 +11,14 @@ import PageBase from "../page_base.js";
 
 import { createFloorPlane } from "./utils.js";
 
+
 /**
- * @class PageTestcase1
+ * basic physics test
+ *
+ * @class PageTestcase4
  * @memberof Pages/Tests
  */
-class PageTestcase1 extends PageBase {
+class PageTestcase4 extends PageBase {
   constructor() {
     super();
 
@@ -190,4 +193,4 @@ class PageTestcase1 extends PageBase {
   }
 }
 
-export default PageTestcase1;
+export default PageTestcase4;
