@@ -1,24 +1,5 @@
 /** @namespace Core */
-
-/**
- * @memberof Core
- * @enum {number}
- */
-const InputAction = {
-  left: 0,
-  up: 1,
-  right: 2,
-  down: 3,
-  action_a: 4,
-  action_b: 5,
-  action_c: 6,
-  action_d: 7,
-  action_f: 8,
-  action_shift: 9,
-  action_esc: 10,
-  action_cmd: 11,
-  action_enter: 12,
-};
+import { InputAction } from "./inputs.js";
 
 /**
  * creates keyboard and two-sticks touch inputs
@@ -27,30 +8,32 @@ const InputAction = {
  * @param {HTMLElement} container .
  * @param {HTMLCanvasElement} canvas .
  * @param {function(InputAction, boolean): void} input .
- * @param {function(number, number, string): void} input_analog .
+ * @param {function(number, number, string, InputAction): void} input_analog .
  */
-function InputsTanks(container, canvas, input, input_analog) {
-  document.body.addEventListener("keydown", keydown);
-  document.body.addEventListener("keyup", keyup);
+function InputsDualstick(container, canvas, input, input_analog) {
+  this.run = () => {
+    document.body.addEventListener("keydown", keydown);
+    document.body.addEventListener("keyup", keyup);
 
-  canvas.addEventListener("touchstart", pointerdown, { passive: false });
-  canvas.addEventListener("mousedown", pointerdown);
-  canvas.addEventListener("touchend", pointerup, { passive: false });
-  canvas.addEventListener("mouseup", pointerup);
-  canvas.addEventListener("touchmove", pointermove, { passive: false });
-  canvas.addEventListener("mousemove", pointermove);
+    canvas.addEventListener("touchstart", pointerdown, { passive: false });
+    canvas.addEventListener("mousedown", pointerdown);
+    canvas.addEventListener("touchend", pointerup, { passive: false });
+    canvas.addEventListener("mouseup", pointerup);
+    canvas.addEventListener("touchmove", pointermove, { passive: false });
+    canvas.addEventListener("mousemove", pointermove);
+  };
 
-	this.dispose = () => {
-		document.body.removeEventListener("keydown", keydown);
-		document.body.removeEventListener("keyup", keyup);
+  this.stop = () => {
+    document.body.removeEventListener("keydown", keydown);
+    document.body.removeEventListener("keyup", keyup);
 
-		canvas.removeEventListener("touchstart", pointerdown);
-		canvas.removeEventListener("mousedown", pointerdown);
-		canvas.removeEventListener("touchend", pointerup);
-		canvas.removeEventListener("mouseup", pointerup);
-		canvas.removeEventListener("touchmove", pointermove);
-		canvas.removeEventListener("mousemove", pointermove);
-	}
+    canvas.removeEventListener("touchstart", pointerdown);
+    canvas.removeEventListener("mousedown", pointerdown);
+    canvas.removeEventListener("touchend", pointerup);
+    canvas.removeEventListener("mouseup", pointerup);
+    canvas.removeEventListener("touchmove", pointermove);
+    canvas.removeEventListener("mousemove", pointermove);
+  };
 
   /**
    * @typedef JoystickEl
@@ -71,8 +54,8 @@ function InputsTanks(container, canvas, input, input_analog) {
   const joysticks = {};
 
   /**
-	 * @param {string} tag
-	 * @param {string?} [id]
+   * @param {string} tag
+   * @param {string?} [id]
    * @returns {JoystickEl} .
    */
   const access_joystick = (tag, id) => {
@@ -102,8 +85,8 @@ function InputsTanks(container, canvas, input, input_analog) {
       pointer_down: false,
       // thresholds tap input
       input_activated: false,
-			touch_identifier: -1,
-			tag
+      touch_identifier: -1,
+      tag,
     };
 
     joysticks[tag] = joystick;
@@ -111,13 +94,13 @@ function InputsTanks(container, canvas, input, input_analog) {
     return joystick;
   };
 
-	const tag_to_action = {
-		"movement": InputAction.action_a,
-		"attack": InputAction.action_b
-	}
+  const tag_to_action = {
+    movement: InputAction.action_a,
+    attack: InputAction.action_b,
+  };
 
-	access_joystick('movement', "screen_joystic_movement");
-	access_joystick('attack', "screen_joystic_attack");
+  access_joystick("movement", "screen_joystic_movement");
+  access_joystick("attack", "screen_joystic_attack");
 
   function loop() {
     requestAnimationFrame(loop);
@@ -125,21 +108,31 @@ function InputsTanks(container, canvas, input, input_analog) {
     const joystick_movement = access_joystick("movement");
     const joystick_attack = access_joystick("attack");
 
-		if (joystick_movement.pointer_down) {
-			const w = joystick_movement.element.clientWidth;
-			const h = joystick_movement.element.clientHeight;
-			const dx = joystick_movement.dx;
-			const dy = joystick_movement.dy;
-			input_analog((dx / w) * 2, (dy / h) * 2, "movement");
-		}
+    if (joystick_movement.pointer_down) {
+      const w = joystick_movement.element.clientWidth;
+      const h = joystick_movement.element.clientHeight;
+      const dx = joystick_movement.dx;
+      const dy = joystick_movement.dy;
+      input_analog(
+        (dx / w) * 2,
+        (dy / h) * 2,
+        "movement",
+        tag_to_action[joystick_movement.tag],
+      );
+    }
 
-		if (joystick_attack.pointer_down) {
-			const w = joystick_attack.element.clientWidth;
-			const h = joystick_attack.element.clientHeight;
-			const dx = joystick_attack.dx;
-			const dy = joystick_attack.dy;
-			input_analog((dx / w) * 2, (dy / h) * 2, "attack");
-		}
+    if (joystick_attack.pointer_down) {
+      const w = joystick_attack.element.clientWidth;
+      const h = joystick_attack.element.clientHeight;
+      const dx = joystick_attack.dx;
+      const dy = joystick_attack.dy;
+      input_analog(
+        (dx / w) * 2,
+        (dy / h) * 2,
+        "attack",
+        tag_to_action[joystick_attack.tag],
+      );
+    }
   }
   loop();
 
@@ -149,24 +142,25 @@ function InputsTanks(container, canvas, input, input_analog) {
   function pointerdown(ev) {
     const start_x = ev.clientX ?? ev.changedTouches[0]?.clientX ?? 0;
     const start_y = ev.clientY ?? ev.changedTouches[0]?.clientY ?? 0;
-		const touch_identifier = (ev.changedTouches && ev.changedTouches[0]?.identifier) ?? 0;
+    const touch_identifier =
+      (ev.changedTouches && ev.changedTouches[0]?.identifier) ?? 0;
 
     /** @type {JoystickEl} */
-		let joystick = null;
-		if (start_x < canvas.clientWidth / 2) {
-			joystick = access_joystick("movement");
-		} else {
-			joystick = access_joystick("attack");
-		}
+    let joystick = null;
+    if (start_x < canvas.clientWidth / 2) {
+      joystick = access_joystick("movement");
+    } else {
+      joystick = access_joystick("attack");
+    }
 
-		if (joystick.pointer_down) {
-			return;
-		}
+    if (joystick.pointer_down) {
+      return;
+    }
 
     joystick.pointer_down = true;
-		joystick.touch_identifier = touch_identifier;
-		joystick.start_x = start_x;
-		joystick.start_y = start_y;
+    joystick.touch_identifier = touch_identifier;
+    joystick.start_x = start_x;
+    joystick.start_y = start_y;
 
     joystick.element.classList.add("visible");
 
@@ -179,25 +173,27 @@ function InputsTanks(container, canvas, input, input_analog) {
     joystick.deadzone.style.width = threshold * 100 + "%";
     joystick.deadzone.style.height = threshold * 100 + "%";
 
-		input(tag_to_action[joystick.tag], true);
+    if (input) {
+      input(tag_to_action[joystick.tag], true);
+    }
 
     ev.preventDefault();
     ev.stopImmediatePropagation();
   }
 
-	function apply_move(x, y, touch_identifier) {
-		/** @type {JoystickEl} */
-		let joystick = null;
-		for(const k in joysticks) {
-			const j = joysticks[k];
-			if (j.touch_identifier === touch_identifier) {
-				joystick = j;
-			}
-		}
+  function apply_move(x, y, touch_identifier) {
+    /** @type {JoystickEl} */
+    let joystick = null;
+    for (const k in joysticks) {
+      const j = joysticks[k];
+      if (j.touch_identifier === touch_identifier) {
+        joystick = j;
+      }
+    }
 
-		if (!joystick?.pointer_down) {
-			return;
-		}
+    if (!joystick?.pointer_down) {
+      return;
+    }
 
     let ldx = joystick.start_x - x;
     let ldy = joystick.start_y - y;
@@ -231,38 +227,39 @@ function InputsTanks(container, canvas, input, input_analog) {
     const rdy = Math.min(1, pdy / Math.max(1, d));
     joystick.pimp.style.left = joystick.start_x - (rdx * w) / 2 + "px";
     joystick.pimp.style.top = joystick.start_y - (rdy * h) / 2 + "px";
-	}
+  }
 
   function pointermove(ev) {
-		if (ev.touches?.length) {
-			for (let i = 0; i < ev.touches?.length; i++) {
-				const touch = ev.touches[i];
-				const touch_identifier = touch.identifier;
-				apply_move(touch.clientX, touch.clientY, touch_identifier);
-			}
-		} else {
-			apply_move(ev.clientX, ev.clientY, 0);
-		}
+    if (ev.touches?.length) {
+      for (let i = 0; i < ev.touches?.length; i++) {
+        const touch = ev.touches[i];
+        const touch_identifier = touch.identifier;
+        apply_move(touch.clientX, touch.clientY, touch_identifier);
+      }
+    } else {
+      apply_move(ev.clientX, ev.clientY, 0);
+    }
 
     ev.preventDefault();
     ev.stopImmediatePropagation();
   }
 
   function pointerup(ev) {
-		const touch_identifier = (ev.changedTouches && ev.changedTouches[0]?.identifier) ?? 0;
+    const touch_identifier =
+      (ev.changedTouches && ev.changedTouches[0]?.identifier) ?? 0;
 
-		/** @type {JoystickEl} */
-		let joystick = null;
-		for(const k in joysticks) {
-			const j = joysticks[k];
-			if (j.pointer_down && j.touch_identifier === touch_identifier) {
-				joystick = j;
-			}
-		}
+    /** @type {JoystickEl} */
+    let joystick = null;
+    for (const k in joysticks) {
+      const j = joysticks[k];
+      if (j.pointer_down && j.touch_identifier === touch_identifier) {
+        joystick = j;
+      }
+    }
 
-		if (!joystick) {
-			return;
-		}
+    if (!joystick) {
+      return;
+    }
 
     joystick.pointer_down = false;
     joystick.input_activated = false;
@@ -273,8 +270,10 @@ function InputsTanks(container, canvas, input, input_analog) {
     joystick.pimp.classList.remove("active");
     joystick.pimp.classList.remove("visible");
 
-		input(tag_to_action[joystick.tag], false);
-    input_analog(0, 0, joystick.tag);
+    if (input) {
+      input(tag_to_action[joystick.tag], false);
+    }
+    input_analog(0, 0, joystick.tag, tag_to_action[joystick.tag]);
 
     ev.preventDefault();
     ev.stopImmediatePropagation();
@@ -315,4 +314,4 @@ function InputsTanks(container, canvas, input, input_analog) {
   }
 }
 
-export { InputAction, InputsTanks };
+export { InputAction, InputsDualstick };

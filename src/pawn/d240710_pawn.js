@@ -4,7 +4,7 @@ import {
   Animator,
   AnimationMachine,
   ANIMATION_PLAYBACK_MODE,
-	ANIMATION_TRANSITION_MODE
+  ANIMATION_TRANSITION_MODE,
 } from "../animator";
 import { Vec3Up, Vec3Forward, angle_sub, cache } from "../math.js";
 
@@ -15,22 +15,24 @@ class PawnDrawA {
     /** @type {Animator} */
     this.animator = null;
 
-		this.pos = new THREE.Vector3();
-		this.velocity = new THREE.Vector3();
-		this.goal = new THREE.Vector3();
+    this.pos = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
+    this.goal = new THREE.Vector3();
+
+    this.allow_move = true;
   }
 
   /**
    * @param {THREE.Object3D} target
-	 */
+   */
   init(gltf, target) {
     this.animator = new Animator();
     this._target = target;
-		this.gltf = gltf;
-		this.pos.copy(this._target.position);
-		this.goal.copy(this._target.position);
+    this.gltf = gltf;
+    this.pos.copy(this._target.position);
+    this.goal.copy(this._target.position);
 
-		this.animator.init(this._target, this.gltf);
+    this.animator.init(this._target, this.gltf);
 
     const am = this.animator.animation_machine;
     const register = (
@@ -53,52 +55,50 @@ class PawnDrawA {
     register("idle", "IDLE");
     register("run", "RUN");
 
-		am.pair("idle", "run");
-		am.pair("run", "idle", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("idle", "run");
+    am.pair("run", "idle", ANIMATION_TRANSITION_MODE.instant);
 
-		this.animator.transite("idle");
+    this.animator.transite("idle");
   }
 
   step(dt) {
-		this.animator.step(dt * 1e-3);
+    this.animator.step(dt * 1e-3);
 
-		this.velocity.copy(this.pos.sub(this._target.position));
-		this.pos.copy(this._target.position);
+    this.velocity.copy(this.pos.sub(this._target.position));
+    this.pos.copy(this._target.position);
 
     const facing_direction = cache.vec3.v0
       .copy(Vec3Forward)
       .applyAxisAngle(Vec3Up, this._target.rotation.y);
-		const goal_delta = cache.vec3.v1.copy(this.goal).sub(this.pos);
-		const direction = cache.vec3.v2.copy(goal_delta).normalize();
-		const direction_angle = Math.atan2(
-			direction.x,
-			direction.z,
-		);
+    const goal_delta = cache.vec3.v1.copy(this.goal).sub(this.pos);
+    const direction = cache.vec3.v2.copy(goal_delta).normalize();
+    const direction_angle = Math.atan2(direction.x, direction.z);
 
     const df = dt / 30;
-		const rotate =
-			angle_sub(this._target.rotation.y, direction_angle - Math.PI / 2);
+    const rotate = angle_sub(
+      this._target.rotation.y,
+      direction_angle - Math.PI / 2,
+    );
 
-		if (goal_delta.length() > 1e-1) {
-			this._target.position.add(facing_direction.multiplyScalar(df * 0.04));
-			this._target.rotation.y += rotate * df * 0.1;
-		}
-		if (goal_delta.length() > 1) {
-		}
+    if (goal_delta.length() > 1e-1) {
+      if (this.allow_move) {
+        this._target.position.add(facing_direction.multiplyScalar(df * 0.04));
+      }
+      this._target.rotation.y += rotate * df * 0.1;
+    }
 
-
-		if (this.velocity.length() > 0) {
-			this.animator.transite("run");
-		} else {
-			this.animator.transite("idle");
-		}
-	}
+    if (this.velocity.length() > 0) {
+      this.animator.transite("run");
+    } else {
+      this.animator.transite("idle");
+    }
+  }
 
   dispose() {
-		this.gltf = null;
-		this.animator = null
-		this._target = null;
-	}
+    this.gltf = null;
+    this.animator = null;
+    this._target = null;
+  }
 }
 
 export default PawnDrawA;

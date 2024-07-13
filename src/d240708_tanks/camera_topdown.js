@@ -7,12 +7,12 @@ import { CameraConfig } from "./config.js";
 import { Vec3Up } from "./consts.js";
 
 /**
- * Controls camera.
+ * Controls camera. 
  *
- * @class CameraTopdown
+ * @depracated
  * @memberof PawnControllers
  */
-class CameraTopdown {
+class CameraTopdownZUp {
   constructor() {
     /** @type {THREE.Camera} */
     this._camera = null;
@@ -73,4 +73,4 @@ class CameraTopdown {
   }
 }
 
-export default CameraTopdown;
+export default CameraTopdownZUp;

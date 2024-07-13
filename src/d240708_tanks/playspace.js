@@ -12,7 +12,7 @@ import LightsA from "../lights_a.js";
 import Navmesh from "./navmesh.js";
 import MovementSystem from "./movement_system.js";
 
-import { InputAction } from "./inputs.js";
+import { InputAction } from "../pawn/inputs_dualstick.js";
 
 /**
  * threejs tanks scene

@@ -4,7 +4,7 @@ import * as THREE from "three";
 import PageBase from "../page_base.js";
 import App from "../app.js";
 import PlayspaceTanks from "../d240708_tanks/playspace.js";
-import { InputsTanks } from "../d240708_tanks/inputs.js";
+import { InputsDualstick } from "../pawn/inputs_dualstick.js";
 
 /**
  * @class PageTestcase2Tanks
@@ -16,7 +16,7 @@ class PageTestcase2Tanks extends PageBase {
 
     /** @type {PlayspaceTanks} */
     this.playspace = null;
-    /** @type {InputsTanks} */
+    /** @type {InputsDualstick} */
     this.inputs = null;
   }
 
@@ -38,7 +38,7 @@ class PageTestcase2Tanks extends PageBase {
     this.playspace = new PlayspaceTanks();
     this.playspace.init(App.instance.render.scene).run(App.instance.render, map);
 
-    this.inputs = new InputsTanks(
+    this.inputs = new InputsDualstick(
       this.container,
       this.container,
       this.playspace.input.bind(this.playspace),
