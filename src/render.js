@@ -196,7 +196,7 @@ class Render {
 
   set_camera_aspect(width = this.viewport_w, height = this.viewport_h) {
     this.camera.aspect = width / height;
-    this.camera.fov = this.config.camera_fov * Math.min(1, width / height);
+    this.camera.fov = this.config.camera_fov * Math.min(1, height / width);
     this.camera.updateProjectionMatrix();
   }
 }

@@ -112,7 +112,10 @@ class AbPageTestcaseBowling extends PageBase {
     ap.y = 0.1;
     bp.copy(p).add(ap);
 
-    this.testcase.set_goal(bp);
+		const attack = this.attack || this.testcase.spawn_projectile_requested;
+		if (!attack || tag != "movement") {
+			this.testcase.set_goal(bp);
+		}
 
     this.testcase.physics.raycast(ap, bp, (s, h) => {
       bp.set(h.position.x, 0, h.position.z);
@@ -123,7 +126,7 @@ class AbPageTestcaseBowling extends PageBase {
         this.pointer_mesh_a.position.copy(bp);
         const velocity = this.testcase.physics.cache.vec3_0;
         velocity.init(p.x * 2, 0, p.z * 2);
-        if (this.attack) {
+        if (attack) {
           velocity.init(0, 0, 0);
         }
         this.testcase.pawn_body.setLinearVelocity(velocity);
