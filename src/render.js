@@ -126,7 +126,11 @@ class Render {
     logger.log("Render disposed.");
   }
 
-  pixelate(enable) {
+  /**
+   * @param {boolean|number} enable
+   * @param gtao
+   */
+  pixelate(enable, gtao = false) {
     if (!enable) {
       this.composer = null;
       this.scale = 1;
@@ -134,7 +138,7 @@ class Render {
       return;
     }
 
-    this.scale = 0.5;
+    this.scale = typeof enable == "number" ? enable : 0.5;
 
     this.composer = new EffectComposer(this.renderer);
     const renderPixelatedPass = new RenderPixelatedPass(
@@ -146,7 +150,6 @@ class Render {
     renderPixelatedPass.depthEdgeStrength = 1;
     this.composer.addPass(renderPixelatedPass);
 
-    const gtao = false;
     if (gtao) {
       const renderGTAOPass = new GTAOPass(
         this.scene,

@@ -15,10 +15,10 @@ import { Physics, RigidBodyType } from "../physics.js";
 import logger from "../logger.js";
 
 /**
- * @class AaPageTestcaseBowling
+ * @class AbPageTestcaseBowling
  * @memberof Pages/Tests
  */
-class AaPageTestcaseBowling extends PageBase {
+class AbPageTestcaseBowling extends PageBase {
   constructor() {
     super();
 
@@ -49,7 +49,7 @@ class AaPageTestcaseBowling extends PageBase {
     this.animate(dt);
     this.camera_controls.step(dt);
     this.physics.step(dt);
-		this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
+    this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
   }
 
   animate(dt) {
@@ -68,7 +68,7 @@ class AaPageTestcaseBowling extends PageBase {
     const render = App.instance.render;
     const scene = render.scene;
 
-    render.pixelate(true);
+    render.pixelate(0.25, true);
 
     this.environment = new Environment1();
     this.environment.run({ floor: true });
@@ -96,7 +96,7 @@ class AaPageTestcaseBowling extends PageBase {
         size,
         RigidBodyType.DYNAMIC,
         { friction: 0, density: 1, adamping: 10, ldamping: 1 },
-				0x48a9b1
+        0x48a9b1,
       );
       const mesh = this.physics.meshlist[id];
       const body = this.physics.bodylist[id];
@@ -160,17 +160,25 @@ class AaPageTestcaseBowling extends PageBase {
           this.pointer_mesh_b.position.copy(bp);
           this.camera_controls.set_direction(p);
         } else {
-					p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
+          p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
           // stick released
           const radius = 0.5;
-          bp.copy(p).setLength(radius * 2).add(ap);
+          bp.copy(p)
+            .setLength(radius * 2)
+            .add(ap);
           const impulse = this.physics.cache.vec3_0;
           impulse.init(p.x * 50, 0, p.z * 50);
+          let color = new THREE.Color(
+            Math.random(),
+            Math.random(),
+            Math.random(),
+          );
           const id = this.create_physics_sphere(
             bp,
             radius,
             RigidBodyType.DYNAMIC,
-						{ density: 10, friction: 0.3, restitution: 0.7 }
+            { density: 10, friction: 0.3, restitution: 0.7, icosphere: true },
+            color,
           );
           const body = this.physics.bodylist[id];
           body.applyLinearImpulse(impulse);
@@ -230,12 +238,15 @@ class AaPageTestcaseBowling extends PageBase {
    * @param {number} sphere .
    * @param {RigidBodyType} type .
    * @param {object} [opts] .
+   * @param {boolean} [opts.icosphere] .
    * @param {number} [color=0xffffff] .
    * @returns {string} body id
    */
   create_physics_sphere(pos, radius, type, opts, color = 0xffffff) {
     const body = this.physics.create_sphere(pos, radius, type, opts);
-    let geometry = new THREE.SphereGeometry(radius);
+    let geometry = opts?.icosphere
+      ? new THREE.IcosahedronGeometry(radius)
+      : new THREE.SphereGeometry(radius);
     let material = this.create_material(color);
     this.environment.lights.csm?.setupMaterial(material);
     let mesh = new THREE.Mesh(geometry, material);
@@ -314,4 +325,4 @@ class AaPageTestcaseBowling extends PageBase {
   }
 }
 
-export default AaPageTestcaseBowling;
+export default AbPageTestcaseBowling;

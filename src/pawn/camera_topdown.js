@@ -39,7 +39,7 @@ class CameraTopdown {
       /**
        * how fast camera follows target
        */
-      follow_speed: 0.4,
+      follow_speed: 0.1,
       /**
        * actial camera movement speed
        */

@@ -54,9 +54,16 @@ class PawnDrawA {
 
     register("idle", "IDLE");
     register("run", "RUN");
+    register("hit", "HIT", {
+			speed: 2,
+			playback_mode: ANIMATION_PLAYBACK_MODE.at_start
+		});
 
     am.pair("idle", "run");
     am.pair("run", "idle", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("idle", "hit", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("hit", "run", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("hit", "idle", ANIMATION_TRANSITION_MODE.end);
 
     this.animator.transite("idle");
   }
@@ -71,6 +78,7 @@ class PawnDrawA {
       .copy(Vec3Right)
       .applyAxisAngle(Vec3Up, this._target.rotation.y);
     const goal_delta = cache.vec3.v1.copy(this.goal).sub(this.pos);
+		goal_delta.y = 0;
     const direction = cache.vec3.v2.copy(goal_delta).normalize();
     const direction_angle = Math.atan2(direction.x, direction.z);
 
@@ -87,7 +95,7 @@ class PawnDrawA {
       this._target.rotation.y += rotate * df * 0.1;
     }
 
-    if (this.velocity.length() > 0) {
+    if (this.velocity.length() > 1e-5) {
       this.animator.transite("run");
     } else {
       this.animator.transite("idle");
