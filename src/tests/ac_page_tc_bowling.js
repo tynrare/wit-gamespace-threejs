@@ -72,7 +72,9 @@ class AbPageTestcaseBowling extends PageBase {
     this.inputs.run();
 
     this.testcase = new AbTestcaseBowling();
-    this.testcase.run(() => {});
+    this.testcase.run(() => {
+      this._create_boxes();
+    });
 
     this.camera_controls = new CameraTopdown();
     this.camera_controls.init(render.camera, this.testcase.pawn_dbg_mesh);
@@ -112,10 +114,10 @@ class AbPageTestcaseBowling extends PageBase {
     ap.y = 0.1;
     bp.copy(p).add(ap);
 
-		const attack = this.attack || this.testcase.spawn_projectile_requested;
-		if (!attack || tag != "movement") {
-			this.testcase.set_goal(bp);
-		}
+    const attack = this.attack || this.testcase.spawn_projectile_requested;
+    if (!attack || tag != "movement") {
+      this.testcase.set_goal(bp);
+    }
 
     this.testcase.physics.raycast(ap, bp, (s, h) => {
       bp.set(h.position.x, 0, h.position.z);
@@ -154,6 +156,39 @@ class AbPageTestcaseBowling extends PageBase {
     const mesh = new THREE.Mesh(geometry, material);
 
     return mesh;
+  }
+
+  _create_boxes() {
+    const BOX_SIZE = 1;
+    for (let x = 0; x < 16; x++) {
+      for (let y = 0; y < 16; y++) {
+        let i = x + (15 - y) * 16;
+        let z = 0;
+        let x1 = -10 + x * BOX_SIZE * 3 + Math.random() * 0.1;
+        let y1 = 10;
+        let z1 = -0 + (15 - y) * BOX_SIZE * 3 + Math.random() * 0.1;
+        let w = BOX_SIZE * 1;
+        let h = BOX_SIZE * 1;
+        let d = BOX_SIZE * 1;
+        const dynamic = Math.random() > 0.0;
+        const type = dynamic ? RigidBodyType.DYNAMIC : RigidBodyType.STATIC;
+        const color = dynamic ? 0xffffff : 0x000000;
+        const id = this.testcase.create_physics_box(
+          cache.vec3.v0.set(x1, y1, z1),
+          cache.vec3.v1.set(w, h, d),
+          type,
+          color,
+        );
+        const body = this.testcase.physics.bodylist[id];
+        const vel = this.testcase.physics.cache.vec3_0;
+        vel.init(
+          (Math.random() - 0.5) * 10,
+          (Math.random() - 0.5) * 10,
+          (Math.random() - 0.5) * 10,
+        );
+        body.setAngularVelocity(vel);
+      }
+    }
   }
 
   stop() {

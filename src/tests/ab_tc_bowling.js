@@ -35,7 +35,6 @@ class AaTestcaseBowling {
     /** @type {Environment1} */
     this.environment = null;
 
-
     this.cache = {
       vec3_0: new Vector3(),
     };
@@ -70,18 +69,22 @@ class AaTestcaseBowling {
     this.environment = new Environment1();
     this.environment.run({ floor: false });
 
-    this._load_pawn().then(() => {
-      this.pawn = new PawnDrawA();
-      this.pawn.init(this.character_gltf, this.character_scene);
-      App.instance.render.scene.add(this.character_scene);
+    Promise.all([
+      this._load_pawn().then(() => {
+        this.pawn = new PawnDrawA();
+        this.pawn.init(this.character_gltf, this.character_scene);
+        App.instance.render.scene.add(this.character_scene);
 
-      this.pawn_dbg_mesh.visible = false;
-      this.pawn.allow_move = false;
+        this.pawn_dbg_mesh.visible = false;
+        this.pawn.allow_move = false;
 
-      if (onload) {
-        onload();
-      }
-    });
+      }),
+      this.open_playscene("a"),
+    ]).then(() => {
+        if (onload) {
+          onload();
+        }
+		});
 
     this.physics = new Physics().run({ fixed_step: false });
     this.physics.create_box(
@@ -105,8 +108,6 @@ class AaTestcaseBowling {
       this.pawn_body = body;
       this.pawn_dbg_mesh = mesh;
     }
-
-    this.open_playscene("a");
   }
 
   /**
@@ -351,7 +352,7 @@ class AaTestcaseBowling {
     this.pawn = null;
     this.character_scene = null;
     this.character_gltf = null;
-		this.environment = null;
+    this.environment = null;
     this.close_playscene();
   }
 }
