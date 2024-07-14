@@ -11,7 +11,9 @@ import { InputAction } from "./inputs.js";
  * @param {function(number, number, string, InputAction): void} input_analog .
  */
 function InputsDualstick(container, canvas, input, input_analog) {
+	let active = false;
   this.run = () => {
+		active = true;
     document.body.addEventListener("keydown", keydown);
     document.body.addEventListener("keyup", keyup);
 
@@ -21,9 +23,12 @@ function InputsDualstick(container, canvas, input, input_analog) {
     canvas.addEventListener("mouseup", pointerup);
     canvas.addEventListener("touchmove", pointermove, { passive: false });
     canvas.addEventListener("mousemove", pointermove);
+
+		loop();
   };
 
   this.stop = () => {
+		active = false;
     document.body.removeEventListener("keydown", keydown);
     document.body.removeEventListener("keyup", keyup);
 
@@ -103,7 +108,9 @@ function InputsDualstick(container, canvas, input, input_analog) {
   access_joystick("attack", "screen_joystic_attack");
 
   function loop() {
-    requestAnimationFrame(loop);
+		if (!active) {
+			return;
+		}
 
     const joystick_movement = access_joystick("movement");
     const joystick_attack = access_joystick("attack");
@@ -133,8 +140,9 @@ function InputsDualstick(container, canvas, input, input_analog) {
         tag_to_action[joystick_attack.tag],
       );
     }
+
+    requestAnimationFrame(loop);
   }
-  loop();
 
   /**
    * @param {TouchEvent|MouseEvent} ev

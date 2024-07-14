@@ -9,6 +9,7 @@ import PawnDrawA from "../pawn/d240710_pawn.js";
 import LightsA from "../lights_a.js";
 import { dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
 import { Physics, RigidBodyType } from "../physics.js";
+import Environment1 from "./environment_1.js";
 
 /**
  * @class AaTestcaseBowling
@@ -30,6 +31,10 @@ class AaTestcaseBowling {
 
     /** @type {THREE.Object3D} */
     this.playscene = null;
+
+    /** @type {Environment1} */
+    this.environment = null;
+
 
     this.cache = {
       vec3_0: new Vector3(),
@@ -62,6 +67,9 @@ class AaTestcaseBowling {
   }
 
   run(onload) {
+    this.environment = new Environment1();
+    this.environment.run({ floor: false });
+
     this._load_pawn().then(() => {
       this.pawn = new PawnDrawA();
       this.pawn.init(this.character_gltf, this.character_scene);
@@ -216,6 +224,7 @@ class AaTestcaseBowling {
         }
         m.castShadow = App.instance.render.config.shadows;
         m.receiveShadow = App.instance.render.config.shadows;
+        this.environment.lights.csm?.setupMaterial(material);
         /** @type {THREE.MeshStandardMaterial} */
         const material = /** @type {any} */ (m.material);
         material.metalness = 0;
@@ -338,9 +347,11 @@ class AaTestcaseBowling {
 
   stop() {
     this.pawn.dispose();
+    this.environment.stop();
     this.pawn = null;
     this.character_scene = null;
     this.character_gltf = null;
+		this.environment = null;
     this.close_playscene();
   }
 }

@@ -8,7 +8,6 @@ import PageBase from "../page_base.js";
 import App from "../app.js";
 import { Vec3Up, dlerp, cache } from "../math.js";
 import AbTestcaseBowling from "./ab_tc_bowling.js";
-import Environment1 from "./environment_1.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
 import { Physics, RigidBodyType } from "../physics.js";
@@ -21,9 +20,6 @@ import logger from "../logger.js";
 class AbPageTestcaseBowling extends PageBase {
   constructor() {
     super();
-
-    /** @type {Environment1} */
-    this.environment = null;
 
     /** @type {AbTestcaseBowling} */
     this.testcase = null;
@@ -66,9 +62,6 @@ class AbPageTestcaseBowling extends PageBase {
 
     const render = App.instance.render;
     const scene = render.scene;
-
-    this.environment = new Environment1();
-    this.environment.run({ floor: false });
 
     this.inputs = new InputsDualstick(
       this.container,
@@ -162,9 +155,7 @@ class AbPageTestcaseBowling extends PageBase {
 
   stop() {
     this.testcase.stop();
-    this.environment.stop();
     this.inputs.stop();
-    this.environment = null;
     this.inputs = null;
     this.testcase = null;
 
