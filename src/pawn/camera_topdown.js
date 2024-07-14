@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
-import { cache, angle_sub, Vec3Up, Vec3Forward, Vec3Right } from "../math.js";
+import { cache, angle_sub, Vec3Up, Vec3Forward } from "../math.js";
 
 /**
  * Controls camera.
@@ -68,7 +68,7 @@ class CameraTopdown {
 
     // ---
     // construct local position vector
-    const pos = this.cache.v3.copy(Vec3Right);
+    const pos = this.cache.v3.copy(Vec3Forward);
     pos.normalize().multiplyScalar(this.distance);
     pos.y += this.height;
 

@@ -6,7 +6,7 @@ import {
   ANIMATION_PLAYBACK_MODE,
   ANIMATION_TRANSITION_MODE,
 } from "../animator";
-import { Vec3Up, Vec3Forward, angle_sub, cache } from "../math.js";
+import { Vec3Up, Vec3Right, angle_sub, cache } from "../math.js";
 
 class PawnDrawA {
   constructor() {
@@ -68,7 +68,7 @@ class PawnDrawA {
     this.pos.copy(this._target.position);
 
     const facing_direction = cache.vec3.v0
-      .copy(Vec3Forward)
+      .copy(Vec3Right)
       .applyAxisAngle(Vec3Up, this._target.rotation.y);
     const goal_delta = cache.vec3.v1.copy(this.goal).sub(this.pos);
     const direction = cache.vec3.v2.copy(goal_delta).normalize();

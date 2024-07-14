@@ -6,7 +6,7 @@ import Loader from "../loader.js";
 import LightsA from "../lights_a.js";
 import PageBase from "../page_base.js";
 import App from "../app.js";
-import { Vec3Forward, Vec3Right, Vec3Up, dlerp, cache } from "../math.js";
+import { Vec3Up, dlerp, cache } from "../math.js";
 import AaTestcaseBowling from "./aa_tc_bowling.js";
 import Environment1 from "./environment_1.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";

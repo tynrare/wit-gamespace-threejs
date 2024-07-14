@@ -6,7 +6,7 @@ import Loader from "../loader.js";
 import LightsA from "../lights_a.js";
 import PageBase from "../page_base.js";
 import App from "../app.js";
-import { Vec3Forward, Vec3Right, Vec3Up, dlerp, cache } from "../math.js";
+import { Vec3Up, dlerp, cache } from "../math.js";
 import AaTestcaseBowling from "./aa_tc_bowling.js";
 import Environment1 from "./environment_1.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
@@ -24,9 +24,6 @@ class AaPageTestcaseBowling extends PageBase {
 
     /** @type {Environment1} */
     this.environment = null;
-
-    /** @type {AaTestcaseBowling} */
-    this.testcase = null;
 
     /** @type {InputsDualstick} */
     this.inputs = null;
@@ -49,15 +46,15 @@ class AaPageTestcaseBowling extends PageBase {
    * @param {number} dt .
    */
   step(dt) {
-    this.testcase.step(dt);
     this.animate(dt);
     this.camera_controls.step(dt);
     this.physics.step(dt);
+		this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
   }
 
   animate(dt) {
     const update_pointer = (mesh, visible) => {
-      const pointer_size = this.testcase.pawn && visible ? 1 : 0;
+      const pointer_size = visible ? 1 : 0;
       mesh.scale.setScalar(dlerp(mesh.scale.x, pointer_size, 1, dt * 1e-3));
       mesh.rotateY(3e-4 * dt);
     };
@@ -71,10 +68,10 @@ class AaPageTestcaseBowling extends PageBase {
     const render = App.instance.render;
     const scene = render.scene;
 
-    //render.pixelate(true);
+    render.pixelate(true);
 
     this.environment = new Environment1();
-    this.environment.run({ floor: false });
+    this.environment.run({ floor: true });
 
     this.physics = new Physics().run({ fixed_step: false });
     this.physics.create_box(
@@ -91,61 +88,31 @@ class AaPageTestcaseBowling extends PageBase {
     this.inputs.run();
 
     this.camera_controls = new CameraTopdown();
-    this.testcase = new AaTestcaseBowling();
-    this.testcase.run(() => {
-      const obj = this.testcase.pawn._target;
-      this.camera_controls.init(render.camera, obj);
-      const pos = new Vector3(0, 1, 0).add(obj.position);
+    {
+      const pos = new Vector3(0, 1, 0);
       const size = new Vector3(0.4, 1, 0);
-      const body = this.physics.create_cylinder(
+      const id = this.create_physics_cylinder(
         pos,
         size,
         RigidBodyType.DYNAMIC,
-        { friction: 0 },
+        { friction: 0, density: 1, adamping: 10, ldamping: 1 },
+				0x48a9b1
       );
-      this.physics.attach(body, this.testcase.pawn._target, {
-        shift: new Vector3(0, -0.5, 0),
-				allow_rotate: false
-      });
-      this.testcase.pawn.set_body(body);
-
-      //this.testcase.pawn._target = this.physics.meshlist[id];
-    });
-
-    this.open_playscene("a", false);
+      const mesh = this.physics.meshlist[id];
+      const body = this.physics.bodylist[id];
+      this.camera_controls.init(render.camera, mesh);
+      this.pawn_body = body;
+      const mesh_decor = this.spawn_icosphere(0x000000);
+      mesh_decor.position.set(0, 0.5, 0.5);
+      mesh.add(mesh_decor);
+    }
 
     this.pointer_mesh_a = this.spawn_icosphere(0xb768e9);
     this.pointer_mesh_b = this.spawn_icosphere(0xb7e968);
     scene.add(this.pointer_mesh_a);
     scene.add(this.pointer_mesh_b);
-  }
 
-  add_gltf(url, add_to_scene = true) {
-    return Loader.instance.get_gltf(url).then((gltf) => {
-      console.log(gltf);
-      /** @type {THREE.Object3D} */
-      const scene = gltf.scene;
-      scene.traverse((o) => {
-        /** @type {THREE.Mesh} */
-        const m = /** @type {any} */ (o);
-        if (!m.isMesh) {
-          return;
-        }
-        m.castShadow = App.instance.render.config.shadows;
-        m.receiveShadow = App.instance.render.config.shadows;
-        /** @type {THREE.MeshStandardMaterial} */
-        const material = /** @type {any} */ (m.material);
-        material.metalness = 0;
-
-        this.environment.lights.csm?.setupMaterial(material);
-      });
-
-      if (add_to_scene) {
-        App.instance.render.scene.add(scene);
-      }
-
-      return scene;
-    });
+    this._create_boxes();
   }
 
   input(type, start) {
@@ -155,9 +122,6 @@ class AaPageTestcaseBowling extends PageBase {
         break;
       case InputAction.action_b:
         this.attack = start;
-        if (this.testcase.pawn) {
-          this.testcase.pawn.allow_move = !start;
-        }
         break;
     }
   }
@@ -169,86 +133,53 @@ class AaPageTestcaseBowling extends PageBase {
    * @param {InputAction} type .
    */
   input_analog(x, y, tag, type) {
-    if (!this.testcase?.pawn) {
-      return;
-    }
-    const p = cache.vec3.v0;
-    const ap = cache.vec3.v1;
-    p.set(x, -0.1, y).applyAxisAngle(
+    const p = cache.vec3.v1;
+    const ap = cache.vec3.v2;
+    const bp = cache.vec3.v3;
+    p.set(-x, 0, -y).applyAxisAngle(
       Vec3Up,
       this.camera_controls._camera.rotation.y,
     );
-    const pawnpos = this.testcase.pawn._target.position;
-    ap.copy(p).negate().add(pawnpos);
+    ap.copy(this.camera_controls._target.position);
+    ap.y = 0.1;
+    bp.copy(p).add(ap);
 
-    this.physics.raycast(pawnpos, ap, (s, h) => {
-      ap.set(h.position.x, 0, h.position.z);
+    this.physics.raycast(ap, bp, (s, h) => {
+      bp.set(h.position.x, 0, h.position.z);
     });
 
-    this.testcase.set_goal(ap);
     switch (type) {
       case InputAction.action_a:
-        this.pointer_mesh_a.position.copy(ap);
+        this.pointer_mesh_a.position.copy(bp);
+        const velocity = this.physics.cache.vec3_0;
+        velocity.init(p.x * 3, 0, p.z * 3);
+        this.pawn_body.setLinearVelocity(velocity);
         break;
       case InputAction.action_b:
-        this.pointer_mesh_b.position.copy(ap);
-        this.camera_controls.set_direction(p);
+        if (this.attack) {
+          this.pointer_mesh_b.position.copy(bp);
+          this.camera_controls.set_direction(p);
+        } else {
+					p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
+          // stick released
+          const radius = 0.5;
+          bp.copy(p).setLength(radius * 2).add(ap);
+          const impulse = this.physics.cache.vec3_0;
+          impulse.init(p.x * 50, 0, p.z * 50);
+          const id = this.create_physics_sphere(
+            bp,
+            radius,
+            RigidBodyType.DYNAMIC,
+						{ density: 10, friction: 0.3, restitution: 0.7 }
+          );
+          const body = this.physics.bodylist[id];
+          body.applyLinearImpulse(impulse);
+        }
+
         break;
     }
   }
 
-  open_playscene(name, lightmaps = true) {
-    return new Promise((resolve, reject) => {
-      const root_path = `bowling/scenes/${name}/`;
-      const load = (config) => {
-        this.close_playscene();
-
-        this.add_gltf(root_path + `scene.glb`).then((scene) => {
-          this.playscene = scene;
-          if (config) {
-            LightsA.apply_lightmaps(scene, root_path, config);
-          }
-          LightsA.apply_lightmaps_white(scene);
-          scene.traverse((o) => {
-            /** @type {THREE.Mesh} */
-            const m = /** @type {any} */ (o);
-            if (!m.isMesh) {
-              return;
-            }
-            if (m.name.includes("phys")) {
-              const center = m.geometry.boundingBox.getCenter(cache.vec3.v0);
-              center.set(center.x, center.z, center.y);
-              center.add(m.position);
-              const size = m.geometry.boundingBox.getSize(cache.vec3.v1);
-              size.applyAxisAngle(Vec3Forward, Math.PI * 0.5);
-              //size.set(size.x, size.z, size.y);
-              const type = m.name.includes("dynamic")
-                ? RigidBodyType.DYNAMIC
-                : RigidBodyType.STATIC;
-              const box = this.physics.create_box(center, size, type);
-            }
-          });
-
-          resolve();
-        });
-      };
-
-      if (lightmaps) {
-        Loader.instance
-          .get_json(root_path + `lightmaps/config.json`)
-          .then((config) => {
-            load(config);
-          });
-      } else {
-        load(null);
-      }
-    });
-  }
-
-  close_playscene() {
-    this.playscene?.removeFromParent();
-    this.playscene = null;
-  }
   /**
    * @returns {THREE.Mesh}
    */
@@ -276,6 +207,7 @@ class AaPageTestcaseBowling extends PageBase {
    * @param {Vector3} pos .
    * @param {Vector3} size .
    * @param {RigidBodyType} type .
+   * @param {number} color .
    * @returns {string} body id
    */
   create_physics_box(pos, size, type, color = 0xffffff) {
@@ -293,18 +225,17 @@ class AaPageTestcaseBowling extends PageBase {
   }
 
   /**
-   * Creates cylinder with mesh
+   * Creates sphere with mesh
    * @param {Vector3} pos .
-   * @param {Vector3} size .
+   * @param {number} sphere .
    * @param {RigidBodyType} type .
-   * @param {number} color .
    * @param {object} [opts] .
-   * @param {number} [opts.friction=1] .
+   * @param {number} [color=0xffffff] .
    * @returns {string} body id
    */
-  create_physics_cylinder(pos, size, type, color = 0xffffff, opts) {
-    const body = this.physics.create_cylinder(pos, size, type, opts);
-    let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y);
+  create_physics_sphere(pos, radius, type, opts, color = 0xffffff) {
+    const body = this.physics.create_sphere(pos, radius, type, opts);
+    let geometry = new THREE.SphereGeometry(radius);
     let material = this.create_material(color);
     this.environment.lights.csm?.setupMaterial(material);
     let mesh = new THREE.Mesh(geometry, material);
@@ -316,16 +247,67 @@ class AaPageTestcaseBowling extends PageBase {
     return body.id;
   }
 
+  /**
+   * Creates cylinder with mesh
+   * @param {Vector3} pos .
+   * @param {Vector3} size .
+   * @param {RigidBodyType} type .
+   * @param {object?} [opts] .
+   * @param {number} [opts.friction=1] .
+   * @param {number} [color] .
+   * @returns {string} body id
+   */
+  create_physics_cylinder(pos, size, type, opts, color = 0xffffff) {
+    const body = this.physics.create_cylinder(pos, size, type, opts);
+    let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y, 6);
+    let material = this.create_material(color);
+    this.environment.lights.csm?.setupMaterial(material);
+    let mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    App.instance.render.scene.add(mesh);
+
+    this.physics.attach(body, mesh);
+
+    return body.id;
+  }
+
+  _create_boxes() {
+    const BOX_SIZE = 1;
+    for (let x = 0; x < 16; x++) {
+      for (let y = 0; y < 16; y++) {
+        let i = x + (15 - y) * 16;
+        let z = 0;
+        let x1 = -10 + x * BOX_SIZE * 3 + Math.random() * 0.1;
+        let y1 = 0.5;
+        let z1 = -0 + (15 - y) * BOX_SIZE * 3 + Math.random() * 0.1;
+        let color = new THREE.Color(
+          Math.random(),
+          Math.random(),
+          Math.random(),
+        );
+        let w = BOX_SIZE * 1;
+        let h = BOX_SIZE * 1;
+        let d = BOX_SIZE * 1;
+        const dynamic = Math.random() > 0.5;
+        const type = dynamic ? RigidBodyType.DYNAMIC : RigidBodyType.STATIC;
+        color = dynamic ? color : 0x000000;
+        this.create_physics_box(
+          cache.vec3.v0.set(x1, y1, z1),
+          cache.vec3.v1.set(w, h, d),
+          type,
+          color,
+        );
+      }
+    }
+  }
+
   stop() {
-    this.testcase.stop();
     this.environment.stop();
     this.inputs.stop();
     this.physics.stop();
     this.environment = null;
-    this.testcase = null;
     this.inputs = null;
     this.physics = null;
-    this.close_playscene();
 
     App.instance.render.pixelate(false);
     App.instance.pause();
