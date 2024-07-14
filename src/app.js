@@ -8,6 +8,7 @@ import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
 import PageTestcase3 from "./tests/page_testcase3.js";
 import PageTestcase4 from "./tests/page_testcase4.js";
 import AaPageTestcaseBowling from "./tests/aa_page_tc_bowling.js";
+import AbPageTestcaseBowling from "./tests/ab_page_tc_bowling.js";
 import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
@@ -42,6 +43,7 @@ class App {
       testcase3: new PageTestcase3(),
       testcase4: new PageTestcase4(),
       testcase5: new AaPageTestcaseBowling(),
+      testcase6: new AbPageTestcaseBowling(),
     };
 
     /** @type {Render} */

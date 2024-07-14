@@ -11,14 +11,12 @@ import AaTestcaseBowling from "./aa_tc_bowling.js";
 import Environment1 from "./environment_1.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
-import { Physics, RigidBodyType } from "../physics.js";
-import logger from "../logger.js";
 
 /**
- * @class AaPageTestcaseBowling
+ * @class AbPageTestcaseBowling
  * @memberof Pages/Tests
  */
-class AaPageTestcaseBowling extends PageBase {
+class AbPageTestcaseBowling extends PageBase {
   constructor() {
     super();
 
@@ -37,9 +35,6 @@ class AaPageTestcaseBowling extends PageBase {
     /** @type {THREE.Object3D} */
     this.playscene = null;
 
-    /** @type {Physics} */
-    this.physics = null;
-
     this.attack = false;
     this.move = false;
   }
@@ -52,7 +47,6 @@ class AaPageTestcaseBowling extends PageBase {
     this.testcase.step(dt);
     this.animate(dt);
     this.camera_controls.step(dt);
-    this.physics.step(dt);
   }
 
   animate(dt) {
@@ -74,14 +68,8 @@ class AaPageTestcaseBowling extends PageBase {
     //render.pixelate(true);
 
     this.environment = new Environment1();
-    this.environment.run({ floor: false });
+    this.environment.run({ floor: true });
 
-    this.physics = new Physics().run({ fixed_step: false });
-    this.physics.create_box(
-      new Vector3(0, -1, 0),
-      new Vector3(100, 2, 100),
-      RigidBodyType.STATIC,
-    );
     this.inputs = new InputsDualstick(
       this.container,
       this.container,
@@ -95,57 +83,12 @@ class AaPageTestcaseBowling extends PageBase {
     this.testcase.run(() => {
       const obj = this.testcase.pawn._target;
       this.camera_controls.init(render.camera, obj);
-      const pos = new Vector3(0, 1, 0).add(obj.position);
-      const size = new Vector3(0.4, 1, 0);
-      const body = this.physics.create_cylinder(
-        pos,
-        size,
-        RigidBodyType.DYNAMIC,
-        { friction: 0 },
-      );
-      this.physics.attach(body, this.testcase.pawn._target, {
-        shift: new Vector3(0, -0.5, 0),
-				allow_rotate: false
-      });
-      this.testcase.pawn.set_body(body);
-
-      //this.testcase.pawn._target = this.physics.meshlist[id];
     });
-
-    this.open_playscene("a", false);
 
     this.pointer_mesh_a = this.spawn_icosphere(0xb768e9);
     this.pointer_mesh_b = this.spawn_icosphere(0xb7e968);
     scene.add(this.pointer_mesh_a);
     scene.add(this.pointer_mesh_b);
-  }
-
-  add_gltf(url, add_to_scene = true) {
-    return Loader.instance.get_gltf(url).then((gltf) => {
-      console.log(gltf);
-      /** @type {THREE.Object3D} */
-      const scene = gltf.scene;
-      scene.traverse((o) => {
-        /** @type {THREE.Mesh} */
-        const m = /** @type {any} */ (o);
-        if (!m.isMesh) {
-          return;
-        }
-        m.castShadow = App.instance.render.config.shadows;
-        m.receiveShadow = App.instance.render.config.shadows;
-        /** @type {THREE.MeshStandardMaterial} */
-        const material = /** @type {any} */ (m.material);
-        material.metalness = 0;
-
-        this.environment.lights.csm?.setupMaterial(material);
-      });
-
-      if (add_to_scene) {
-        App.instance.render.scene.add(scene);
-      }
-
-      return scene;
-    });
   }
 
   input(type, start) {
@@ -181,10 +124,6 @@ class AaPageTestcaseBowling extends PageBase {
     const pawnpos = this.testcase.pawn._target.position;
     ap.copy(p).negate().add(pawnpos);
 
-    this.physics.raycast(pawnpos, ap, (s, h) => {
-      ap.set(h.position.x, 0, h.position.z);
-    });
-
     this.testcase.set_goal(ap);
     switch (type) {
       case InputAction.action_a:
@@ -197,58 +136,6 @@ class AaPageTestcaseBowling extends PageBase {
     }
   }
 
-  open_playscene(name, lightmaps = true) {
-    return new Promise((resolve, reject) => {
-      const root_path = `bowling/scenes/${name}/`;
-      const load = (config) => {
-        this.close_playscene();
-
-        this.add_gltf(root_path + `scene.glb`).then((scene) => {
-          this.playscene = scene;
-          if (config) {
-            LightsA.apply_lightmaps(scene, root_path, config);
-          }
-          LightsA.apply_lightmaps_white(scene);
-          scene.traverse((o) => {
-            /** @type {THREE.Mesh} */
-            const m = /** @type {any} */ (o);
-            if (!m.isMesh) {
-              return;
-            }
-            if (m.name.includes("phys")) {
-              const center = m.geometry.boundingBox.getCenter(cache.vec3.v0);
-              center.set(center.x, center.z, center.y);
-              center.add(m.position);
-              const size = m.geometry.boundingBox.getSize(cache.vec3.v1);
-              size.applyAxisAngle(Vec3Forward, Math.PI * 0.5);
-              //size.set(size.x, size.z, size.y);
-              const type = m.name.includes("dynamic")
-                ? RigidBodyType.DYNAMIC
-                : RigidBodyType.STATIC;
-              const box = this.physics.create_box(center, size, type);
-            }
-          });
-
-          resolve();
-        });
-      };
-
-      if (lightmaps) {
-        Loader.instance
-          .get_json(root_path + `lightmaps/config.json`)
-          .then((config) => {
-            load(config);
-          });
-      } else {
-        load(null);
-      }
-    });
-  }
-
-  close_playscene() {
-    this.playscene?.removeFromParent();
-    this.playscene = null;
-  }
   /**
    * @returns {THREE.Mesh}
    */
@@ -271,65 +158,16 @@ class AaPageTestcaseBowling extends PageBase {
     return material;
   }
 
-  /**
-   * Creates box with mesh
-   * @param {Vector3} pos .
-   * @param {Vector3} size .
-   * @param {RigidBodyType} type .
-   * @returns {string} body id
-   */
-  create_physics_box(pos, size, type, color = 0xffffff) {
-    const body = this.physics.create_box(pos, size, type);
-    let geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-    let material = this.create_material(color);
-    this.environment.lights.csm?.setupMaterial(material);
-    let mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    App.instance.render.scene.add(mesh);
-
-    this.physics.attach(body, mesh);
-
-    return body.id;
-  }
-
-  /**
-   * Creates cylinder with mesh
-   * @param {Vector3} pos .
-   * @param {Vector3} size .
-   * @param {RigidBodyType} type .
-   * @param {number} color .
-   * @param {object} [opts] .
-   * @param {number} [opts.friction=1] .
-   * @returns {string} body id
-   */
-  create_physics_cylinder(pos, size, type, color = 0xffffff, opts) {
-    const body = this.physics.create_cylinder(pos, size, type, opts);
-    let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y);
-    let material = this.create_material(color);
-    this.environment.lights.csm?.setupMaterial(material);
-    let mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    App.instance.render.scene.add(mesh);
-
-    this.physics.attach(body, mesh);
-
-    return body.id;
-  }
-
   stop() {
     this.testcase.stop();
     this.environment.stop();
     this.inputs.stop();
-    this.physics.stop();
     this.environment = null;
     this.testcase = null;
     this.inputs = null;
-    this.physics = null;
-    this.close_playscene();
 
-    App.instance.render.pixelate(false);
     App.instance.pause();
   }
 }
 
-export default AaPageTestcaseBowling;
+export default AbPageTestcaseBowling;
