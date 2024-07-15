@@ -7,21 +7,21 @@ import LightsA from "../lights_a.js";
 import PageBase from "../page_base.js";
 import App from "../app.js";
 import { Vec3Up, dlerp, cache } from "../math.js";
-import AbTestcaseBowling from "./ab_tc_bowling.js";
+import AcTestcaseBowling from "./ac_tc_bowling.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
 import { Physics, RigidBodyType } from "../physics.js";
 import logger from "../logger.js";
 
 /**
- * @class AbPageTestcaseBowling
+ * @class AcPageTestcaseBowling
  * @memberof Pages/Tests
  */
-class AbPageTestcaseBowling extends PageBase {
+class AcPageTestcaseBowling extends PageBase {
   constructor() {
     super();
 
-    /** @type {AbTestcaseBowling} */
+    /** @type {AcTestcaseBowling} */
     this.testcase = null;
 
     /** @type {InputsDualstick} */
@@ -71,9 +71,10 @@ class AbPageTestcaseBowling extends PageBase {
     );
     this.inputs.run();
 
-    this.testcase = new AbTestcaseBowling();
+    this.testcase = new AcTestcaseBowling();
     this.testcase.run(() => {
       this._create_boxes();
+      this._create_motors();
     });
 
     this.camera_controls = new CameraTopdown();
@@ -158,15 +159,47 @@ class AbPageTestcaseBowling extends PageBase {
     return mesh;
   }
 
+  _create_motors() {
+    const pos = cache.vec3.v0;
+    const size = cache.vec3.v1;
+    pos.set(2, 0.9, -3);
+    size.set(0.5, 0.5, 0.5);
+    const id1 = this.testcase.create_physics_box(
+      pos,
+      size,
+      RigidBodyType.STATIC,
+      null,
+      0x000000,
+    );
+    pos.set(3, 0.9, -3);
+    size.set(2, 0.4, 0.4);
+    const id2 = this.testcase.create_physics_box(
+      pos,
+      size,
+      RigidBodyType.DYNAMIC,
+      {
+        density: 100,
+      },
+      0xffffff,
+    );
+    const b1 = this.testcase.physics.bodylist[id1];
+    const b2 = this.testcase.physics.bodylist[id2];
+    const motor = this.testcase.physics.create_joint_motor(b1, b2, null, {
+      x: 5,
+      y: 100,
+    });
+  }
+
   _create_boxes() {
     const BOX_SIZE = 1;
-    for (let x = 0; x < 16; x++) {
-      for (let y = 0; y < 16; y++) {
-        let i = x + (15 - y) * 16;
+    const amount = 4;
+    for (let x = 0; x < amount; x++) {
+      for (let y = 0; y < amount; y++) {
+        let i = x + (amount - 1 - y) * amount;
         let z = 0;
         let x1 = -10 + x * BOX_SIZE * 3 + Math.random() * 0.1;
         let y1 = 10;
-        let z1 = -0 + (15 - y) * BOX_SIZE * 3 + Math.random() * 0.1;
+        let z1 = 4 + (amount - 1 - y) * BOX_SIZE * 3 + Math.random() * 0.1;
         let w = BOX_SIZE * 1;
         let h = BOX_SIZE * 1;
         let d = BOX_SIZE * 1;
@@ -201,4 +234,4 @@ class AbPageTestcaseBowling extends PageBase {
   }
 }
 
-export default AbPageTestcaseBowling;
+export default AcPageTestcaseBowling;

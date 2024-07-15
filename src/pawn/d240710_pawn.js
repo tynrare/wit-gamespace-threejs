@@ -19,6 +19,8 @@ class PawnDrawA {
     this.velocity = new THREE.Vector3();
     this.goal = new THREE.Vector3();
 
+		this.rotation = 0;
+
     this.allow_move = true;
   }
 
@@ -74,9 +76,6 @@ class PawnDrawA {
     this.velocity.copy(this.pos.sub(this._target.position));
     this.pos.copy(this._target.position);
 
-    const facing_direction = cache.vec3.v0
-      .copy(Vec3Right)
-      .applyAxisAngle(Vec3Up, this._target.rotation.y);
     const goal_delta = cache.vec3.v1.copy(this.goal).sub(this.pos);
 		goal_delta.y = 0;
     const direction = cache.vec3.v2.copy(goal_delta).normalize();
@@ -84,7 +83,7 @@ class PawnDrawA {
 
     const df = dt / 30;
     const rotate = angle_sub(
-      this._target.rotation.y,
+      this.rotation,
       direction_angle - Math.PI / 2,
     );
 
@@ -92,7 +91,8 @@ class PawnDrawA {
       if (this.allow_move) {
         this._target.position.add(facing_direction.multiplyScalar(df * 0.04));
       }
-      this._target.rotation.y += rotate * df * 0.1;
+      this.rotation += rotate * df * 0.1;
+			this._target.rotation.y = this.rotation;
     }
 
     if (this.velocity.length() > 1e-5) {

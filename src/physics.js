@@ -4,10 +4,12 @@ import * as THREE from "three";
 import { Vector3 } from "three";
 
 import { oimo } from "./lib/OimoPhysics.js";
+import DebugDraw from "./physics_debug.js";
 
 import App from "./app.js";
 
 const RigidBodyType = oimo.dynamics.rigidbody.RigidBodyType;
+const RigidBody = oimo.dynamics.rigidbody.RigidBody;
 
 /**
  * @typedef MeshAttachOpts
@@ -22,7 +24,7 @@ const RigidBodyType = oimo.dynamics.rigidbody.RigidBodyType;
  * @property {number} density
  * @property {number} adamping
  * @property {number} ldamping
- * @property {number} restitution 
+ * @property {number} restitution
  */
 
 /**
@@ -36,11 +38,14 @@ class Physics {
     /** @type {oimo.dynamics.World} */
     this.world = null;
 
+    /** @type {DebugDraw} */
+    this.debug_draw = null;
+
     this.config = {
       fixed_step: true,
     };
 
-    /** @type {object<string, oimo.dynamics.rigidbody.RigidBody>} */
+    /** @type {object<string, RigidBody>} */
     this.bodylist = {};
     /** @type {object<string, THREE.Object3D>} */
     this.meshlist = {};
@@ -50,6 +55,9 @@ class Physics {
     this.cache = {
       vec3_0: new oimo.common.Vec3(),
       vec3_1: new oimo.common.Vec3(),
+      vec3_2: new oimo.common.Vec3(),
+			vec3up: new oimo.common.Vec3().init(0, 1, 0),
+			mat3: new oimo.common.Mat3(),
       raycast: new oimo.dynamics.callback.RayCastCallback(),
     };
 
@@ -69,6 +77,12 @@ class Physics {
       new oimo.common.Vec3(0, -9.8, 0),
     );
 
+    this.debug_draw = new DebugDraw(App.instance.render.scene);
+    this.debug_draw.wireframe = true;
+    this.debug_draw.drawJointLimits = true;
+    this.debug_draw.drawBases = true;
+    this.world.setDebugDraw(this.debug_draw);
+
     return this;
   }
 
@@ -82,8 +96,12 @@ class Physics {
   step(dt) {
     this.world.step(this.config.fixed_step ? 1 / 60 : dt * 1e-3);
 
+    this.debug_draw.begin();
+    this.world.debugDraw();
+    this.debug_draw.end();
+
     for (const k in this.meshlist) {
-      /** @type {oimo.dynamics.rigidbody.RigidBody} */
+      /** @type {RigidBody} */
       const body = this.bodylist[k];
       const mesh = this.meshlist[k];
       const opts = this.attachopts[k];
@@ -108,7 +126,7 @@ class Physics {
    * @param {oimo.collision.geometry.Geometry} geometry .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {oimo.dynamics.rigidbody.RigidBody} .
+   * @returns {RigidBody} .
    */
   create_body(pos, geometry, type, opts) {
     const body_config = new oimo.dynamics.rigidbody.RigidBodyConfig();
@@ -116,12 +134,12 @@ class Physics {
     body_config.type = type;
     body_config.angularDamping = opts?.adamping ?? 0;
     body_config.linearDamping = opts?.ldamping ?? 0;
-    const body = new oimo.dynamics.rigidbody.RigidBody(body_config);
+    const body = new RigidBody(body_config);
     const shape_config = new oimo.dynamics.rigidbody.ShapeConfig();
     shape_config.geometry = geometry;
     shape_config.density = opts?.density ?? 1;
     shape_config.friction = opts?.friction ?? 1;
-		shape_config.restitution = opts?.restitution ?? 0.1;
+    shape_config.restitution = opts?.restitution ?? 0.1;
     const shape = new oimo.dynamics.rigidbody.Shape(shape_config);
     body.addShape(shape);
     this.world.addRigidBody(body);
@@ -138,7 +156,7 @@ class Physics {
    * @param {Vector3} size .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {oimo.dynamics.rigidbody.RigidBody} .
+   * @returns {RigidBody} .
    */
   create_box(pos, size, type, opts) {
     const geometry = new oimo.collision.geometry.BoxGeometry(
@@ -153,7 +171,7 @@ class Physics {
    * @param {number} radius .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {oimo.dynamics.rigidbody.RigidBody} .
+   * @returns {RigidBody} .
    */
   create_sphere(pos, radius, type, opts) {
     const geometry = new oimo.collision.geometry.SphereGeometry(radius);
@@ -166,7 +184,7 @@ class Physics {
    * @param {Vector3} size .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {oimo.dynamics.rigidbody.RigidBody} .
+   * @returns {RigidBody} .
    */
   create_cylinder(pos, size, type, opts) {
     const geometry = new oimo.collision.geometry.CylinderGeometry(
@@ -178,7 +196,7 @@ class Physics {
   }
 
   /**
-   * @param {oimo.dynamics.rigidbody.RigidBody} body .
+   * @param {RigidBody} body .
    * @param {THREE.Object3D} mesh .
    * @param {MeshAttachOpts?} [opts] .
    */
@@ -187,6 +205,27 @@ class Physics {
     if (opts) {
       this.attachopts[body.id] = opts;
     }
+  }
+
+  /**
+   * @param {RigidBody} a
+   * @param {RigidBody} b
+   * @param {Vector3?} [axis] .
+   * @param {Vector2?} [torque] .
+   */
+  create_joint_motor(a, b, axis, torque = 0) {
+    const motor = new oimo.dynamics.constraint.joint.RotationalLimitMotor();
+    const config = new oimo.dynamics.constraint.joint.RevoluteJointConfig();
+    const _axis = this.cache.vec3_0;
+		_axis.init(axis?.x ?? 0, axis?.y ?? 1, axis?.z ?? 0);
+    config.init(a, b, a.getPosition(), _axis);
+    motor.setMotor(torque?.x ?? 0, torque?.y ?? 0);
+    config.limitMotor = motor;
+
+    const joint = new oimo.dynamics.constraint.joint.RevoluteJoint(config);
+    this.world.addJoint(joint);
+
+    return motor;
   }
 
   /**
@@ -203,4 +242,4 @@ class Physics {
 }
 
 export default Physics;
-export { Physics, RigidBodyType };
+export { Physics, RigidBodyType, RigidBody };

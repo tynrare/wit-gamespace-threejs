@@ -7,9 +7,10 @@ import PageBase from "../page_base.js";
 import App from "../app.js";
 import PawnDrawA from "../pawn/d240710_pawn.js";
 import LightsA from "../lights_a.js";
-import { dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
-import { Physics, RigidBodyType } from "../physics.js";
+import { angle_sub, dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
+import { Physics, RigidBody, RigidBodyType } from "../physics.js";
 import Environment1 from "./environment_1.js";
+import { oimo } from "../lib/OimoPhysics.js";
 
 /**
  * @class AaTestcaseBowling
@@ -23,7 +24,7 @@ class AaTestcaseBowling {
     /** @type {Physics} */
     this.physics = null;
 
-    /** @type {oimo.dynamics.rigidbody.RigidBody} */
+    /** @type {RigidBody} */
     this.pawn_body = null;
 
     /** @type {THREE.Mesh} */
@@ -46,24 +47,65 @@ class AaTestcaseBowling {
    */
   step(dt) {
     this.physics.step(dt);
-    this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
-    if (this.pawn) {
-      this.pawn._target.position.copy(this.pawn_dbg_mesh.position);
-      this.pawn._target.position.y -= 0.5;
-      this.pawn.step(dt);
+    this.step_pawn(dt);
 
-      const action_hit =
-        this.pawn.animator.animation_machine.nodes["hit"].action;
-      if (
-        this.spawn_projectile_requested &&
-        action_hit.enabled &&
-        action_hit.time > 0.5
-      ) {
-        this._spawn_projectile();
-        this.spawn_projectile_requested = false;
-      }
+    this.stabilizate_pawn();
+  }
+
+  step_pawn(dt) {
+    if (!this.pawn) {
+      return;
+    }
+
+    // apply decoration mesh rotation
+    const shift = cache.vec3.v0.set(0, -0.5, 0);
+    shift.applyQuaternion(this.pawn_dbg_mesh.quaternion);
+    this.pawn._target.position.copy(this.pawn_dbg_mesh.position);
+    this.pawn._target.position.add(shift);
+    this.pawn.step(dt);
+    // cd: discard pawn rotation and set correct world rotation
+    this.pawn._target.quaternion.copy(this.pawn_dbg_mesh.quaternion);
+    this.pawn._target.rotateY(this.pawn.rotation);
+
+    // spawn projectile in animation middleplay
+    const action_hit = this.pawn.animator.animation_machine.nodes["hit"].action;
+    if (
+      this.spawn_projectile_requested &&
+      action_hit.enabled &&
+      action_hit.time > 0.5
+    ) {
+      this._spawn_projectile();
+      this.spawn_projectile_requested = false;
     }
   }
+
+  stabilizate_pawn() {
+    // locks rotation
+    //this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
+
+    // apply rotation stabilization
+		const up = this.get_pawn_up_dot();
+    const stabilization = this.physics.cache.vec3_0;
+    const r = this.pawn_body.getRotation().toEulerXyz();
+    const s = 2;
+    stabilization.init(-r.x * s, 0, -r.z * s);
+    stabilization.scaleEq(1 - up);
+    this.pawn_body.applyTorque(stabilization);
+  }
+
+	/**
+	 * uses physics.cache.vec3_0
+	 */
+	get_pawn_up_dot() {
+    const local_up = this.physics.cache.vec3_0;
+    local_up.init(0, 1, 0);
+    local_up.mulMat3Eq(
+      this.pawn_body.getRotation().transposeEq(),
+    );
+    const dot = local_up.dot(this.physics.cache.vec3up);
+
+		return dot;
+	}
 
   run(onload) {
     this.environment = new Environment1();
@@ -77,14 +119,13 @@ class AaTestcaseBowling {
 
         this.pawn_dbg_mesh.visible = false;
         this.pawn.allow_move = false;
-
       }),
       this.open_playscene("a"),
     ]).then(() => {
-        if (onload) {
-          onload();
-        }
-		});
+      if (onload) {
+        onload();
+      }
+    });
 
     this.physics = new Physics().run({ fixed_step: false });
     this.physics.create_box(
@@ -95,12 +136,12 @@ class AaTestcaseBowling {
 
     {
       const pos = new Vector3(0, 1, 0);
-      const size = new Vector3(0.4, 1, 0);
+      const size = new Vector3(0.3, 1, 0);
       const id = this.create_physics_cylinder(
         pos,
         size,
         RigidBodyType.DYNAMIC,
-        { friction: 0, density: 1, adamping: 10, ldamping: 1 },
+        { friction: 0.1, density: 1, adamping: 1, ldamping: 1 },
         0x48a9b1,
       );
       const mesh = this.physics.meshlist[id];
@@ -125,7 +166,7 @@ class AaTestcaseBowling {
     const pos = cache.vec3.v1;
     const facing_direction = d
       .copy(Vec3Right)
-      .applyAxisAngle(Vec3Up, this.pawn._target.rotation.y);
+      .applyAxisAngle(Vec3Up, this.pawn.rotation);
     pos
       .copy(d)
       .setLength(radius * 2)

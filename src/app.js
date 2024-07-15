@@ -42,7 +42,7 @@ class App {
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
       testcase3: new PageTestcase3(),
-      testcase4: new PageTestcase4(),
+      testcase4: new PageTestcase4(), // physics
       testcase5: new AaPageTestcaseBowling(),
       testcase6: new AbPageTestcaseBowling(),
       testcase7: new AcPageTestcaseBowling(),
