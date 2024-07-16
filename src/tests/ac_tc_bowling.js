@@ -24,7 +24,7 @@ class AaTestcaseBowling {
     /** @type {Physics} */
     this.physics = null;
 
-    /** @type {RigidBody} */
+    /** @type {oimo.dynamics.rigidbody.RigidBody} */
     this.pawn_body = null;
 
     /** @type {THREE.Mesh} */
@@ -48,13 +48,33 @@ class AaTestcaseBowling {
   step(dt) {
     this.physics.step(dt);
     this.step_pawn(dt);
+    this.animate(dt);
 
     this.stabilizate_pawn();
+  }
+
+  animate(dt) {
+    if (!this.pawn) {
+      return;
+    }
+
+    const star_size = this.pawn.stun > 0 ? 0.4 : 0;
+    for (const i in this.vfx_animation_stars.children) {
+      const c = this.vfx_animation_stars.children[i];
+      c.scale.setScalar(dlerp(c.scale.x, star_size, 0.5, dt * 1e-3));
+    }
+
+    this.vfx_animation_stars.rotation.y += dt * 3e-3;
   }
 
   step_pawn(dt) {
     if (!this.pawn) {
       return;
+    }
+		this.step_pawn_collisions();
+    const up = this.physics.get_body_up_dot(this.pawn_body);
+    if (up < 0.9) {
+      this.pawn.stun = 2;
     }
 
     // apply decoration mesh rotation
@@ -66,6 +86,11 @@ class AaTestcaseBowling {
     // cd: discard pawn rotation and set correct world rotation
     this.pawn._target.quaternion.copy(this.pawn_dbg_mesh.quaternion);
     this.pawn._target.rotateY(this.pawn.rotation);
+
+    // place stars
+    this.vfx_animation_stars.position.copy(this.pawn._target.position);
+    this.vfx_animation_stars.position.y += 1;
+    this.vfx_animation_stars.position.add(shift.multiplyScalar(-1));
 
     // spawn projectile in animation middleplay
     const action_hit = this.pawn.animator.animation_machine.nodes["hit"].action;
@@ -79,33 +104,40 @@ class AaTestcaseBowling {
     }
   }
 
+  // dunno need this
+  step_pawn_collisions() {
+    /** @type {oimo.dynamics.ContactLink} */
+    let link = this.pawn_body.getContactLinkList();
+    while (link) {
+      const contact = link.getContact();
+
+      const body2 = link.getOther();
+
+      link = link.getNext();
+      if (!contact.isTouching()) {
+        continue;
+      }
+      const manifold = contact.getManifold();
+      manifold.getBinormal;
+    }
+  }
+
   stabilizate_pawn() {
     // locks rotation
     //this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
 
     // apply rotation stabilization
-		const up = this.get_pawn_up_dot();
+    const up = this.physics.get_body_up_dot(this.pawn_body);
     const stabilization = this.physics.cache.vec3_0;
     const r = this.pawn_body.getRotation().toEulerXyz();
     const s = 2;
+		this.pawn_body.get
     stabilization.init(-r.x * s, 0, -r.z * s);
     stabilization.scaleEq(1 - up);
     this.pawn_body.applyTorque(stabilization);
   }
 
-	/**
-	 * uses physics.cache.vec3_0
-	 */
-	get_pawn_up_dot() {
-    const local_up = this.physics.cache.vec3_0;
-    local_up.init(0, 1, 0);
-    local_up.mulMat3Eq(
-      this.pawn_body.getRotation().transposeEq(),
-    );
-    const dot = local_up.dot(this.physics.cache.vec3up);
-
-		return dot;
-	}
+  animate_pawn() {}
 
   run(onload) {
     this.environment = new Environment1();
@@ -141,7 +173,7 @@ class AaTestcaseBowling {
         pos,
         size,
         RigidBodyType.DYNAMIC,
-        { friction: 0.1, density: 1, adamping: 1, ldamping: 1 },
+        { friction: 0.1, density: 1, adamping: 5, ldamping: 1 },
         0x48a9b1,
       );
       const mesh = this.physics.meshlist[id];
@@ -206,6 +238,24 @@ class AaTestcaseBowling {
       "bowling/projectile1.glb",
       false,
     );
+
+    const texture_sprite = Loader.instance.get_texture("pic/star0.png");
+    const star_material = new THREE.SpriteMaterial({
+      map: texture_sprite,
+    });
+    const sprite_star = new THREE.Sprite(star_material);
+    sprite_star.scale.setScalar(0); // hide at creation
+    this.vfx_animation_stars = new THREE.Object3D();
+    App.instance.render.scene.add(this.vfx_animation_stars);
+
+    const stars = 6;
+    const radius = 0.3;
+    for (let i = 0; i < stars; i++) {
+      const s = sprite_star.clone();
+      this.vfx_animation_stars.add(s);
+      s.position.x = Math.sin((i / stars) * Math.PI * 2) * radius;
+      s.position.z = Math.cos((i / stars) * Math.PI * 2) * radius;
+    }
   }
 
   open_playscene(name, lightmaps = true) {

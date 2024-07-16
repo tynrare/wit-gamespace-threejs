@@ -239,6 +239,22 @@ class Physics {
     this.cache.raycast.process = callback;
     this.world.rayCast(ray_a, ray_b, this.cache.raycast);
   }
+
+	/**
+	 * uses physics.cache.vec3_0
+	 *
+	 * @param {RigidBody} body .
+	 */
+	get_body_up_dot(body) {
+    const local_up = this.cache.vec3_0;
+    local_up.init(0, 1, 0);
+    local_up.mulMat3Eq(
+      body.getRotation().transposeEq(),
+    );
+    const dot = local_up.dot(this.cache.vec3up);
+
+		return dot;
+	}
 }
 
 export default Physics;

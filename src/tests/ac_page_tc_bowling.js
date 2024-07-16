@@ -104,6 +104,11 @@ class AcPageTestcaseBowling extends PageBase {
    * @param {InputAction} type .
    */
   input_analog(x, y, tag, type) {
+		if (this.testcase.pawn?.stun > 0) {
+			return;
+		}
+
+
     const p = cache.vec3.v1;
     const ap = cache.vec3.v2;
     const bp = cache.vec3.v3;

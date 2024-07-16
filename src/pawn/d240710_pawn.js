@@ -21,6 +21,8 @@ class PawnDrawA {
 
 		this.rotation = 0;
 
+		this.stun = 0;
+
     this.allow_move = true;
   }
 
@@ -71,6 +73,9 @@ class PawnDrawA {
   }
 
   step(dt) {
+		this.stun -= dt * 1e-3;
+		this.stun = Math.max(this.stun, 0);
+
     this.animator.step(dt * 1e-3);
 
     this.velocity.copy(this.pos.sub(this._target.position));
