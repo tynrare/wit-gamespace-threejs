@@ -133,7 +133,7 @@ class AaTestcaseBowling {
 
     // torque applied ach step - it fas to be frame dependent
     const df = dt / 30;
-    const s = 0.1 * df;
+    const s = 0.07 * df;
 
     stabilization.init(-r.x * s, -r.y * s, -r.z * s);
     stabilization.scaleEq(1 - up);
