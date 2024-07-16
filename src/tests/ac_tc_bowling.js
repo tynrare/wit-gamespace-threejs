@@ -78,7 +78,7 @@ class AaTestcaseBowling {
     }
 
     // apply decoration mesh rotation
-    const shift = cache.vec3.v0.set(0, -0.5, 0);
+    const shift = cache.vec3.v4.set(0, -0.5, 0);
     shift.applyQuaternion(this.pawn_dbg_mesh.quaternion);
     this.pawn._target.position.copy(this.pawn_dbg_mesh.position);
     this.pawn._target.position.add(shift);
