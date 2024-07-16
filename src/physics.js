@@ -43,6 +43,7 @@ class Physics {
 
     this.config = {
       fixed_step: true,
+			limit_step: true
     };
 
     /** @type {object<string, RigidBody>} */
@@ -67,9 +68,11 @@ class Physics {
   /**
    * @param {object?} [opts] .
    * @param {boolean} [opts.fixed_step] .
+   * @param {boolean} [opts.limit_step] limits minimum physics framerate at 20 to avoid low-fps related bugs
    */
   run(opts) {
     this.config.fixed_step = opts?.fixed_step ?? this.config.fixed_step;
+    this.config.limit_step = opts?.limit_step ?? this.config.limit_step;
 
     const broadphase = 2; // 1 brute force, 2 sweep and prune, 3 volume tree
     this.world = new oimo.dynamics.World(
@@ -77,11 +80,13 @@ class Physics {
       new oimo.common.Vec3(0, -9.8, 0),
     );
 
-    this.debug_draw = new DebugDraw(App.instance.render.scene);
-    this.debug_draw.wireframe = true;
-    this.debug_draw.drawJointLimits = true;
-    this.debug_draw.drawBases = true;
-    this.world.setDebugDraw(this.debug_draw);
+		if (App.instance.settings.debug) {
+			this.debug_draw = new DebugDraw(App.instance.render.scene);
+			this.debug_draw.wireframe = true;
+			this.debug_draw.drawJointLimits = true;
+			this.debug_draw.drawBases = true;
+			this.world.setDebugDraw(this.debug_draw);
+		}
 
     return this;
   }
@@ -94,11 +99,18 @@ class Physics {
   }
 
   step(dt) {
-    this.world.step(this.config.fixed_step ? 1 / 60 : dt * 1e-3);
+		let fdt = this.config.fixed_step ? 1 / 60 : dt * 1e-3;
+		if (this.config.limit_step && !this.config.fixed_step) {
+			fdt = Math.min(1/20, fdt);
+		}
 
-    this.debug_draw.begin();
-    this.world.debugDraw();
-    this.debug_draw.end();
+    this.world.step(fdt);
+
+		if (this.debug_draw) {
+			this.debug_draw.begin();
+			this.world.debugDraw();
+			this.debug_draw.end();
+		}
 
     for (const k in this.meshlist) {
       /** @type {RigidBody} */

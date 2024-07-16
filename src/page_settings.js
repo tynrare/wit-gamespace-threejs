@@ -25,6 +25,7 @@ class PageSettings extends PageBase {
     this.container.querySelector("#btn_render_quality").innerHTML =
       "render quality: " + settings.render_quality;
     this.container.querySelector("#btn_antialias").innerHTML = "antialias: " + (settings.antialias ? '✓' : '✗');
+    this.container.querySelector("#btn_debug").innerHTML = "debug: " + (settings.debug ? '✓' : '✗');
 	}
 
   click(ev) {
@@ -41,6 +42,9 @@ class PageSettings extends PageBase {
         break;
       case "btn_antialias":
 				settings.antialias = !settings.antialias;
+        break;
+      case "btn_debug":
+				settings.debug = !settings.debug;
         break;
       default:
         break;

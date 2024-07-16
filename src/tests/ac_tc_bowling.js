@@ -50,7 +50,7 @@ class AaTestcaseBowling {
     this.step_pawn(dt);
     this.animate(dt);
 
-    this.stabilizate_pawn();
+    this.stabilizate_pawn(dt);
   }
 
   animate(dt) {
@@ -71,7 +71,7 @@ class AaTestcaseBowling {
     if (!this.pawn) {
       return;
     }
-		this.step_pawn_collisions();
+    this.step_pawn_collisions();
     const up = this.physics.get_body_up_dot(this.pawn_body);
     if (up < 0.9) {
       this.pawn.stun = 2;
@@ -122,7 +122,7 @@ class AaTestcaseBowling {
     }
   }
 
-  stabilizate_pawn() {
+  stabilizate_pawn(dt) {
     // locks rotation
     //this.pawn_body.setRotationFactor(this.physics.cache.vec3_0.init(0, 0, 0));
 
@@ -130,11 +130,15 @@ class AaTestcaseBowling {
     const up = this.physics.get_body_up_dot(this.pawn_body);
     const stabilization = this.physics.cache.vec3_0;
     const r = this.pawn_body.getRotation().toEulerXyz();
-    const s = 2;
-		this.pawn_body.get
-    stabilization.init(-r.x * s, 0, -r.z * s);
+
+    // torque applied ach step - it fas to be frame dependent
+    const df = dt / 30;
+    const s = 0.1 * df;
+
+    stabilization.init(-r.x * s, -r.y * s, -r.z * s);
     stabilization.scaleEq(1 - up);
-    this.pawn_body.applyTorque(stabilization);
+    stabilization.y = -r.y * s * up;
+    this.pawn_body.applyAngularImpulse(stabilization);
   }
 
   animate_pawn() {}
