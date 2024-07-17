@@ -11,6 +11,7 @@ import AaPageTestcaseBowling from "./tests/deprecated/aa_page_tc_bowling.js";
 import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
 import AcPageTestcaseBowling from "./tests/deprecated/ac_page_tc_bowling.js";
 import AdPageTestcaseBowling from "./tests/ad_page_tc_bowling.js";
+import AePageTestcaseBowling from "./tests/ae_page_tc_bowling.js";
 import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
@@ -48,6 +49,7 @@ class App {
       testcase6: new AbPageTestcaseBowling(),
       testcase7: new AcPageTestcaseBowling(),
       testcase8: new AdPageTestcaseBowling(),
+      testcase9: new AePageTestcaseBowling(),
     };
 
     /** @type {Render} */

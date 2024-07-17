@@ -55,7 +55,9 @@ class PawnDrawA {
     };
 
     register("idle", "IDLE");
-    register("run", "RUN");
+    register("run", "RUN", {
+      speed: 1.5
+    });
     register("hit", "HIT", {
       speed: 2,
       playback_mode: ANIMATION_PLAYBACK_MODE.at_start,
@@ -97,7 +99,7 @@ class PawnDrawA {
       this._target.rotation.y = this.rotation;
     }
 
-    if (this.velocity.length() > 1e-5) {
+    if (this.velocity.length() > 1e-2) {
       this.animator.transite("run");
     } else {
       this.animator.transite("idle");

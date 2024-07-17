@@ -88,6 +88,9 @@ class AdTestcaseBowling {
       vec3_0: new Vector3(),
     };
 
+    /** @type {string} */
+    this.scenename = null;
+
 
     /** @type {Array<THREE.Object3D} */
     this.spawnpoints = [];
@@ -97,7 +100,7 @@ class AdTestcaseBowling {
    * @param {number} dt .
    */
   step(dt) {
-    if(!this.playscene) {
+    if (!this.playscene && this.scenename) {
       return
     };
 
@@ -173,30 +176,32 @@ class AdTestcaseBowling {
     }
   }
 
-  run(onload) {
+  run(onload, opts = { floor: false, scene: "b", bots: 5 }) {
     this.environment = new Environment1();
-    this.environment.run({ floor: false });
+    this.environment.run({ floor: opts?.floor ?? false });
 
     this.physics = new Physics().run({ fixed_step: false });
-    /*
-    this.physics.create_box(
-      new Vector3(0, -1, 0),
-      new Vector3(100, 2, 100),
-      RigidBodyType.STATIC,
-    );
-    */
+    if (opts?.floor && !opts?.scene) {
+      this.physics.create_box(
+        new Vector3(0, -1, 0),
+        new Vector3(100, 2, 100),
+        RigidBodyType.STATIC,
+      );
+    }
 
     this.pawn = this.create_pawn(null, false);
-    Promise.all([
-      this.pawn.load(),
-      this.open_playscene("b"),
-    ]).then(() => {
+    const load = [this.pawn.load()];
+    if (opts?.scene) {
+      load.push(this.open_playscene(opts?.scene))
+    }
+
+    Promise.all(load).then(() => {
       if (onload) {
         onload();
       }
     });
 
-    const bots_count = 5;
+    const bots_count = opts?.bots ?? 5;
     for (let i = 0; i < bots_count; i++) {
       const pawn = this.create_pawn(this.get_rand_spawnpoint());
       this.bots.push(new BowlingPawnBot(pawn));
@@ -236,6 +241,7 @@ class AdTestcaseBowling {
   open_playscene(name, lightmaps = true) {
     const render = App.instance.render;
     this.spawnpoints.length = 0;
+    this.scenename = name;
 
     return new Promise((resolve, reject) => {
       const root_path = `bowling/scenes/${name}/`;
@@ -271,7 +277,7 @@ class AdTestcaseBowling {
   }
 
   close_playscene() {
-    this.navmesh?.dispose();
+    this.scenename = null;
     this.playscene?.removeFromParent();
     this.playscene = null;
   }
@@ -350,6 +356,76 @@ class AdTestcaseBowling {
    */
   create_physics_cylinder(pos, size, type, opts, color = 0xffffff) {
     return this.physics.utils.create_physics_cylinder(pos, size, type, null, color);
+  }
+
+
+  /**
+   * 
+   * @param {THREE.Vector3} pos . 
+   */
+  utils_create_motors(pos) {
+    const size = cache.vec3.v1;
+    const _pos = cache.vec3.v2;
+    _pos.copy(pos);
+    size.set(0.5, 0.5, 0.5);
+    const id1 = this.create_physics_box(
+      pos,
+      size,
+      RigidBodyType.STATIC,
+      null,
+      0x000000,
+    );
+    _pos.x += 1;
+    size.set(2, 0.4, 0.4);
+    const id2 = this.create_physics_box(
+      _pos,
+      size,
+      RigidBodyType.DYNAMIC,
+      {
+        density: 100,
+      },
+      0xffffff,
+    );
+    const b1 = this.physics.bodylist[id1];
+    const b2 = this.physics.bodylist[id2];
+    const motor = this.physics.create_joint_motor(b1, b2, null, {
+      x: 5,
+      y: 100,
+    });
+  }
+
+  utils_create_boxes() {
+    const BOX_SIZE = 1;
+    const amount = 4;
+    for (let x = 0; x < amount; x++) {
+      for (let y = 0; y < amount; y++) {
+        let i = x + (amount - 1 - y) * amount;
+        let z = 0;
+        let x1 = -10 + x * BOX_SIZE * 3 + Math.random() * 0.1;
+        let y1 = 10;
+        let z1 = 4 + (amount - 1 - y) * BOX_SIZE * 3 + Math.random() * 0.1;
+        let w = BOX_SIZE * 1;
+        let h = BOX_SIZE * 1;
+        let d = BOX_SIZE * 1;
+        const dynamic = Math.random() > 0.0;
+        const type = dynamic ? RigidBodyType.DYNAMIC : RigidBodyType.STATIC;
+        const color = dynamic ? 0xffffff : 0x000000;
+        const id = this.create_physics_box(
+          cache.vec3.v0.set(x1, y1, z1),
+          cache.vec3.v1.set(w, h, d),
+          type,
+          color,
+        );
+        const body = this.physics.bodylist[id];
+        const vel = this.physics.cache.vec3_0;
+        vel.init(
+          (Math.random() - 0.5) * 10,
+          (Math.random() - 0.5) * 10,
+          (Math.random() - 0.5) * 10,
+        );
+        body.setAngularVelocity(vel);
+      }
+    }
   }
 
   stop() {

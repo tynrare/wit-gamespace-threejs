@@ -55,6 +55,9 @@ class CameraTopdown {
    * @param {THREE.Object3D} target .
 	 */
 	init(camera, target) {
+    this.distance = this.config.distance;
+		this.height = this.config.height;
+    
 		this.set_camera(camera);
 		this.set_target(target);
 	}
@@ -89,23 +92,19 @@ class CameraTopdown {
     this._target = null;
   }
 
-	/**
-	 * @param {Vector3} dir .
-	 */
-	set_direction(dir) {
-		// hard to determinate stick aim direction with camera rotation
-		/*
-		if (dir.length()) {
-			this.rotation = Math.atan2(dir.x, dir.z);
-			this.distance = this.config.distance * 1.5;
-			this.height = this.config.height * 0.5;
+	
+	zoom(zoomout) {
+		if (zoomout) {
+		  // hard to determinate stick aim direction with camera rotation
+			//this.rotation = Math.atan2(dir.x, dir.z);
+			this.distance = this.config.distance * 1.1;
+			this.height = this.config.height * 1.5;
 			return;
 		}
 
 		this.distance = this.config.distance;
 		this.height = this.config.height;
 		this.rotation = 0;
-		*/
 	}
 
   /**
