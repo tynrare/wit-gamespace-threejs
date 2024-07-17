@@ -48,6 +48,36 @@ page {
   }
 }
 
+#approot #splashscreen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  pointer-events: none;
+
+  #parta, #partfake, #partb {
+    transition-duration: 200ms;
+    transition-property: height;
+  }
+
+  #partfake {
+    height: 100%;
+  }
+  #parta, #partb {
+    height: 0%;
+    background-color: white;
+  }
+
+  &.active {
+    #partfake {
+      height: 0%;
+    }
+    #parta, #partb {
+      height: 50%;
+      background-color: white;
+    }
+  }
+}
+
 #approot page root.document {
   width: 600px;
   max-width: 800px;

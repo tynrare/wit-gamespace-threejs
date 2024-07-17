@@ -30,8 +30,6 @@ class AdPageTestcaseBowling extends PageBase {
     /** @type {CameraTopdown} */
     this.camera_controls = null;
 
-    this.attack = false;
-    this.move = false;
   }
 
   /**
@@ -39,22 +37,12 @@ class AdPageTestcaseBowling extends PageBase {
    */
   step(dt) {
     this.testcase.step(dt);
-    this.animate(dt);
     this.camera_controls.step(dt);
-  }
-
-  animate(dt) {
-    const update_pointer = (mesh, visible) => {
-      const pointer_size = visible ? 1 : 0;
-      mesh.scale.setScalar(dlerp(mesh.scale.x, pointer_size, 1, dt * 1e-3));
-      mesh.rotateY(3e-4 * dt);
-    };
-    update_pointer(this.pointer_mesh_a, this.move);
-    update_pointer(this.pointer_mesh_b, this.attack);
   }
 
   run() {
     App.instance.start(this.container.querySelector("render"));
+    App.instance.spashscreen(true);
 
     const render = App.instance.render;
     const scene = render.scene;
@@ -70,31 +58,18 @@ class AdPageTestcaseBowling extends PageBase {
     this.testcase = new AdTestcaseBowling();
     this.testcase.run(() => {
       this._create_boxes();
-      this._create_motors();
+      this._create_motors(cache.vec3.v0.set(2, 0.2, -3));
+      this._create_motors(cache.vec3.v0.set(12, 0.3, -10));
+      this._create_motors(cache.vec3.v0.set(-20, 0.4, 10));
+      App.instance.spashscreen(false);
     });
 
     this.camera_controls = new CameraTopdown();
     this.camera_controls.init(render.camera, this.testcase.pawn.pawn_dbg_mesh);
-
-    this.pointer_mesh_a = this.spawn_icosphere(0xb768e9);
-    this.pointer_mesh_b = this.spawn_icosphere(0xb7e968);
-    scene.add(this.pointer_mesh_a);
-    scene.add(this.pointer_mesh_b);
   }
 
   input(type, start) {
-    if (this.testcase.pawn.stun > 0) {
-			return;
-		}
-
-    switch (type) {
-      case InputAction.action_a:
-        this.move = start;
-        break;
-      case InputAction.action_b:
-        this.attack = start;
-        break;
-    }
+    this.testcase.pawn.action(type, start);
   }
 
   /**
@@ -104,69 +79,22 @@ class AdPageTestcaseBowling extends PageBase {
    * @param {InputAction} type .
    */
   input_analog(x, y, tag, type) {
-		if (this.testcase.pawn.stun > 0) {
-			return;
-		}
-
     const p = cache.vec3.v1;
-    const ap = cache.vec3.v2;
-    const bp = cache.vec3.v3;
-    p.set(-x, 0, -y).applyAxisAngle(
+    p.set(x, 0, y).applyAxisAngle(
       Vec3Up,
       this.camera_controls._camera.rotation.y,
     );
-    ap.copy(this.camera_controls._target.position);
-    ap.y = 0.1;
-    bp.copy(p).add(ap);
-
-    const attack = this.attack || this.testcase.pawn.spawn_projectile_requested;
-    if (!attack || tag != "movement") {
-      this.testcase.pawn.set_goal(bp);
-    }
-
-    this.testcase.physics.raycast(ap, bp, (s, h) => {
-      bp.set(h.position.x, 0, h.position.z);
-    });
-
-    switch (type) {
-      case InputAction.action_a:
-        this.pointer_mesh_a.position.copy(bp);
-        const velocity = this.testcase.physics.cache.vec3_0;
-        velocity.init(p.x * 2, 0, p.z * 2);
-        if (attack) {
-          velocity.init(0, 0, 0);
-        }
-        this.testcase.pawn.pawn_body.setLinearVelocity(velocity);
-        break;
-      case InputAction.action_b:
-        if (this.attack) {
-          this.pointer_mesh_b.position.copy(bp);
-          this.camera_controls.set_direction(p);
-        } else {
-          p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
-          // stick released
-          this.testcase.pawn.spawn_projectile(p);
-        }
-
-        break;
-    }
+    this.testcase.pawn.action_analog(p.x, p.z, type);
   }
 
   /**
-   * @returns {THREE.Mesh}
+   * 
+   * @param {THREE.Vector3} pos . 
    */
-  spawn_icosphere(color) {
-    const geometry = new THREE.IcosahedronGeometry(0.1);
-    const material = this.testcase.create_material(color);
-    const mesh = new THREE.Mesh(geometry, material);
-
-    return mesh;
-  }
-
-  _create_motors() {
-    const pos = cache.vec3.v0;
+  _create_motors(pos) {
     const size = cache.vec3.v1;
-    pos.set(2, 0.9, -3);
+    const _pos = cache.vec3.v2;
+    _pos.copy(pos);
     size.set(0.5, 0.5, 0.5);
     const id1 = this.testcase.create_physics_box(
       pos,
@@ -175,10 +103,10 @@ class AdPageTestcaseBowling extends PageBase {
       null,
       0x000000,
     );
-    pos.set(3, 0.9, -3);
+    _pos.x += 1;
     size.set(2, 0.4, 0.4);
     const id2 = this.testcase.create_physics_box(
-      pos,
+      _pos,
       size,
       RigidBodyType.DYNAMIC,
       {

@@ -59,6 +59,7 @@ class Physics {
       vec3_1: new oimo.common.Vec3(),
       vec3_2: new oimo.common.Vec3(),
 			vec3up: new oimo.common.Vec3().init(0, 1, 0),
+      quat: new oimo.common.Quat(),
 			mat3: new oimo.common.Mat3(),
       raycast: new oimo.dynamics.callback.RayCastCallback(),
     };
@@ -120,8 +121,11 @@ class Physics {
       const body = this.bodylist[k];
       const mesh = this.meshlist[k];
       const opts = this.attachopts[k];
-      const position = body.getPosition();
-      const quaternion = body.getOrientation();
+
+      const position = this.cache.vec3_0;
+      body.getPositionTo(position);
+      const quaternion = this.cache.quat;
+      body.getOrientationTo(quaternion);
       if (opts?.allow_translate ?? true) {
         mesh.position.x = position.x + (opts?.shift?.x ?? 0);
         mesh.position.y = position.y + (opts?.shift?.y ?? 0);
@@ -270,6 +274,21 @@ class Physics {
 
 		return dot;
 	}
+
+	/**
+	 * @param {RigidBody} body .
+	 */
+  remove(body) {
+    this.world.removeRigidBody(body);
+    const mesh = this.meshlist[body.id];
+    if (mesh) {
+      mesh.removeFromParent();
+    }
+
+    delete this.bodylist[body.id];
+    delete this.meshlist[body.id];
+    delete this.attachopts[body.id];
+  }
 }
 
 export default Physics;

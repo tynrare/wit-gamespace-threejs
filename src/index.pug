@@ -7,10 +7,10 @@
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) log.md
 	page#mainmenu
 		root.cardstyle-a
-			h3 профиль
-			a.btn(href="#achievements") achievements
 			h3 ч1. Бег в никуда
+			a.btn(href="?#testcase8") 🞂 "boo ling": arena zero;
 			h3 extras
+			a.btn(href="#achievements") achievements
 			a.btn(href="#settings") settings
 			a.btn(href="#testsmenu") tests
 	page#settings
@@ -58,6 +58,10 @@
 				description открыть приложение на 10 секунд
 				progressbar(style="--progress: 50%" data-text="0/10")
 
+	decor#splashscreen 
+		#parta
+		#partfake
+		#partb
 	ui#stats.abs
 		a(href="#mainmenu") menu
 		#fps_stat x fps.

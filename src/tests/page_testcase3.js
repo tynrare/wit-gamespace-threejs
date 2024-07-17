@@ -5,7 +5,7 @@ import PageBase from "../page_base.js";
 import App from "../app.js";
 import { MapControls } from "three/addons/controls/MapControls.js";
 import { dlerp, cache } from "../math.js";
-import AaTestcaseBowling from "./aa_tc_bowling.js";
+import AaTestcaseBowling from "./deprecated/aa_tc_bowling.js";
 import Environment1 from "./environment_1.js";
 import { InputsMap } from "../pawn/inputs_map.js";
 

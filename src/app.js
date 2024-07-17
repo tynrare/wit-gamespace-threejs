@@ -7,9 +7,9 @@ import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
 import PageTestcase3 from "./tests/page_testcase3.js";
 import PageTestcase4 from "./tests/page_testcase4.js";
-import AaPageTestcaseBowling from "./tests/aa_page_tc_bowling.js";
-import AbPageTestcaseBowling from "./tests/ab_page_tc_bowling.js";
-import AcPageTestcaseBowling from "./tests/ac_page_tc_bowling.js";
+import AaPageTestcaseBowling from "./tests/deprecated/aa_page_tc_bowling.js";
+import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
+import AcPageTestcaseBowling from "./tests/deprecated/ac_page_tc_bowling.js";
 import AdPageTestcaseBowling from "./tests/ad_page_tc_bowling.js";
 import logger from "./logger.js";
 import Render from "./render.js";
@@ -209,6 +209,11 @@ class App {
 
     this.closepage();
     this.openpage(pagename);
+  }
+
+  spashscreen(visible) {
+    const el = document.getElementById("splashscreen");
+    el.classList[visible ? "add" : "remove"]("active");
   }
 
   /**

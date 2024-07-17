@@ -2,15 +2,15 @@
 
 import * as THREE from "three";
 import { Vector3 } from "three";
-import Loader from "../loader.js";
-import PageBase from "../page_base.js";
-import App from "../app.js";
-import PawnDrawA from "../pawn/d240710_pawn.js";
-import LightsA from "../lights_a.js";
-import { angle_sub, dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
-import { Physics, RigidBody, RigidBodyType } from "../physics.js";
-import Environment1 from "./environment_1.js";
-import { oimo } from "../lib/OimoPhysics.js";
+import Loader from "../../loader.js";
+import PageBase from "../../page_base.js";
+import App from "../../app.js";
+import PawnDrawA from "../../pawn/d240710_pawn.js";
+import LightsA from "../../lights_a.js";
+import { angle_sub, dlerp, Vec3Right, Vec3Up, cache } from "../../math.js";
+import { Physics, RigidBody, RigidBodyType } from "../../physics.js";
+import Environment1 from "../environment_1.js";
+import { oimo } from "../../lib/OimoPhysics.js";
 
 /**
  * @class AcTestcaseBowling

@@ -1,12 +1,12 @@
 /** @namespace Pages/Tests */
 
 import * as THREE from "three";
-import Loader from "../loader.js";
-import PageBase from "../page_base.js";
-import App from "../app.js";
-import LightsA from "../lights_a.js";
-import PawnDrawA from "../pawn/d240710_pawn.js";
-import { dlerp, Vec3Up, cache } from "../math.js";
+import Loader from "../../loader.js";
+import PageBase from "../../page_base.js";
+import App from "../../app.js";
+import LightsA from "../../lights_a.js";
+import PawnDrawA from "../../pawn/d240710_pawn.js";
+import { dlerp, Vec3Up, cache } from "../../math.js";
 
 /**
  * @class AaTestcaseBowling 

@@ -2,16 +2,16 @@
 
 import * as THREE from "three";
 import { Vector3 } from "three";
-import Loader from "../loader.js";
-import LightsA from "../lights_a.js";
-import PageBase from "../page_base.js";
-import App from "../app.js";
-import { Vec3Up, dlerp, cache } from "../math.js";
+import Loader from "../../loader.js";
+import LightsA from "../../lights_a.js";
+import PageBase from "../../page_base.js";
+import App from "../../app.js";
+import { Vec3Up, dlerp, cache } from "../../math.js";
 import AcTestcaseBowling from "./ac_tc_bowling.js";
-import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
-import CameraTopdown from "../pawn/camera_topdown.js";
-import { Physics, RigidBodyType } from "../physics.js";
-import logger from "../logger.js";
+import { InputAction, InputsDualstick } from "../../pawn/inputs_dualstick.js";
+import CameraTopdown from "../../pawn/camera_topdown.js";
+import { Physics, RigidBodyType } from "../../physics.js";
+import logger from "../../logger.js";
 
 /**
  * @class AcPageTestcaseBowling

@@ -15,6 +15,7 @@ class LoaderCache {
     this.guids = 0;
     this.textures = {};
     this.gltfs = {};
+    this.loading_gltfs = {};
   }
 }
 
@@ -112,9 +113,10 @@ class Loader {
    * @throws error
    */
   get_gltf(url) {
-    return new Promise((resolve, reject) => {
+    const promise = this.cache.loading_gltfs[url] = this.cache.loading_gltfs[url] ?? new Promise((resolve, reject) => {
       if (this.cache.gltfs[url]) {
         logger.log(`Loader::get_gltf gltf ${url} fetched from cache..`);
+        this.cache.loading_gltfs[url] = null;
         resolve(this.cache.gltfs[url]);
         return;
       }
@@ -128,6 +130,7 @@ class Loader {
           logger.log(`Loader::get_gltf gltf ${url} loaded.`);
           this.cache.gltfs[url] = gltf;
           this._prepare_gltf(gltf);
+          this.cache.loading_gltfs[url] = null;
           resolve(gltf);
         },
         (xhr) => {},
@@ -138,6 +141,8 @@ class Loader {
         },
       );
     });
+
+    return promise;
   }
 
   _prepare_gltf(gltf) {

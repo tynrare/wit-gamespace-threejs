@@ -18,3 +18,16 @@ export function createFloorPlane(index = 0, pixelate = false) {
 
 	return plane;
 }
+
+export function createImagePlane(path, pixelate = false) {
+  const geometry = new THREE.PlaneGeometry(1, 1);
+  const texture = Loader.instance.get_texture(path, pixelate);
+  const material = new THREE.MeshToonMaterial({
+    map: texture,
+    alphaMap: texture,
+    alphaHash: true
+  });
+  const plane = new THREE.Mesh(geometry, material);
+
+  return plane;
+}
