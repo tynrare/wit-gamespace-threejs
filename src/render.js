@@ -10,6 +10,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPixelatedPass } from "three/addons/postprocessing/RenderPixelatedPass.js";
 import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import RenderUtils from "./render_utils.js";
 
 export class RenderCache {
   constructor() {
@@ -36,6 +37,8 @@ class Render {
     this.htmlcontainer = null;
     /** @type {EffectComposer} */
     this.composer = null;
+
+    this.utils = new RenderUtils();
 
     this.cache = new RenderCache();
     /** @type {RenderConfig} */

@@ -1,13 +1,15 @@
 # гостеприимный мир
 
+# [main menu](#mainmenu)
+
 ## routes
 
-- [main menu](#mainmenu)
 - [tests menu](#testsmenu)
 - [log](#log)
 
 ## tests
 
+- [bowling](#testcase8)
 - [test case 1](#testcase1)
 - [танки](?#testcase2)
 - [танки - первая карта](?map=a#testcase2)

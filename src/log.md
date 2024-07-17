@@ -3,4 +3,21 @@
 
 - Первая версия игры. Было добавлен свет, коллизии точки с навмешем, передвижение, общая структура
 
-[версия в дампе отдельной веткой](https://witgs-tanks.netlify.app/);
+- [версия в дампе отдельной веткой](https://witgs-tanks.netlify.app/);
+- [восстановленая версия в этой кодовой базе](#testcase2);
+
+# Боулинг
+
+## Физика 
+
+- [демо](#testcase4)
+- Добавлен физический движок [OimoPhysics](https://github.com/saharan/OimoPhysics). (Возможно стоило использовать oimo.js)
+- Полезные ссылки - [экзамплы](https://github.com/cx20/webgl-physics-examples/tree/master/examples/threejs/oimophysics), [экзампл с управлением](https://github.com/8Observer8/ship-movement-oimophysics-rollup-threejs-js/blob/main/src/index.js)
+
+## Гейплей
+
+1. [демо](#testcase3) Базовая версия с управлением кликом и анимациями персонажа
+2. [демо](#testcase5) Базовая версия с управлением стиками
+3. [демо](#testcase6) Альтернативная версия с пиксилейтом, физикой и швырянием
+4. [демо](#testcase7) Драфт всех механик
+5. [демо](#testcase8) Рефакторинг предыдущего теста - поддержка нескольких персонажей

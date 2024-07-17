@@ -5,6 +5,7 @@ import { Vector3 } from "three";
 
 import { oimo } from "./lib/OimoPhysics.js";
 import DebugDraw from "./physics_debug.js";
+import PhysicsUtils from "./physics_utils.js";
 
 import App from "./app.js";
 
@@ -61,6 +62,8 @@ class Physics {
 			mat3: new oimo.common.Mat3(),
       raycast: new oimo.dynamics.callback.RayCastCallback(),
     };
+
+    this.utils = new PhysicsUtils(this);
 
     this.guids = 0;
   }

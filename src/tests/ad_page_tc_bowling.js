@@ -7,21 +7,21 @@ import LightsA from "../lights_a.js";
 import PageBase from "../page_base.js";
 import App from "../app.js";
 import { Vec3Up, dlerp, cache } from "../math.js";
-import AcTestcaseBowling from "./ac_tc_bowling.js";
+import AdTestcaseBowling from "./ad_tc_bowling.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
 import { Physics, RigidBodyType } from "../physics.js";
 import logger from "../logger.js";
 
 /**
- * @class AcPageTestcaseBowling
+ * @class AdPageTestcaseBowling
  * @memberof Pages/Tests
  */
-class AcPageTestcaseBowling extends PageBase {
+class AdPageTestcaseBowling extends PageBase {
   constructor() {
     super();
 
-    /** @type {AcTestcaseBowling} */
+    /** @type {AdTestcaseBowling} */
     this.testcase = null;
 
     /** @type {InputsDualstick} */
@@ -30,15 +30,11 @@ class AcPageTestcaseBowling extends PageBase {
     /** @type {CameraTopdown} */
     this.camera_controls = null;
 
-    /** @type {Physics} */
-    this.physics = null;
-
     this.attack = false;
     this.move = false;
   }
 
   /**
-   * @virtual
    * @param {number} dt .
    */
   step(dt) {
@@ -71,14 +67,14 @@ class AcPageTestcaseBowling extends PageBase {
     );
     this.inputs.run();
 
-    this.testcase = new AcTestcaseBowling();
+    this.testcase = new AdTestcaseBowling();
     this.testcase.run(() => {
       this._create_boxes();
       this._create_motors();
     });
 
     this.camera_controls = new CameraTopdown();
-    this.camera_controls.init(render.camera, this.testcase.pawn_dbg_mesh);
+    this.camera_controls.init(render.camera, this.testcase.pawn.pawn_dbg_mesh);
 
     this.pointer_mesh_a = this.spawn_icosphere(0xb768e9);
     this.pointer_mesh_b = this.spawn_icosphere(0xb7e968);
@@ -87,6 +83,10 @@ class AcPageTestcaseBowling extends PageBase {
   }
 
   input(type, start) {
+    if (this.testcase.pawn.stun > 0) {
+			return;
+		}
+
     switch (type) {
       case InputAction.action_a:
         this.move = start;
@@ -104,10 +104,9 @@ class AcPageTestcaseBowling extends PageBase {
    * @param {InputAction} type .
    */
   input_analog(x, y, tag, type) {
-		if (this.testcase.stun > 0) {
+		if (this.testcase.pawn.stun > 0) {
 			return;
 		}
-
 
     const p = cache.vec3.v1;
     const ap = cache.vec3.v2;
@@ -120,9 +119,9 @@ class AcPageTestcaseBowling extends PageBase {
     ap.y = 0.1;
     bp.copy(p).add(ap);
 
-    const attack = this.attack || this.testcase.spawn_projectile_requested;
+    const attack = this.attack || this.testcase.pawn.spawn_projectile_requested;
     if (!attack || tag != "movement") {
-      this.testcase.set_goal(bp);
+      this.testcase.pawn.set_goal(bp);
     }
 
     this.testcase.physics.raycast(ap, bp, (s, h) => {
@@ -137,7 +136,7 @@ class AcPageTestcaseBowling extends PageBase {
         if (attack) {
           velocity.init(0, 0, 0);
         }
-        this.testcase.pawn_body.setLinearVelocity(velocity);
+        this.testcase.pawn.pawn_body.setLinearVelocity(velocity);
         break;
       case InputAction.action_b:
         if (this.attack) {
@@ -146,7 +145,7 @@ class AcPageTestcaseBowling extends PageBase {
         } else {
           p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
           // stick released
-          this.testcase.spawn_projectile(p);
+          this.testcase.pawn.spawn_projectile(p);
         }
 
         break;
@@ -239,4 +238,4 @@ class AcPageTestcaseBowling extends PageBase {
   }
 }
 
-export default AcPageTestcaseBowling;
+export default AdPageTestcaseBowling;

@@ -13,10 +13,10 @@ import Environment1 from "./environment_1.js";
 import { oimo } from "../lib/OimoPhysics.js";
 
 /**
- * @class AaTestcaseBowling
+ * @class AcTestcaseBowling
  * @memberof Pages/Tests
  */
-class AaTestcaseBowling {
+class AcTestcaseBowling {
   constructor() {
     /** @type {PawnDrawA} */
     this.pawn = null;
@@ -39,6 +39,8 @@ class AaTestcaseBowling {
     this.cache = {
       vec3_0: new Vector3(),
     };
+
+    this.stun = 0;
   }
 
   /**
@@ -51,6 +53,9 @@ class AaTestcaseBowling {
     this.animate(dt);
 
     this.stabilizate_pawn(dt);
+
+    this.stun -= dt * 1e-3;
+    this.stun = Math.max(this.stun, 0);
   }
 
   animate(dt) {
@@ -58,10 +63,14 @@ class AaTestcaseBowling {
       return;
     }
 
-    const star_size = this.pawn.stun > 0 ? 0.4 : 0;
-    for (const i in this.vfx_animation_stars.children) {
+    const star_size = this.stun > 0 ? 0.4 : 0;
+    const stars_amount = this.vfx_animation_stars.children.length;
+    for (let i = 0; i < stars_amount; i++) {
       const c = this.vfx_animation_stars.children[i];
-      c.scale.setScalar(dlerp(c.scale.x, star_size, 0.5, dt * 1e-3));
+			const f = 0.5 * (i / stars_amount) + 0.2;
+      c.scale.setScalar(
+        dlerp(c.scale.x, star_size,  f, dt * 1e-3),
+      );
     }
 
     this.vfx_animation_stars.rotation.y += dt * 3e-3;
@@ -74,7 +83,7 @@ class AaTestcaseBowling {
     this.step_pawn_collisions();
     const up = this.physics.get_body_up_dot(this.pawn_body);
     if (up < 0.9) {
-      this.pawn.stun = 2;
+      this.stun = 2;
     }
 
     // apply decoration mesh rotation
@@ -89,8 +98,8 @@ class AaTestcaseBowling {
 
     // place stars
     this.vfx_animation_stars.position.copy(this.pawn._target.position);
-    this.vfx_animation_stars.position.y += 1;
-    this.vfx_animation_stars.position.add(shift.multiplyScalar(-1));
+    this.vfx_animation_stars.position.y += 0.7;
+    this.vfx_animation_stars.position.add(shift.multiplyScalar(-2));
 
     // spawn projectile in animation middleplay
     const action_hit = this.pawn.animator.animation_machine.nodes["hit"].action;
@@ -253,7 +262,7 @@ class AaTestcaseBowling {
     App.instance.render.scene.add(this.vfx_animation_stars);
 
     const stars = 6;
-    const radius = 0.3;
+    const radius = 0.5;
     for (let i = 0; i < stars; i++) {
       const s = sprite_star.clone();
       this.vfx_animation_stars.add(s);
@@ -452,4 +461,4 @@ class AaTestcaseBowling {
   }
 }
 
-export default AaTestcaseBowling;
+export default AcTestcaseBowling;

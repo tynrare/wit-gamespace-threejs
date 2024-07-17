@@ -4,6 +4,7 @@ import * as THREE from "three";
 import logger from "./logger.js";
 import Stats from "./stats.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import App from "./app.js";
 
 /**
  * @class
@@ -126,6 +127,7 @@ class Loader {
           this.confirm_loading();
           logger.log(`Loader::get_gltf gltf ${url} loaded.`);
           this.cache.gltfs[url] = gltf;
+          this._prepare_gltf(gltf);
           resolve(gltf);
         },
         (xhr) => {},
@@ -135,6 +137,24 @@ class Loader {
           reject(error);
         },
       );
+    });
+  }
+
+  _prepare_gltf(gltf) {
+    /** @type {THREE.Object3D} */
+    const scene = gltf.scene;
+    scene.traverse((o) => {
+      /** @type {THREE.Mesh} */
+      const m = /** @type {any} */ (o);
+      if (!m.isMesh) {
+        return;
+      }
+      m.castShadow = App.instance.render?.config.shadows ?? false;
+      m.receiveShadow = App.instance.render?.config.shadows ?? false;
+      //this.environment.lights.csm?.setupMaterial(material);
+      /** @type {THREE.MeshStandardMaterial} */
+      const material = /** @type {any} */ (m.material);
+      material.metalness = 0;
     });
   }
 
