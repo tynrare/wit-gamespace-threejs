@@ -57,7 +57,6 @@ class AdTestcaseBowlingPawn {
         switch (type) {
             case InputAction.action_a:
                 this.move = start;
-                this.spawn_projectile_requested = false;
                 break;
             case InputAction.action_b:
                 this.attack = start;
@@ -213,6 +212,9 @@ class AdTestcaseBowlingPawn {
             action_hit.time > 0.5
         ) {
             this._spawn_projectile();
+            this.spawn_projectile_requested = false;
+        } else if (this.spawn_projectile_requested && !action_hit.enabled) {
+            // something interrupted animation - spawn requests discards
             this.spawn_projectile_requested = false;
         }
     }
