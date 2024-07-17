@@ -34,8 +34,9 @@ class AdTestcaseBowlingPawn {
         this.charge_applied = 0;
 
         this.config = {
-            charge_duration: 1000,
-            throw_factor: 30
+            charge_duration: 600,
+            throw_factor: 30,
+            stun_duration: 1.2
         }
 
         this.attack = false;
@@ -113,7 +114,7 @@ class AdTestcaseBowlingPawn {
                 const speed = velocity.length();
                 this.pawn_body.getPositionTo(position);
                 position.y -= 0.1;
-                force.scaleEq((2 - dot) * Math.max(0, 5 - speed) * 5);
+                force.scaleEq((2 - dot) * Math.max(0, 5 - speed) * 4);
                 this.pawn_body.applyForce(force, position);
                 break;
             case InputAction.action_b:
@@ -173,8 +174,8 @@ class AdTestcaseBowlingPawn {
             mesh.scale.setScalar(dlerp(mesh.scale.x, pointer_size, 1, dt * 1e-3));
             mesh.rotateY(3e-4 * dt);
         };
-        update_pointer(this.pointer_mesh_a, this.move);
-        update_pointer(this.pointer_mesh_b, this.attack);
+        update_pointer(this.pointer_mesh_a, this.move && !this.stun);
+        update_pointer(this.pointer_mesh_b, this.attack && !this.stun);
 
         this.pointer_mesh_charge.scale.x = this.charge * 4;
     }
@@ -186,7 +187,7 @@ class AdTestcaseBowlingPawn {
         }
         const up = this._physics.get_body_up_dot(this.pawn_body);
         if (up < 0.9) {
-            this.stun = 2;
+            this.stun = this.config.stun_duration;
         }
 
         // apply decoration mesh rotation
