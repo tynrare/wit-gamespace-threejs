@@ -57,6 +57,7 @@ class AdTestcaseBowlingPawn {
         switch (type) {
             case InputAction.action_a:
                 this.move = start;
+                this.spawn_projectile_requested = false;
                 break;
             case InputAction.action_b:
                 this.attack = start;
@@ -96,14 +97,21 @@ class AdTestcaseBowlingPawn {
         switch (type) {
             case InputAction.action_a:
                 this.pointer_mesh_a.position.copy(bp);
-                const velocity = this._physics.cache.vec3_0;
-                velocity.init(p.x, 0, p.z);
+                const force = this._physics.cache.vec3_0;
+                force.init(p.x, 0, p.z);
                 if (attack) {
-                    velocity.init(0, 0, 0);
+                    force.init(0, 0, 0);
+                    return;
                 }
-                velocity.scaleEq(1.3);
-                this.pawn_body.getPositionTo(this._physics.cache.vec3_1)
-                this.pawn_body.applyForce(velocity, this._physics.cache.vec3_1);
+                const position = this._physics.cache.vec3_1;
+                const velocity = this._physics.cache.vec3_2;
+                this.pawn_body.getLinearVelocityTo(velocity);
+                const dot = force.normalized().dot(velocity.normalized());
+                const speed = velocity.length();
+                this.pawn_body.getPositionTo(position);
+                position.y -= 0.1;
+                force.scaleEq((2 - dot) * Math.max(0, 5 - speed) * 5);
+                this.pawn_body.applyForce(force, position);
                 break;
             case InputAction.action_b:
                 if (this.attack) {
