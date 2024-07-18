@@ -18,6 +18,7 @@ class PawnDrawA {
     this.pos = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.goal = new THREE.Vector3();
+		this.stun = false;
 
     this.rotation = 0;
 
@@ -40,7 +41,11 @@ class PawnDrawA {
     const register = (
       name,
       clipname,
-      { playback_mode = ANIMATION_PLAYBACK_MODE.default, speed = 1 } = {},
+      {
+        playback_mode = ANIMATION_PLAYBACK_MODE.default,
+        speed = 1,
+        loop = true,
+      } = {},
     ) => {
       const clip = this.animator.getAnimation(clipname);
       if (!clip) {
@@ -50,17 +55,23 @@ class PawnDrawA {
       }
       const node = new AnimationNode(name, clip);
       node.playback_mode = playback_mode;
-      clip.setEffectiveTimeScale(speed);
+      node.speed = speed;
+			node.loop = loop;
       am.register(node);
     };
 
     register("idle", "IDLE");
     register("run", "RUN", {
-      speed: 1.5
+      speed: 1.5,
     });
     register("hit", "HIT", {
       speed: 2,
       playback_mode: ANIMATION_PLAYBACK_MODE.at_start,
+    });
+    register("stun", "STATIC", {
+      playback_mode: ANIMATION_PLAYBACK_MODE.at_start,
+			speed: 1,
+			loop: false
     });
 
     am.pair("idle", "run");
@@ -69,12 +80,15 @@ class PawnDrawA {
     am.pair("hit", "run", ANIMATION_TRANSITION_MODE.instant);
     am.pair("hit", "idle", ANIMATION_TRANSITION_MODE.end);
 
+    am.pair("idle", "stun", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("run", "stun", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("stun", "idle", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("stun", "run", ANIMATION_TRANSITION_MODE.instant);
+
     this.animator.transite("idle");
   }
 
   step(dt) {
-
-
     this.animator.step(dt * 1e-3);
 
     this.velocity.copy(this.pos.sub(this._target.position));
@@ -99,7 +113,9 @@ class PawnDrawA {
       this._target.rotation.y = this.rotation;
     }
 
-    if (this.velocity.length() > 1e-2) {
+		if (this.stun) {
+      this.animator.transite("stun");
+		} else if (this.velocity.length() > 1e-2) {
       this.animator.transite("run");
     } else {
       this.animator.transite("idle");

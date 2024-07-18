@@ -39,6 +39,8 @@ class AnimationNode {
 		/** @type {Object<string, AnimationPath} */
 		this.paths = {};
 		this.playback_mode = ANIMATION_PLAYBACK_MODE.default;
+		this.loop = true;
+		this.speed = 1;
 	}
 }
 
@@ -71,7 +73,7 @@ class AnimationMachine {
 	/*
 	 * Adds new node into scope
 	 *
-	 * @param {AnimationNode } node .
+	 * @param {AnimationNode} node .
 	 */
 	register(node) {
 		if (this.nodes[node.id]) {
@@ -209,6 +211,19 @@ class AnimationMachine {
 			this.query_nodes.push(nodename);
 		}
 	}
+
+	active_node() {
+		const nodes = this.query_nodes;
+		for (let i = nodes.length - 1; i >= 0; i--) {
+			const nodename = nodes[i];
+			const node = this.nodes[nodename];
+			if (node.action.enabled) {
+				return node;
+			}
+		}
+
+		return null;
+	}
 }
 
 /*
@@ -275,6 +290,15 @@ class Animator {
 		const newaction = node.action;
 		if (node.playback_mode === ANIMATION_PLAYBACK_MODE.at_start) {
 			newaction.time = 0;
+		}
+
+		newaction.setEffectiveTimeScale(node.speed);
+		if (node.loop) {
+			newaction.loop = THREE.LoopRepeat;
+			newaction.clampWhenFinished = false;
+		} else {
+			newaction.loop = THREE.LoopOnce;
+			newaction.clampWhenFinished = true;
 		}
 		this.actionFadeIn(newaction);
 	}

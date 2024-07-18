@@ -39,7 +39,7 @@ class AdTestcaseBowlingPawn {
       stun_duration: 1.2,
       movement_acceletation: 4,
       max_movement_speed: 5,
-			spawn_projectile_size: 0.4,
+      spawn_projectile_size: 0.4,
     };
 
     this.attack = false;
@@ -131,8 +131,14 @@ class AdTestcaseBowlingPawn {
 
     this.stun -= dt * 1e-3;
     this.stun = Math.max(this.stun, 0);
+    if (this.pawn_draw) {
+      if (this.stun && this.pawn_draw.stun != !!this.stun) {
+        this.spawn_projectile_requested = true;
+      }
+      this.pawn_draw.stun = !!this.stun;
+    }
+
     if (this.stun) {
-      this.spawn_projectile_requested = false;
       this.charge_elapsed = 0;
       this.charge_applied = 0;
     }
@@ -195,14 +201,24 @@ class AdTestcaseBowlingPawn {
     // spawn projectile in animation middleplay
     const action_hit =
       this.pawn_draw.animator.animation_machine.nodes["hit"].action;
-    if (
-      this.spawn_projectile_requested &&
-      action_hit.enabled &&
-      action_hit.time > 0.5
-    ) {
-      this._spawn_projectile();
+    const action_stun =
+      this.pawn_draw.animator.animation_machine.nodes["stun"].action;
+
+    const spawn_queried = action_hit.enabled || action_stun.enabled;
+    const hit_spawn_requested = action_hit.enabled && action_hit.time > 0.5;
+    const stun_spawn_requested = action_stun.enabled && action_stun.time > 0.6;
+    const spawn_requested = hit_spawn_requested || stun_spawn_requested;
+    if (this.spawn_projectile_requested && spawn_requested) {
+			const direction = cache.vec3.v0;
+			if (hit_spawn_requested) {
+				direction.copy(this._get_spawn_projectile_direction());
+			} else if (stun_spawn_requested) {
+				this.pawn_draw._target.getWorldDirection(direction);
+				direction.cross(Vec3Up).negate();
+			}
+      this._spawn_projectile(direction);
       this.spawn_projectile_requested = false;
-    } else if (this.spawn_projectile_requested && !action_hit.enabled) {
+    } else if (this.spawn_projectile_requested && !spawn_queried) {
       // something interrupted animation - spawn requests discards
       this.spawn_projectile_requested = false;
     }
@@ -339,13 +355,13 @@ class AdTestcaseBowlingPawn {
     }
 
     this._create_pawn_draw();
-		this._create_pointer_mesh();
+    this._create_pointer_mesh();
 
     this.pawn_dbg_mesh.visible = false;
     this.pawn_draw.allow_move = false;
   }
 
-	_create_pointer_mesh() {
+  _create_pointer_mesh() {
     const arrow = createImagePlane("bowling/arrow0.png");
     this.pointer_mesh_charge = new THREE.Object3D();
     this.pointer_mesh_charge.add(arrow);
@@ -354,10 +370,10 @@ class AdTestcaseBowlingPawn {
     arrow.rotateX(-Math.PI * 0.5);
     arrow.rotateZ(-Math.PI * 0.5);
     this.character_scene.add(this.pointer_mesh_charge);
-	}
+  }
 
   async _load_pawn() {
-    this.character_gltf = await Loader.instance.get_gltf("bowling/pawn1.glb");
+    this.character_gltf = await Loader.instance.get_gltf("bowling/pawn2.glb");
     this.character_scene = SkeletonUtils.clone(this.character_gltf.scene);
     this.projectile_gltf = await Loader.instance.get_gltf(
       "bowling/projectile1.glb",
@@ -370,25 +386,24 @@ class AdTestcaseBowlingPawn {
     App.instance.render.scene.add(this.character_scene);
   }
 
-	_get_spawn_projectile_direction() {
+  _get_spawn_projectile_direction() {
     const facing_direction = cache.vec3.v0
       .copy(Vec3Right)
       .applyAxisAngle(Vec3Up, this.pawn_draw.rotation);
 
-		return facing_direction;
-	}
+    return facing_direction;
+  }
 
-  _spawn_projectile() {
+  _spawn_projectile(direction) {
     const radius = this.config.spawn_projectile_size;
     const pos = cache.vec3.v1;
-		const facing_direction = this._get_spawn_projectile_direction();
     pos
-      .copy(facing_direction)
+      .copy(direction)
       .setLength(radius * 2)
       .add(this.pawn_draw._target.position);
     pos.y = 0.5;
     const impulse = this._physics.cache.vec3_0;
-    impulse.init(facing_direction.x, 0, facing_direction.z);
+    impulse.init(direction.x, 0, direction.z);
     impulse.scaleEq(this.config.throw_factor * this.charge_applied);
     let color = new THREE.Color(Math.random(), Math.random(), Math.random());
     const body = this._physics.create_sphere(
