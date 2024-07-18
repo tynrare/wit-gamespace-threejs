@@ -8,7 +8,8 @@
 	page#mainmenu
 		root.cardstyle-a
 			h3 ч1. Бег в никуда
-			a.btn(href="?#testcase8") 🞂 "boo ling": arena zero;
+			a.btn(href="?#testcase8") 🞂 "boo ling" arena 0
+			h3 ч2. Полет не туда
 			h3 extras
 			a.btn(href="#achievements") achievements
 			a.btn(href="#settings") settings
@@ -29,6 +30,7 @@
 			a(href="?#testcase7") test 7 - bowling 3
 			a(href="?#testcase8") test 8 - bowling 4: main
 			a(href="?#testcase9") test 9 - bowling 5
+			a(href="?#testcase10") test 10 - tank 10
 	page#testcase1
 		render.fill-abs
 		ui.abs
@@ -52,6 +54,9 @@
 		render.fill-abs
 		.fill-abs: include pawn/joysticks.pug
 	page#testcase9
+		render.fill-abs
+		.fill-abs: include pawn/joysticks.pug
+	page#testcase10
 		render.fill-abs
 		.fill-abs: include pawn/joysticks.pug
 	page#achievements

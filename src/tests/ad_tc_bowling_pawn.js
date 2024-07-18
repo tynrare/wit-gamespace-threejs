@@ -8,376 +8,428 @@ import App from "../app.js";
 import { dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
 import { InputAction } from "../pawn/inputs_dualstick.js";
 import { createImagePlane } from "./utils.js";
-import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
 
 /**
  * @class AdTestcaseBowlingPawn
  * @memberof Pages/Tests
  */
 class AdTestcaseBowlingPawn {
-    constructor() {
-        /** @type {PawnDrawA} */
-        this.pawn_draw = null;
+  constructor() {
+    /** @type {PawnDrawA} */
+    this.pawn_draw = null;
 
-        /** @type {oimo.dynamics.rigidbody.RigidBody} */
-        this.pawn_body = null;
+    /** @type {oimo.dynamics.rigidbody.RigidBody} */
+    this.pawn_body = null;
 
-        /** @type {THREE.Mesh} */
-        this.pawn_dbg_mesh = null;
+    /** @type {THREE.Mesh} */
+    this.pawn_dbg_mesh = null;
 
-        /** @type {Physics} */
-        this._physics = null;
+    /** @type {Physics} */
+    this._physics = null;
 
-        this.stun = 0;
-        this.charge_elapsed = 0;
-        this.charge = 0;
-        this.charge_applied = 0;
+    this.stun = 0;
+    this.charge_elapsed = 0;
+    this.charge = 0;
+    this.charge_applied = 0;
 
-        this.config = {
-            charge_duration: 600,
-            throw_factor: 30,
-            stun_duration: 1.2
-        }
+    this.config = {
+      charge_duration: 600,
+      throw_factor: 30,
+      stun_duration: 1.2,
+      movement_acceletation: 4,
+      max_movement_speed: 5,
+			spawn_projectile_size: 0.4,
+    };
 
-        this.attack = false;
-        this.move = false;
+    this.attack = false;
+    this.move = false;
+  }
+
+  /**
+   *
+   * @param {InputAction} type .
+   * @param {boolean} start .
+   * @returns
+   */
+  action(type, start) {
+    if (this.stun > 0 && start) {
+      return;
     }
 
+    switch (type) {
+      case InputAction.action_a:
+        this.move = start;
+        break;
+      case InputAction.action_b:
+        this.attack = start;
+        break;
+    }
+  }
 
-    /**
-     * 
-     * @param {InputAction} type .
-     * @param {boolean} start . 
-     * @returns 
-     */
-    action(type, start) {
-        if (this.stun > 0 && start) {
-            return;
-        }
-
-        switch (type) {
-            case InputAction.action_a:
-                this.move = start;
-                break;
-            case InputAction.action_b:
-                this.attack = start;
-                break;
-        }
+  /**
+   * @param {number} x .
+   * @param {number} x .
+   * @param {string} tag .
+   * @param {InputAction} type .
+   */
+  action_analog(x, y, type) {
+    if (this.stun > 0) {
+      return;
     }
 
+    const p = cache.vec3.v1;
+    const ap = cache.vec3.v2;
+    const bp = cache.vec3.v3;
+    p.set(-x, 0, -y);
+    ap.copy(this.pawn_dbg_mesh.position);
+    ap.y = 0.1;
+    bp.copy(p).add(ap);
 
-    /**
-     * @param {number} x .
-     * @param {number} x .
-     * @param {string} tag .
-     * @param {InputAction} type .
-     */
-    action_analog(x, y, type) {
-        if (this.stun > 0) {
-            return;
-        }
-
-        const p = cache.vec3.v1;
-        const ap = cache.vec3.v2;
-        const bp = cache.vec3.v3;
-        p.set(-x, 0, -y);
-        ap.copy(this.pawn_dbg_mesh.position);
-        ap.y = 0.1;
-        bp.copy(p).add(ap);
-
-        const attack = this.attack || this.spawn_projectile_requested;
-        if (p.length() && (!attack || type != InputAction.action_a)) {
-            this.set_goal(bp);
-        }
-
-        this._physics.raycast(ap, bp, (s, h) => {
-            bp.set(h.position.x, 0, h.position.z);
-        });
-
-        switch (type) {
-            case InputAction.action_a:
-                this.pointer_mesh_a.position.copy(bp);
-                const velocity = this._physics.cache.vec3_2;
-                this.pawn_body.getLinearVelocityTo(velocity);
-                const force = this._physics.cache.vec3_0;
-                force.init(p.x, 0, p.z);
-                if (attack) {
-                    force.init(0, 0, 0);
-                }
-                if (!this.move) {
-                    velocity.x *= 0.2;
-                    velocity.z *= 0.2;
-                    this.pawn_body.setLinearVelocity(velocity);
-                }
-                const position = this._physics.cache.vec3_1;
-                const dot = force.normalized().dot(velocity.normalized());
-                const speed = velocity.length();
-                this.pawn_body.getPositionTo(position);
-                position.y -= 0.1;
-                force.scaleEq((2 - dot) * Math.max(0, 5 - speed) * 4);
-                this.pawn_body.applyForce(force, position);
-                break;
-            case InputAction.action_b:
-                if (this.attack) {
-                    this.pointer_mesh_b.position.copy(bp);
-                    //this.camera_controls.set_direction(p);
-                } else {
-                    p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
-                    // stick released
-                    this.spawn_projectile(p);
-                }
-
-                break;
-        }
+    const attack = this.attack || this.spawn_projectile_requested;
+    if (p.length() && (!attack || type != InputAction.action_a)) {
+      this.set_goal(bp, type);
     }
 
-    /**
-     * @param {number} dt .
-     */
-    step(dt) {
-        this.charge_elapsed = this.attack ? this.charge_elapsed + dt : 0;
-        this.charge = Math.min(1, this.charge_elapsed / this.config.charge_duration);
+    this._physics.raycast(ap, bp, (s, h) => {
+      bp.set(h.position.x, 0, h.position.z);
+    });
 
-        this.step_pawn(dt);
-        this.animate(dt);
-        this.stabilizate_pawn(dt);
-
-        this.stun -= dt * 1e-3;
-        this.stun = Math.max(this.stun, 0);
-        if (this.stun) {
-            this.spawn_projectile_requested = false;
-            this.charge_elapsed = 0;
-            this.charge_applied = 0;
-        }
-    }
-
-
-    animate(dt) {
-        if (!this.pawn_draw) {
-            return;
+    switch (type) {
+      case InputAction.action_a:
+        this.pointer_mesh_a.position.copy(bp);
+        this.apply_move(p);
+        break;
+      case InputAction.action_b:
+        if (this.attack) {
+          this.pointer_mesh_b.position.copy(bp);
+        } else {
+          p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
+          // stick released
+          this.spawn_projectile(p);
         }
 
-        const star_size = this.stun > 0 ? 0.4 : 0;
-        const stars_amount = this.vfx_animation_stars.children.length;
-        for (let i = 0; i < stars_amount; i++) {
-            const c = this.vfx_animation_stars.children[i];
-            const f = 0.5 * (i / stars_amount) + 0.2;
-            c.scale.setScalar(
-                dlerp(c.scale.x, star_size, f, dt * 1e-3),
-            );
-        }
+        this.apply_attack(p);
 
-        this.vfx_animation_stars.rotation.y += dt * 3e-3;
+        break;
+    }
+  }
 
-        const update_pointer = (mesh, visible) => {
-            const pointer_size = visible ? 1 : 0;
-            mesh.scale.setScalar(dlerp(mesh.scale.x, pointer_size, 1, dt * 1e-3));
-            mesh.rotateY(3e-4 * dt);
-        };
-        update_pointer(this.pointer_mesh_a, this.move && !this.stun);
-        update_pointer(this.pointer_mesh_b, this.attack && !this.stun);
+  /**
+   * @param {number} dt .
+   */
+  step(dt) {
+    this.charge_elapsed = this.attack ? this.charge_elapsed + dt : 0;
+    this.charge = Math.min(
+      1,
+      this.charge_elapsed / this.config.charge_duration,
+    );
 
-        this.pointer_mesh_charge.scale.x = this.charge * 4;
+    this.step_pawn(dt);
+    this.animate(dt);
+    this.stabilizate_pawn(dt);
+
+    this.stun -= dt * 1e-3;
+    this.stun = Math.max(this.stun, 0);
+    if (this.stun) {
+      this.spawn_projectile_requested = false;
+      this.charge_elapsed = 0;
+      this.charge_applied = 0;
+    }
+  }
+
+  animate(dt) {
+    if (!this.pawn_draw) {
+      return;
     }
 
-
-    step_pawn(dt) {
-        if (!this.pawn_draw) {
-            return;
-        }
-        const up = this._physics.get_body_up_dot(this.pawn_body);
-        if (up < 0.9) {
-            this.stun = this.config.stun_duration;
-        }
-
-        // apply decoration mesh rotation
-        const shift = cache.vec3.v4.set(0, -0.5, 0);
-        shift.applyQuaternion(this.pawn_dbg_mesh.quaternion);
-        this.pawn_draw._target.position.copy(this.pawn_dbg_mesh.position);
-        this.pawn_draw._target.position.add(shift);
-        this.pawn_draw.step(dt);
-        // cd: discard pawn rotation and set correct world rotation
-        this.pawn_draw._target.quaternion.copy(this.pawn_dbg_mesh.quaternion);
-        this.pawn_draw._target.rotateY(this.pawn_draw.rotation);
-
-        // place stars
-        this.vfx_animation_stars.position.copy(this.pawn_draw._target.position);
-        this.vfx_animation_stars.position.y += 0.7;
-        this.vfx_animation_stars.position.add(shift.multiplyScalar(-2));
-
-        // spawn projectile in animation middleplay
-        const action_hit = this.pawn_draw.animator.animation_machine.nodes["hit"].action;
-        if (
-            this.spawn_projectile_requested &&
-            action_hit.enabled &&
-            action_hit.time > 0.5
-        ) {
-            this._spawn_projectile();
-            this.spawn_projectile_requested = false;
-        } else if (this.spawn_projectile_requested && !action_hit.enabled) {
-            // something interrupted animation - spawn requests discards
-            this.spawn_projectile_requested = false;
-        }
+    const star_size = this.stun > 0 ? 0.4 : 0;
+    const stars_amount = this.vfx_animation_stars.children.length;
+    for (let i = 0; i < stars_amount; i++) {
+      const c = this.vfx_animation_stars.children[i];
+      const f = 0.5 * (i / stars_amount) + 0.2;
+      c.scale.setScalar(dlerp(c.scale.x, star_size, f, dt * 1e-3));
     }
 
-    stabilizate_pawn(dt) {
-        // locks rotation
-        //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
+    this.vfx_animation_stars.rotation.y += dt * 3e-3;
 
-        // apply rotation stabilization
-        const up = this._physics.get_body_up_dot(this.pawn_body);
-        const stabilization = this._physics.cache.vec3_0;
-        const r = this.pawn_body.getRotation().toEulerXyz();
+    const update_pointer = (mesh, visible) => {
+      const pointer_size = visible ? 1 : 0;
+      mesh.scale.setScalar(dlerp(mesh.scale.x, pointer_size, 1, dt * 1e-3));
+      mesh.rotateY(3e-4 * dt);
+    };
+    update_pointer(this.pointer_mesh_a, this.move && !this.stun);
+    update_pointer(this.pointer_mesh_b, this.attack && !this.stun);
 
-        // torque applied ach step - it fas to be frame dependent
-        const df = dt / 30;
-        const s = 0.07 * df;
+    this.pointer_mesh_charge.scale.x = this.charge * 4;
+  }
 
-        stabilization.init(-r.x * s, -r.y * s, -r.z * s);
-        stabilization.scaleEq(1 - up);
-        stabilization.y = -r.y * s * up;
-        this.pawn_body.applyAngularImpulse(stabilization);
+  step_pawn(dt) {
+    if (!this.pawn_draw) {
+      return;
+    }
+    const up = this._physics.get_body_up_dot(this.pawn_body);
+    if (up < 0.9) {
+      this.stun = this.config.stun_duration;
     }
 
-    /**
-     * @param {THREE.Vector3} pos
-     */
-    set_goal(pos) {
-        if (this.pawn_draw) {
-            this.pawn_draw.goal.copy(pos);
-        }
+    // apply decoration mesh rotation
+    const shift = cache.vec3.v4.set(0, -0.5, 0);
+    shift.applyQuaternion(this.pawn_dbg_mesh.quaternion);
+    this.pawn_draw._target.position.copy(this.pawn_dbg_mesh.position);
+    this.pawn_draw._target.position.add(shift);
+    this.pawn_draw.step(dt);
+    // cd: discard pawn rotation and set correct world rotation
+    this.pawn_draw._target.quaternion.copy(this.pawn_dbg_mesh.quaternion);
+    this.pawn_draw._target.rotateY(this.pawn_draw.rotation);
+
+    // place stars
+    this.vfx_animation_stars.position.copy(this.pawn_draw._target.position);
+    this.vfx_animation_stars.position.y += 0.7;
+    this.vfx_animation_stars.position.add(shift.multiplyScalar(-2));
+
+    this._step_requested_spawn_projectile();
+  }
+
+  _step_requested_spawn_projectile() {
+    // spawn projectile in animation middleplay
+    const action_hit =
+      this.pawn_draw.animator.animation_machine.nodes["hit"].action;
+    if (
+      this.spawn_projectile_requested &&
+      action_hit.enabled &&
+      action_hit.time > 0.5
+    ) {
+      this._spawn_projectile();
+      this.spawn_projectile_requested = false;
+    } else if (this.spawn_projectile_requested && !action_hit.enabled) {
+      // something interrupted animation - spawn requests discards
+      this.spawn_projectile_requested = false;
+    }
+  }
+
+  stabilizate_pawn(dt) {
+    // locks rotation
+    //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
+
+    // apply rotation stabilization
+    const up = this._physics.get_body_up_dot(this.pawn_body);
+    const stabilization = this._physics.cache.vec3_0;
+    const r = this.pawn_body.getRotation().toEulerXyz();
+
+    // torque applied ach step - it fas to be frame dependent
+    const df = dt / 30;
+    const s = 0.07 * df;
+
+    stabilization.init(-r.x * s, -r.y * s, -r.z * s);
+    stabilization.scaleEq(1 - up);
+    stabilization.y = -r.y * s * up;
+    this.pawn_body.applyAngularImpulse(stabilization);
+  }
+
+  /**
+   * @param {THREE.Vector3} pos
+   * @param {InputAction} action
+   */
+  set_goal(pos, action) {
+    if (this.pawn_draw) {
+      this.pawn_draw.goal.copy(pos);
+    }
+  }
+
+  /**
+   * @param {THREE.Vector3} pos
+   */
+  apply_move(vec) {
+    const attack = this.attack || this.spawn_projectile_requested;
+
+    const velocity = this._physics.cache.vec3_2;
+    this.pawn_body.getLinearVelocityTo(velocity);
+    const force = this._physics.cache.vec3_0;
+    force.init(vec.x, 0, vec.z);
+    if (attack) {
+      force.init(0, 0, 0);
+    }
+    if (!this.move) {
+      velocity.x *= 0.2;
+      velocity.z *= 0.2;
+      this.pawn_body.setLinearVelocity(velocity);
+    }
+    const position = this._physics.cache.vec3_1;
+    const dot = force.normalized().dot(velocity.normalized());
+    const speed = velocity.length();
+    this.pawn_body.getPositionTo(position);
+    position.y -= 0.1;
+    force.scaleEq(
+      (2 - dot) *
+        Math.max(0, this.config.max_movement_speed - speed) *
+        this.config.movement_acceletation,
+    );
+    this.pawn_body.applyForce(force, position);
+  }
+
+  /**
+   * @param {THREE.Vector3} pos
+   */
+  apply_attack(vec) {
+    if (!this.attack) {
+      // stick released
+      this.spawn_projectile(vec);
+    } else {
+    }
+  }
+
+  /**
+   *
+   * @param {Physics} physics .
+   * @returns AdTestcaseBowlingPawn this
+   */
+  run(physics) {
+    this._physics = physics;
+
+    const id = this.create_phys_body();
+    const mesh = this._physics.meshlist[id];
+    const body = this._physics.bodylist[id];
+    this.pawn_body = body;
+    this.pawn_dbg_mesh = mesh;
+
+    const render = App.instance.render;
+    const scene = render.scene;
+    this.pointer_mesh_a = render.utils.spawn_icosphere0(0xb768e9);
+    this.pointer_mesh_b = render.utils.spawn_icosphere0(0xb7e968);
+    scene.add(this.pointer_mesh_a);
+    scene.add(this.pointer_mesh_b);
+
+    return this;
+  }
+
+  create_phys_body() {
+    const pos = new Vector3(0, 1, 0);
+    const size = new Vector3(0.3, 1, 0);
+    const id = this._physics.utils.create_physics_cylinder(
+      pos,
+      size,
+      RigidBodyType.DYNAMIC,
+      { friction: 0.1, density: 1, adamping: 5, ldamping: 1 },
+      0x48a9b1,
+    );
+
+    return id;
+  }
+
+  async load() {
+    await this._load_pawn();
+
+    const texture_sprite = Loader.instance.get_texture("pic/star0.png");
+    const star_material = new THREE.SpriteMaterial({
+      map: texture_sprite,
+    });
+    const sprite_star = new THREE.Sprite(star_material);
+    sprite_star.scale.setScalar(0); // hide at creation
+    this.vfx_animation_stars = new THREE.Object3D();
+    App.instance.render.scene.add(this.vfx_animation_stars);
+
+    const stars = 6;
+    const radius = 0.5;
+    for (let i = 0; i < stars; i++) {
+      const s = sprite_star.clone();
+      this.vfx_animation_stars.add(s);
+      s.position.x = Math.sin((i / stars) * Math.PI * 2) * radius;
+      s.position.z = Math.cos((i / stars) * Math.PI * 2) * radius;
     }
 
-    /**
-     * 
-     * @param {Physics} physics .
-     * @returns AdTestcaseBowlingPawn this
-     */
-    run(physics) {
-        this._physics = physics;
+    this._create_pawn_draw();
+		this._create_pointer_mesh();
 
-        const pos = new Vector3(0, 1, 0);
-        const size = new Vector3(0.3, 1, 0);
-        const id = this._physics.utils.create_physics_cylinder(
-            pos,
-            size,
-            RigidBodyType.DYNAMIC,
-            { friction: 0.1, density: 1, adamping: 5, ldamping: 1 },
-            0x48a9b1,
-        );
-        const mesh = this._physics.meshlist[id];
-        const body = this._physics.bodylist[id];
-        this.pawn_body = body;
-        this.pawn_dbg_mesh = mesh;
+    this.pawn_dbg_mesh.visible = false;
+    this.pawn_draw.allow_move = false;
+  }
 
-        const render = App.instance.render;
-        const scene = render.scene;
-        this.pointer_mesh_a = render.utils.spawn_icosphere0(0xb768e9);
-        this.pointer_mesh_b = render.utils.spawn_icosphere0(0xb7e968);
-        scene.add(this.pointer_mesh_a);
-        scene.add(this.pointer_mesh_b);        
+	_create_pointer_mesh() {
+    const arrow = createImagePlane("bowling/arrow0.png");
+    this.pointer_mesh_charge = new THREE.Object3D();
+    this.pointer_mesh_charge.add(arrow);
+    this.pointer_mesh_charge.position.y = 0.3;
+    arrow.position.x = 0.5;
+    arrow.rotateX(-Math.PI * 0.5);
+    arrow.rotateZ(-Math.PI * 0.5);
+    this.character_scene.add(this.pointer_mesh_charge);
+	}
 
-        return this;
-    }
+  async _load_pawn() {
+    this.character_gltf = await Loader.instance.get_gltf("bowling/pawn1.glb");
+    this.character_scene = SkeletonUtils.clone(this.character_gltf.scene);
+    this.projectile_gltf = await Loader.instance.get_gltf(
+      "bowling/projectile1.glb",
+    );
+  }
 
-    async load() {
-        this.character_gltf = await Loader.instance.get_gltf("bowling/pawn1.glb");
-        this.character_scene = SkeletonUtils.clone(this.character_gltf.scene);
-        this.projectile_gltf = await Loader.instance.get_gltf(
-            "bowling/projectile1.glb"
-        );
+  _create_pawn_draw() {
+    this.pawn_draw = new PawnDrawA();
+    this.pawn_draw.init(this.character_gltf, this.character_scene);
+    App.instance.render.scene.add(this.character_scene);
+  }
 
-        const texture_sprite = Loader.instance.get_texture("pic/star0.png");
-        const star_material = new THREE.SpriteMaterial({
-            map: texture_sprite,
-        });
-        const sprite_star = new THREE.Sprite(star_material);
-        sprite_star.scale.setScalar(0); // hide at creation
-        this.vfx_animation_stars = new THREE.Object3D();
-        App.instance.render.scene.add(this.vfx_animation_stars);
+	_get_spawn_projectile_direction() {
+    const facing_direction = cache.vec3.v0
+      .copy(Vec3Right)
+      .applyAxisAngle(Vec3Up, this.pawn_draw.rotation);
 
-        const stars = 6;
-        const radius = 0.5;
-        for (let i = 0; i < stars; i++) {
-            const s = sprite_star.clone();
-            this.vfx_animation_stars.add(s);
-            s.position.x = Math.sin((i / stars) * Math.PI * 2) * radius;
-            s.position.z = Math.cos((i / stars) * Math.PI * 2) * radius;
-        }
+		return facing_direction;
+	}
 
-        this.pawn_draw = new PawnDrawA();
-        this.pawn_draw.init(this.character_gltf, this.character_scene);
-        App.instance.render.scene.add(this.character_scene);
+  _spawn_projectile() {
+    const radius = this.config.spawn_projectile_size;
+    const pos = cache.vec3.v1;
+		const facing_direction = this._get_spawn_projectile_direction();
+    pos
+      .copy(facing_direction)
+      .setLength(radius * 2)
+      .add(this.pawn_draw._target.position);
+    pos.y = 0.5;
+    const impulse = this._physics.cache.vec3_0;
+    impulse.init(facing_direction.x, 0, facing_direction.z);
+    impulse.scaleEq(this.config.throw_factor * this.charge_applied);
+    let color = new THREE.Color(Math.random(), Math.random(), Math.random());
+    const body = this._physics.create_sphere(
+      pos,
+      radius,
+      RigidBodyType.DYNAMIC,
+      {
+        density: 10,
+        friction: 0.3,
+        restitution: 0.7,
+      },
+    );
+    body.temporal = true;
+    const mesh = this.projectile_gltf.scene.clone();
+    mesh.scale.multiplyScalar(radius * 2);
+    mesh.position.copy(pos);
+    App.instance.render.scene.add(mesh);
+    this._physics.attach(body, mesh);
+    body.applyLinearImpulse(impulse);
+    this.charge_applied = 0;
+  }
 
-        this.pawn_dbg_mesh.visible = false;
-        this.pawn_draw.allow_move = false;
+  spawn_projectile() {
+    this.spawn_projectile_requested = true;
+    this.charge_applied = this.charge;
+    this.pawn_draw.animator.transite("hit", true);
+  }
 
-        const arrow = createImagePlane("bowling/arrow0.png");;
-        this.pointer_mesh_charge = new THREE.Object3D();
-        this.pointer_mesh_charge.add(arrow)
-        this.pointer_mesh_charge.position.y = 0.3;
-        arrow.position.x = 0.5;
-        arrow.rotateX(-Math.PI * 0.5);
-        arrow.rotateZ(-Math.PI * 0.5);
-        this.character_scene.add(this.pointer_mesh_charge);
-    }
-
-
-    _spawn_projectile() {
-        const radius = 0.4;
-        const d = cache.vec3.v0;
-        const pos = cache.vec3.v1;
-        const facing_direction = d
-            .copy(Vec3Right)
-            .applyAxisAngle(Vec3Up, this.pawn_draw.rotation);
-        pos
-            .copy(d)
-            .setLength(radius * 2)
-            .add(this.pawn_draw._target.position);
-        pos.y = 0.5;
-        const impulse = this._physics.cache.vec3_0;
-        impulse.init(d.x, 0, d.z);
-        impulse.scaleEq(this.config.throw_factor * this.charge_applied);
-        let color = new THREE.Color(Math.random(), Math.random(), Math.random());
-        const body = this._physics.create_sphere(
-            pos,
-            radius,
-            RigidBodyType.DYNAMIC,
-            {
-                density: 10,
-                friction: 0.3,
-                restitution: 0.7,
-            },
-        );
-        body.temporal = true;
-        const mesh = this.projectile_gltf.scene.clone();
-        mesh.scale.multiplyScalar(radius * 2);
-        mesh.position.copy(pos);
-        App.instance.render.scene.add(mesh);
-        this._physics.attach(body, mesh);
-        body.applyLinearImpulse(impulse);
-        this.charge_applied = 0;
-    }
-
-    spawn_projectile() {
-        this.spawn_projectile_requested = true;
-        this.charge_applied = this.charge;
-        this.pawn_draw.animator.transite("hit", true);
-    }
-
-    stop() {
-        this.pawn_draw?.dispose();
-        this.character_scene = null;
-        this.character_gltf = null;
-        this.pawn_draw = null;
-        this.pawn_body = null;
-        this.pawn_dbg_mesh?.removeFromParent();
-        this.pointer_mesh_a?.removeFromParent();
-        this.pointer_mesh_b?.removeFromParent();
-        this.pointer_mesh_charge?.removeFromParent();
-        this.pawn_dbg_mesh = null;
-        this._physics = null;
-    }
+  stop() {
+    this.pawn_draw?.dispose();
+    this.character_scene = null;
+    this.character_gltf = null;
+    this.pawn_draw = null;
+    this.pawn_body = null;
+    this.pawn_dbg_mesh?.removeFromParent();
+    this.pointer_mesh_a?.removeFromParent();
+    this.pointer_mesh_b?.removeFromParent();
+    this.pointer_mesh_charge?.removeFromParent();
+    this.pawn_dbg_mesh = null;
+    this._physics = null;
+  }
 }
 
 export default AdTestcaseBowlingPawn;

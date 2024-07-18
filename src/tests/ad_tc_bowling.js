@@ -8,13 +8,13 @@ import LightsA from "../lights_a.js";
 import { cache } from "../math.js";
 import { Physics, RigidBodyType } from "../physics.js";
 import Environment1 from "./environment_1.js";
-import AdTestcaseBowlingPawn from "./ad_tc_bowling_pawn.js"
+import AdTestcaseBowlingPawn from "./ad_tc_bowling_pawn.js";
 import { InputAction } from "../pawn/inputs_dualstick.js";
 
 class BowlingPawnBot {
   /**
-   * 
-   * @param {AdTestcaseBowlingPawn} pawn 
+   *
+   * @param {AdTestcaseBowlingPawn} pawn
    */
   constructor(pawn) {
     /** @type {AdTestcaseBowlingPawn} */
@@ -33,8 +33,8 @@ class BowlingPawnBot {
   }
 
   /**
-   * 
-   * @param {Array<AdTestcaseBowlingPawn>} pawns 
+   *
+   * @param {Array<AdTestcaseBowlingPawn>} pawns
    */
   find_closest_enemy(pawns) {
     let closest_enemy = null;
@@ -45,7 +45,9 @@ class BowlingPawnBot {
         continue;
       }
 
-      const dist = this._pawn.pawn_dbg_mesh.position.distanceTo(pawn.pawn_dbg_mesh.position);
+      const dist = this._pawn.pawn_dbg_mesh.position.distanceTo(
+        pawn.pawn_dbg_mesh.position,
+      );
       if (dist < closest_dist) {
         closest_dist = dist;
         closest_enemy = pawn;
@@ -91,7 +93,6 @@ class AdTestcaseBowling {
     /** @type {string} */
     this.scenename = null;
 
-
     /** @type {Array<THREE.Object3D} */
     this.spawnpoints = [];
   }
@@ -101,8 +102,8 @@ class AdTestcaseBowling {
    */
   step(dt) {
     if (!this.playscene && this.scenename) {
-      return
-    };
+      return;
+    }
 
     this.physics.step(dt);
     this.step_bots(dt);
@@ -125,7 +126,9 @@ class AdTestcaseBowling {
       }
 
       const position = this.get_rand_spawnpoint();
-      b.setPosition(this.physics.cache.vec3_0.init(position.x, position.y, position.z))
+      b.setPosition(
+        this.physics.cache.vec3_0.init(position.x, position.y, position.z),
+      );
     }
   }
 
@@ -141,7 +144,9 @@ class AdTestcaseBowling {
 
       const closest_enemy = bot.find_closest_enemy(this.pawns);
       if (closest_enemy) {
-        const dir = cache.vec3.v0.copy(pawn.pawn_dbg_mesh.position).sub(closest_enemy.pawn_dbg_mesh.position);
+        const dir = cache.vec3.v0
+          .copy(pawn.pawn_dbg_mesh.position)
+          .sub(closest_enemy.pawn_dbg_mesh.position);
         const targ_dist = 7 + Math.sin(bot.elapsed * 1e-3) * 5;
         const dist = dir.length();
         if (dist < targ_dist * 2 && !bot.attacks()) {
@@ -150,7 +155,10 @@ class AdTestcaseBowling {
         dir.normalize();
         bot.direction.lerp(dir, 1 - Math.pow(0.1, dtt));
 
-        if (bot.elapsed_attack > bot.requested_attack && !bot.charge_requested) {
+        if (
+          bot.elapsed_attack > bot.requested_attack &&
+          !bot.charge_requested
+        ) {
           bot.charge_requested = Math.random() * 0.5 + 0.5;
         }
 
@@ -169,14 +177,26 @@ class AdTestcaseBowling {
           pawn.action_analog(dir.x, dir.z, InputAction.action_a);
         } else {
           pawn.action(InputAction.action_a, true);
-          pawn.action_analog(bot.direction.x, bot.direction.z, InputAction.action_a);
+          pawn.action_analog(
+            bot.direction.x,
+            bot.direction.z,
+            InputAction.action_a,
+          );
         }
       }
-
     }
   }
 
-  run(onload, opts = { floor: false, scene: "b", bots: 5 }) {
+  run(
+    onload,
+    opts = {
+      botclass: AdTestcaseBowlingPawn,
+      pawnclass: AdTestcaseBowlingPawn,
+      floor: false,
+      scene: "b",
+      bots: 5,
+    },
+  ) {
     this.environment = new Environment1();
     this.environment.run({ floor: opts?.floor ?? false });
 
@@ -189,10 +209,10 @@ class AdTestcaseBowling {
       );
     }
 
-    this.pawn = this.create_pawn(null, false);
+    this.pawn = this.create_pawn(null, opts.pawnclass, false);
     const load = [this.pawn.load()];
     if (opts?.scene) {
-      load.push(this.open_playscene(opts?.scene))
+      load.push(this.open_playscene(opts?.scene));
     }
 
     Promise.all(load).then(() => {
@@ -203,21 +223,23 @@ class AdTestcaseBowling {
 
     const bots_count = opts?.bots ?? 5;
     for (let i = 0; i < bots_count; i++) {
-      const pawn = this.create_pawn(this.get_rand_spawnpoint());
+      const pawn = this.create_pawn(this.get_rand_spawnpoint(), opts.botclass);
       this.bots.push(new BowlingPawnBot(pawn));
       pawn.stun = 5;
     }
   }
 
   /**
-   * 
+   *
    * @param {Vector3?} position .
    */
-  create_pawn(position, load = true) {
-    const pawn = new AdTestcaseBowlingPawn().run(this.physics);
+  create_pawn(position, pawnclass = AdTestcaseBowlingPawn, load = true) {
+    const pawn = new (pawnclass ?? AdTestcaseBowlingPawn)().run(this.physics);
     this.pawns.push(pawn);
     if (position) {
-      pawn.pawn_body.setPosition(this.physics.cache.vec3_0.init(position.x, position.y, position.z));
+      pawn.pawn_body.setPosition(
+        this.physics.cache.vec3_0.init(position.x, position.y, position.z),
+      );
     }
     if (load) {
       pawn.load();
@@ -235,7 +257,9 @@ class AdTestcaseBowling {
       return pos;
     }
 
-    return this.spawnpoints[Math.floor(Math.random() * this.spawnpoints.length)];
+    return this.spawnpoints[
+      Math.floor(Math.random() * this.spawnpoints.length)
+    ];
   }
 
   open_playscene(name, lightmaps = true) {
@@ -297,7 +321,6 @@ class AdTestcaseBowling {
         return;
       }
 
-
       if (!m.name.includes("phys")) {
         return;
       }
@@ -341,7 +364,13 @@ class AdTestcaseBowling {
    * @returns {string} body id
    */
   create_physics_sphere(pos, radius, type, opts, color = 0xffffff) {
-    return this.physics.utils.create_physics_sphere(pos, radius, type, null, color);
+    return this.physics.utils.create_physics_sphere(
+      pos,
+      radius,
+      type,
+      null,
+      color,
+    );
   }
 
   /**
@@ -355,13 +384,18 @@ class AdTestcaseBowling {
    * @returns {string} body id
    */
   create_physics_cylinder(pos, size, type, opts, color = 0xffffff) {
-    return this.physics.utils.create_physics_cylinder(pos, size, type, null, color);
+    return this.physics.utils.create_physics_cylinder(
+      pos,
+      size,
+      type,
+      null,
+      color,
+    );
   }
 
-
   /**
-   * 
-   * @param {THREE.Vector3} pos . 
+   *
+   * @param {THREE.Vector3} pos .
    */
   utils_create_motors(pos) {
     const size = cache.vec3.v1;
