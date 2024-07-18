@@ -73,6 +73,9 @@ class AdTestcaseTankPawn extends AdTestcaseBowlingPawn {
 		force.scaleEq(this.config.max_movement_speed);
 		force.y = velocity.y;
     this.pawn_body.setLinearVelocity(force);
+
+		force.init(0, 0, 0);
+		this.pawn_body.setRotationFactor(force);
   }
 
   create_phys_body() {
