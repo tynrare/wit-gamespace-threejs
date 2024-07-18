@@ -422,9 +422,9 @@ class AdTestcaseBowling {
     );
     const b1 = this.physics.bodylist[id1];
     const b2 = this.physics.bodylist[id2];
-    const motor = this.physics.create_joint_motor(b1, b2, null, {
-      x: 5,
-      y: 100,
+    const motor = this.physics.create_joint_motor(b1, b2, null, null, {
+      speed: 5,
+      torque: 100,
     });
   }
 

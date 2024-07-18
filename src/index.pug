@@ -19,46 +19,7 @@
 			#btn_render_quality.btn render quality
 			#btn_antialias.btn antialias
 			#btn_debug.btn debug
-	page#testsmenu
-		root.cardstyle-a
-			a(href="#testcase1") test 1
-			a(href="?#testcase2") test 2 - tanks
-			a(href="?#testcase3") test 3 - animations
-			a(href="?#testcase4") test 4 - physics
-			a(href="?#testcase5") test 5 - bowling 1
-			a(href="?#testcase6") test 6 - bowling 2
-			a(href="?#testcase7") test 7 - bowling 3
-			a(href="?#testcase8") test 8 - bowling 4: main
-			a(href="?#testcase9") test 9 - bowling 5
-			a(href="?#testcase10") test 10 - tank 10
-	page#testcase1
-		render.fill-abs
-		ui.abs
-	page#testcase2
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
-	page#testcase3
-		render.fill-abs
-	page#testcase4
-		render.fill-abs
-	page#testcase5
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
-	page#testcase6
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
-	page#testcase7
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
-	page#testcase8
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
-	page#testcase9
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
-	page#testcase10
-		render.fill-abs
-		.fill-abs: include pawn/joysticks.pug
+	include tests/tests.pug
 	page#achievements
 		root.cardstyle-a
 			.card-h

@@ -73,7 +73,6 @@ class PhysicsUtils {
     const body = this._physics.create_cylinder(pos, size, type, opts);
     let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y, 6);
     let material = App.instance.render.utils.create_material0(color);
-    material.wireframe = true;
     let mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
     App.instance.render.scene.add(mesh);

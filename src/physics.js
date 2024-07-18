@@ -47,11 +47,11 @@ class Physics {
 			limit_step: true
     };
 
-    /** @type {object<string, RigidBody>} */
+    /** @type {Object<string, oimo.dynamics.rigidbody.RigidBody>} */
     this.bodylist = {};
-    /** @type {object<string, THREE.Object3D>} */
+    /** @type {Object<string, THREE.Object3D>} */
     this.meshlist = {};
-    /** @type {object<string, MeshAttachOpts>} */
+    /** @type {Object<string, MeshAttachOpts>} */
     this.attachopts = {};
 
     this.cache = {
@@ -117,7 +117,7 @@ class Physics {
 		}
 
     for (const k in this.meshlist) {
-      /** @type {RigidBody} */
+      /** @type {oimo.dynamics.rigidbody.RigidBody} */
       const body = this.bodylist[k];
       const mesh = this.meshlist[k];
       const opts = this.attachopts[k];
@@ -145,7 +145,7 @@ class Physics {
    * @param {oimo.collision.geometry.Geometry} geometry .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {RigidBody} .
+   * @returns {oimo.dynamics.rigidbody.RigidBody} .
    */
   create_body(pos, geometry, type, opts) {
     const body_config = new oimo.dynamics.rigidbody.RigidBodyConfig();
@@ -175,7 +175,7 @@ class Physics {
    * @param {Vector3} size .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {RigidBody} .
+   * @returns {oimo.dynamics.rigidbody.RigidBody} .
    */
   create_box(pos, size, type, opts) {
     const geometry = new oimo.collision.geometry.BoxGeometry(
@@ -190,7 +190,7 @@ class Physics {
    * @param {number} radius .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {RigidBody} .
+   * @returns {oimo.dynamics.rigidbody.RigidBody} .
    */
   create_sphere(pos, radius, type, opts) {
     const geometry = new oimo.collision.geometry.SphereGeometry(radius);
@@ -203,7 +203,7 @@ class Physics {
    * @param {Vector3} size .
    * @param {RigidBodyType} type .
    * @param {BodyOpts} [opts] .
-   * @returns {RigidBody} .
+   * @returns {oimo.dynamics.rigidbody.RigidBody} .
    */
   create_cylinder(pos, size, type, opts) {
     const geometry = new oimo.collision.geometry.CylinderGeometry(
@@ -215,7 +215,7 @@ class Physics {
   }
 
   /**
-   * @param {RigidBody} body .
+   * @param {oimo.dynamics.rigidbody.RigidBody} body .
    * @param {THREE.Object3D} mesh .
    * @param {MeshAttachOpts?} [opts] .
    */
@@ -227,24 +227,32 @@ class Physics {
   }
 
   /**
-   * @param {RigidBody} a
-   * @param {RigidBody} b
+   * @param {oimo.dynamics.rigidbody.RigidBody} a
+   * @param {oimo.dynamics.rigidbody.RigidBody} b
+   * @param {Vector3?} [anchor] .
    * @param {Vector3?} [axis] .
-   * @param {Vector2?} [torque] .
+	 * @param {object?} [opts] .
+   * @param {number} [opts.torque=0] .
+   * @param {number} [opts.speed=0] .
+   * @param {number} [opts.spring=0] .
    */
-  create_joint_motor(a, b, axis, torque = 0) {
+  create_joint_motor(a, b, anchor, axis, opts) {
     const motor = new oimo.dynamics.constraint.joint.RotationalLimitMotor();
     const config = new oimo.dynamics.constraint.joint.RevoluteJointConfig();
     const _axis = this.cache.vec3_0;
 		_axis.init(axis?.x ?? 0, axis?.y ?? 1, axis?.z ?? 0);
-    config.init(a, b, a.getPosition(), _axis);
-    motor.setMotor(torque?.x ?? 0, torque?.y ?? 0);
+    config.init(a, b, anchor ?? a.getPosition(), _axis);
+    motor.setMotor(opts?.speed ?? 0, opts?.torque ?? 0);
     config.limitMotor = motor;
+		if (opts?.spring) {
+			config.springDamper = new oimo.dynamics.constraint.joint.SpringDamper();
+			config.springDamper.setSpring(opts.spring, 0.2);
+		}
 
     const joint = new oimo.dynamics.constraint.joint.RevoluteJoint(config);
     this.world.addJoint(joint);
 
-    return motor;
+    return joint;
   }
 
   /**
@@ -262,7 +270,7 @@ class Physics {
 	/**
 	 * uses physics.cache.vec3_0
 	 *
-	 * @param {RigidBody} body .
+	 * @param {oimo.dynamics.rigidbody.RigidBody} body .
 	 */
 	get_body_up_dot(body) {
     const local_up = this.cache.vec3_0;
@@ -276,7 +284,7 @@ class Physics {
 	}
 
 	/**
-	 * @param {RigidBody} body .
+	 * @param {oimo.dynamics.rigidbody.RigidBody} body .
 	 */
   remove(body) {
     this.world.removeRigidBody(body);
