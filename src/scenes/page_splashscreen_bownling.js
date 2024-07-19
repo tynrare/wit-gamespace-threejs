@@ -67,7 +67,7 @@ class PageSplashscreenBowling extends PageBase {
     const letters_stabilizate_delay = 5000;
     if (this.elapsed > letters_stabilizate_delay) {
       const e = this.elapsed - letters_stabilizate_delay;
-      const f = Math.min(1, e / 5000) * 0.3;
+      const f = Math.min(1, e / 5000) * 0.1;
       for (const i in this.logo_letters) {
         const ll = this.logo_letters[i];
         this.level.pawn.stabilizate_pawn(dt, ll, f);
@@ -78,14 +78,18 @@ class PageSplashscreenBowling extends PageBase {
         ll.getPositionTo(curr_pos);
         targ_pos.subEq(curr_pos);
         const dist = clamp(-1, 1, targ_pos.length());
-        targ_pos.normalize().scaleEq(f * 10 * dist);
+        targ_pos.normalize().scaleEq(f * 20 * dist);
         ll.applyForceToCenter(targ_pos);
 
-				let shape = ll.getShapeList();
-				while(shape) {
-					shape.setRestitution(0);
-					shape = shape.getNext();
-				}
+        let shape = ll.getShapeList();
+        if (ll.getLinearDamping() != 3.73) {
+          ll.setLinearDamping(3.73);
+          while (shape) {
+            shape.setRestitution(0);
+            shape.setFriction(1e-3);
+            shape = shape.getNext();
+          }
+        }
       }
     }
 
@@ -181,7 +185,10 @@ class PageSplashscreenBowling extends PageBase {
     this.camera_controls = new CameraTopdown();
     this.camera_controls.config.distance = 10;
     this.camera_controls.config.height = 10;
-    this.camera_controls.init(App.instance.render.camera, this.level.pawn.pawn_dbg_mesh);
+    this.camera_controls.init(
+      App.instance.render.camera,
+      this.level.pawn.pawn_dbg_mesh,
+    );
   }
 
   input(type, start) {
