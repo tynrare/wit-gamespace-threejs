@@ -397,13 +397,14 @@ class AdTestcaseBowlingPawn {
   _spawn_projectile(direction) {
     const radius = this.config.spawn_projectile_size;
     const pos = cache.vec3.v1;
+		const dir = direction ?? this._get_spawn_projectile_direction();
     pos
-      .copy(direction)
+      .copy(dir)
       .setLength(radius * 2)
       .add(this.pawn_draw._target.position);
     pos.y = 0.5;
     const impulse = this._physics.cache.vec3_0;
-    impulse.init(direction.x, 0, direction.z);
+    impulse.init(dir.x, 0, dir.z);
     impulse.scaleEq(this.config.throw_factor * this.charge_applied);
     let color = new THREE.Color(Math.random(), Math.random(), Math.random());
     const body = this._physics.create_sphere(
