@@ -224,23 +224,24 @@ class AdTestcaseBowlingPawn {
     }
   }
 
-  stabilizate_pawn(dt) {
+  stabilizate_pawn(dt, body = this.pawn_body, factor = 0.07) {
     // locks rotation
     //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
 
     // apply rotation stabilization
-    const up = this._physics.get_body_up_dot(this.pawn_body);
+    const up = this._physics.get_body_up_dot(body);
     const stabilization = this._physics.cache.vec3_0;
-    const r = this.pawn_body.getRotation().toEulerXyz();
+    const r = body.getRotation().toEulerXyz();
 
     // torque applied ach step - it fas to be frame dependent
     const df = dt / 30;
-    const s = 0.07 * df;
+		// should it be  inverse-square time?
+    const s = factor * df;
 
     stabilization.init(-r.x * s, -r.y * s, -r.z * s);
     stabilization.scaleEq(1 - up);
     stabilization.y = -r.y * s * up;
-    this.pawn_body.applyAngularImpulse(stabilization);
+    body.applyAngularImpulse(stabilization);
   }
 
   /**

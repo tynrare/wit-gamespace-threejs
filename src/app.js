@@ -3,6 +3,8 @@
 import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";
 import PageSettings from "./page_settings.js";
+import PageSplashscreenBowling from "./scenes/page_splashscreen_bownling.js";
+
 import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
 import PageTestcase3 from "./tests/page_testcase3.js";
@@ -14,6 +16,8 @@ import AdPageTestcaseBowling from "./tests/ad_page_tc_bowling.js";
 import AePageTestcaseBowling from "./tests/ae_page_tc_bowling.js";
 import AePageTestcaseTank from "./tests/ae_page_tc_tank.js";
 import BaPageTestcaseVehicle from "./tests/ba_page_tc_vehicle.js";
+
+
 import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
@@ -43,6 +47,8 @@ class App {
     this.pages = {
       mainmenu: new PageMainmenu(),
       settings: new PageSettings(),
+			splashscreen_bowling: new PageSplashscreenBowling(),
+
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
       testcase3: new PageTestcase3(),
@@ -148,6 +154,8 @@ class App {
     if (!window.location.hash) {
       window.location.hash = this.config.base_location;
     }
+
+		document.getElementById("splashscreen_loading").classList.add("hidden");
 
     this.onhashchange();
 

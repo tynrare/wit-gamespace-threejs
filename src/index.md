@@ -1,6 +1,7 @@
 # гостеприимный мир
 
 # [main menu](#mainmenu)
+# [bowling menu](#splashscreen_bowling)
 
 ## routes
 

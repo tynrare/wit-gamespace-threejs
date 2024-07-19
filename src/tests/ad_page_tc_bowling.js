@@ -29,7 +29,6 @@ class AdPageTestcaseBowling extends PageBase {
 
     /** @type {CameraTopdown} */
     this.camera_controls = null;
-
   }
 
   /**

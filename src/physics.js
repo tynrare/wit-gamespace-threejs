@@ -1,6 +1,7 @@
 /** @namespace Physics */
 
 import * as THREE from "three";
+import { cache } from "./math.js";
 import { Vector3 } from "three";
 
 import { oimo } from "./lib/OimoPhysics.js";
@@ -121,15 +122,16 @@ class Physics {
       const body = this.bodylist[k];
       const mesh = this.meshlist[k];
       const opts = this.attachopts[k];
+			const parent_wp = mesh.parent.getWorldPosition(cache.vec3.v0);
 
       const position = this.cache.vec3_0;
       body.getPositionTo(position);
       const quaternion = this.cache.quat;
       body.getOrientationTo(quaternion);
       if (opts?.allow_translate ?? true) {
-        mesh.position.x = position.x + (opts?.shift?.x ?? 0);
-        mesh.position.y = position.y + (opts?.shift?.y ?? 0);
-        mesh.position.z = position.z + (opts?.shift?.z ?? 0);
+        mesh.position.x = position.x + (opts?.shift?.x ?? 0) - parent_wp.x;
+        mesh.position.y = position.y + (opts?.shift?.y ?? 0) - parent_wp.y;
+        mesh.position.z = position.z + (opts?.shift?.z ?? 0) - parent_wp.z;
       }
       if (opts?.allow_rotate ?? true) {
         mesh.quaternion.x = quaternion.x;

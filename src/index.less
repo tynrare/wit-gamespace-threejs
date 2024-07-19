@@ -20,7 +20,7 @@ page {
   }
 
   .hidden {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -30,6 +30,27 @@ page {
     background-position: 12px 12px;
     background-size: 24px 24px;
     background-color: rgb(255, 255, 255);
+  }
+
+  .btn-style-a {
+    cursor: pointer;
+    font-size: large;
+    font-family: inherit;
+    font-weight: bold;
+    color: #0011ff;
+    background-color: #f8f8fd;
+    padding: 0.4em 2.2em;
+    border-radius: 50em;
+    border: 6px solid #8b93f8;
+    box-shadow: 0px 8px #1f35ff, 0px 8px 100px 50px #fffa;
+		user-select: none;
+
+		&:active {
+			position: relative;
+			top: 8px;
+			border: 6px solid #646fff;
+			box-shadow: 0px 0px, 0px 0px 100px 50px #fffa;
+		}
   }
 }
 
@@ -48,13 +69,52 @@ page {
   }
 }
 
+#approot #splashscreen_bowling {
+	overlay {
+		display: flex;
+
+		#ssb_play_btn {
+			margin: auto;
+			margin-bottom: 10vh;
+			font-size: 2em;
+			opacity: 0;
+			transition-duration: 1s;
+			transition-property: opacity;
+			&.show {
+				transition-delay: 1s;
+				opacity: 1;
+			}
+		}
+	}
+}
+#approot #splashscreen_loading {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  backdrop-filter: blur(8px);
+  background-color: #fff2;
+
+  &.hidden {
+    display: none;
+  }
+
+  header {
+    margin: auto;
+    font-size: min(15vh, 15vw);
+  }
+}
+
 #approot #splashscreen {
   width: 100%;
   height: 100%;
   position: absolute;
   pointer-events: none;
 
-  #parta, #partfake, #partb {
+  #parta,
+  #partfake,
+  #partb {
     transition-duration: 200ms;
     transition-property: height;
   }
@@ -62,7 +122,8 @@ page {
   #partfake {
     height: 100%;
   }
-  #parta, #partb {
+  #parta,
+  #partb {
     height: 0%;
     background-color: white;
   }
@@ -71,7 +132,8 @@ page {
     #partfake {
       height: 0%;
     }
-    #parta, #partb {
+    #parta,
+    #partb {
       height: 50%;
       background-color: white;
     }
@@ -100,10 +162,11 @@ page {
     background-color: #fff5;
     border-radius: 4px;
     box-shadow: 2px 2px 0px #00000044;
-		min-width: min(600px, 50%);
+    min-width: min(600px, 50%);
     backdrop-filter: blur(1px);
 
-    a.btn, .btn {
+    a.btn,
+    .btn {
       transition-duration: 100ms;
       transition-property: letter-spacing;
       &:hover {
@@ -111,56 +174,61 @@ page {
       }
       color: black;
       font-size: 2em;
-			cursor: pointer;
-			user-select: none;
+      cursor: pointer;
+      user-select: none;
     }
   }
 }
 
 #approot page .cardstyle-a .card-h {
-	background-color: #000a;
-	border-radius: 4px;
-	color: white;
-	text-shadow: 1px 1px black;
-	padding: 4px;
+  background-color: #000a;
+  border-radius: 4px;
+  color: white;
+  text-shadow: 1px 1px black;
+  padding: 4px;
 
-	display: grid;
-	grid-template-areas:
-		"img name"
-		"img description"
-		"progressbar progressbar";
+  display: grid;
+  grid-template-areas:
+    "img name"
+    "img description"
+    "progressbar progressbar";
 
   img.ico {
-		grid-area: img;
-		width: 64px;
-		height: 64px;
-		margin: 4px;
+    grid-area: img;
+    width: 64px;
+    height: 64px;
+    margin: 4px;
   }
   name {
-		font-size: 1.5em;
-		grid-area: name;
+    font-size: 1.5em;
+    grid-area: name;
   }
   description {
-		grid-area: description;
+    grid-area: description;
   }
   progressbar {
-		grid-area: progressbar;
-		font-size: 0.8em;
-		height: 1.2em;
-		border-radius: 2px;
-		border: solid 1px white;
-		margin: 2px;
-		background: linear-gradient(90deg, rgba(0,255,109,1) 0%, rgba(0,255,143,1) var(--progress), rgba(0,0,0,0) var(--progress), rgba(0,0,0,0) 100%);
-		background-position-x: -2px;
-		background-repeat: no-repeat;
+    grid-area: progressbar;
+    font-size: 0.8em;
+    height: 1.2em;
+    border-radius: 2px;
+    border: solid 1px white;
+    margin: 2px;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 255, 109, 1) 0%,
+      rgba(0, 255, 143, 1) var(--progress),
+      rgba(0, 0, 0, 0) var(--progress),
+      rgba(0, 0, 0, 0) 100%
+    );
+    background-position-x: -2px;
+    background-repeat: no-repeat;
 
-		&:before {
-			content: attr(data-text);
-			transform: translate(-50%, -0.1em);
-			position: absolute;
-			left: 50%;
-		}
-
+    &:before {
+      content: attr(data-text);
+      transform: translate(-50%, -0.1em);
+      position: absolute;
+      left: 50%;
+    }
   }
 }
 
@@ -172,10 +240,10 @@ page {
   }
 
   render.fill-abs canvas {
-		width: 100% !important;
-		height: 100% !important;
-		image-rendering: pixelated;
-	}
+    width: 100% !important;
+    height: 100% !important;
+    image-rendering: pixelated;
+  }
 
   .abs {
     position: absolute;

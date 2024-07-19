@@ -112,6 +112,11 @@ class CameraTopdown {
    */
   set_camera(camera) {
     this._camera = camera;
+		this._camera_lpos.copy(camera.position);
+    const v = cache.vec3.v0;
+    camera.getWorldDirection(v);
+    const camera_rot = Math.atan2(-v.x, -v.z);
+		this.rotation = camera_rot;
   }
 
   /**

@@ -5,11 +5,17 @@
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) index.md
 	page#log
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) log.md
+	page#splashscreen_bowling
+		render.fill-abs
+		overlay.fill-abs
+			btn#ssb_play_btn.btn-style-a PLAY
+		overlay#ssb_joysticks.fill-abs: include ./pawn/joysticks.pug
 	page#mainmenu
 		root.cardstyle-a
 			h3 ч1. Бег в никуда
 			a.btn(href="?#testcase8") 🞂 "boo ling" arena 0
 			h3 ч2. Полет не туда
+			a.btn(href="?#splashscreen_bowling") 🞂 "boo ling" menu
 			h3 extras
 			a.btn(href="#achievements") achievements
 			a.btn(href="#settings") settings
@@ -32,6 +38,9 @@
 		#parta
 		#partfake
 		#partb
+	decor#splashscreen_loading
+		header Loading...
+
 	ui#stats.abs
 		a(href="#mainmenu") menu
 		#fps_stat x fps.

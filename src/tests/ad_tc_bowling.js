@@ -6,6 +6,7 @@ import Loader from "../loader.js";
 import App from "../app.js";
 import LightsA from "../lights_a.js";
 import { cache } from "../math.js";
+import { oimo } from "../lib/OimoPhysics.js";
 import { Physics, RigidBodyType } from "../physics.js";
 import Environment1 from "./environment_1.js";
 import AdTestcaseBowlingPawn from "./ad_tc_bowling_pawn.js";
@@ -95,13 +96,15 @@ class AdTestcaseBowling {
 
     /** @type {Array<THREE.Object3D} */
     this.spawnpoints = [];
+
+		this.paused = false;
   }
 
   /**
    * @param {number} dt .
    */
   step(dt) {
-    if (!this.playscene && this.scenename) {
+    if (this.paused || !this.playscene && this.scenename) {
       return;
     }
 
@@ -197,6 +200,7 @@ class AdTestcaseBowling {
       bots: 5,
     },
   ) {
+		this.paused = true;
     this.environment = new Environment1();
     this.environment.run({ floor: opts?.floor ?? false });
 
@@ -216,18 +220,22 @@ class AdTestcaseBowling {
     }
 
     Promise.all(load).then(() => {
+			this.paused = false;
       if (onload) {
         onload();
       }
     });
 
-    const bots_count = opts?.bots ?? 5;
-    for (let i = 0; i < bots_count; i++) {
-      const pawn = this.create_pawn(this.get_rand_spawnpoint(), opts.botclass);
+		this.create_bots(opts?.bots ?? 5, opts?.botclass ?? AdTestcaseBowlingPawn);
+  }
+
+	create_bots(count, pawnclass) {
+    for (let i = 0; i < count; i++) {
+      const pawn = this.create_pawn(this.get_rand_spawnpoint(), pawnclass);
       this.bots.push(new BowlingPawnBot(pawn));
       pawn.stun = 5;
     }
-  }
+	}
 
   /**
    *
@@ -308,8 +316,12 @@ class AdTestcaseBowling {
 
   /**
    * @param {THREE.Object3D} scene .
+   * @param {boolean} attach attaches mesh to created bodies. Mesh origins has to be centered
+	 * @param {Object} [opts] .
+	 * @returns {Array<oimo.dynamics.rigidbody.RigidBody>} created bodies list
    */
-  parse_playscene(scene) {
+  parse_playscene(scene, attach = false, opts) {
+		const bodies = [];
     scene.traverse((o) => {
       if (o.name.includes("spawn")) {
         this.spawnpoints.push(o.position.clone());
@@ -332,9 +344,15 @@ class AdTestcaseBowling {
       const type = m.name.includes("dynamic")
         ? RigidBodyType.DYNAMIC
         : RigidBodyType.STATIC;
-      const body = this.physics.create_box(pos, size, type);
-      //this.physics.attach(body, m);
+      const body = this.physics.create_box(pos, size, type, opts);
+      if (attach) {
+        this.physics.attach(body, m);
+      }
+
+			bodies.push(body);
     });
+
+		return bodies;
   }
 
   create_material(color) {
@@ -472,6 +490,8 @@ class AdTestcaseBowling {
     this.pawn = null;
     this.environment = null;
     this.close_playscene();
+		this.physics.stop();
+		this.physics = null;
   }
 }
 
