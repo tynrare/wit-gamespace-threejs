@@ -9,6 +9,8 @@ import { oimo } from "../lib/OimoPhysics.js";
 import Loader from "../loader.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
+import { update_shaders, get_material_blob_a } from "../vfx/shaders.js";
+import { RigidBodyType } from "../physics.js";
 
 class PageSplashscreenBowling extends PageBase {
   constructor() {
@@ -46,6 +48,8 @@ class PageSplashscreenBowling extends PageBase {
     if (!this.loaded) {
       return;
     }
+
+		update_shaders();
 
     this.elapsed += dt;
 
@@ -109,10 +113,22 @@ class PageSplashscreenBowling extends PageBase {
 
     const render = App.instance.render;
     this.camerapos.set(9, 7, 0);
+    //this.camerapos.set(0, 45, 0);
     render.camera.position.copy(this.camerapos);
 
     this.level = new AdTestcaseBowling();
     this.load();
+
+    const floor_id = this.level.physics.utils.create_physics_box(
+      new Vector3(0, -1, 0),
+      new Vector3(25, 2, 25),
+      RigidBodyType.STATIC,
+    );
+    /** @type {THREE.Mesh} */
+    const floor_mesh = /** @type {any} */ this.level.physics.meshlist[floor_id];
+    floor_mesh.material = get_material_blob_a(
+      Loader.instance.get_texture("tex_noise0.png"),
+    );
 
     this.scenario_bots_spawned = false;
 
@@ -131,7 +147,7 @@ class PageSplashscreenBowling extends PageBase {
 
     p.push(
       new Promise((resolve) => {
-        this.level.run(resolve, { bots: 0, scene: "c" });
+        this.level.run(resolve, { bots: 0, scene: null });
       }),
     );
     p.push(
@@ -221,8 +237,10 @@ class PageSplashscreenBowling extends PageBase {
     this._btn_play_click_listener = null;
     this.btn_play = null;
     this.page_inputs_overlay = null;
-    this.inputs.stop();
+    this.inputs?.stop();
     this.inputs = null;
+    this.camera_controls?.dispose();
+    this.camera_controls = null;
 
     App.instance.pause();
   }

@@ -367,7 +367,7 @@ class AdTestcaseBowling {
    * @param {number} color .
    * @returns {string} body id
    */
-  create_physics_box(pos, size, type, color = 0xffffff) {
+  create_physics_box(pos, size, type, opts, color = 0xffffff) {
     return this.physics.utils.create_physics_box(pos, size, type, null, color);
   }
 
