@@ -131,7 +131,7 @@ class AbPageTestcaseBowling extends PageBase {
         break;
       case InputAction.action_b:
         this.pointer_mesh_b.position.copy(ap);
-        this.camera_controls.set_direction(p);
+        this.camera_controls.zoom(p);
         break;
     }
   }

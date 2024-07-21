@@ -8,20 +8,21 @@ import LightsA from "../lights_a.js";
 import CameraThirdPerson from "../pawn/camera_third_person.js";
 import { createFloorPlane } from "./utils.js";
 import { Physics, RigidBodyType } from "../physics.js";
-import { cache } from "../math.js";
+import { angle_sub, cache } from "../math.js";
 import { Vector3 } from "three";
 import { oimo } from "../lib/OimoPhysics.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
+import AdTestcaseBowling from "./ad_tc_bowling.js";
 
 class Wheel {
   constructor(body, motor_a, motor_b, motor_c, xpos) {
-		/** @type {oimo.dynamics.rigidbody.RigidBody} */
+    /** @type {oimo.dynamics.rigidbody.RigidBody} */
     this.body = body;
 
     this.motor_a = motor_a;
     this.motor_b = motor_b;
     this.motor_c = motor_c;
-		this.xpos = Math.sin(xpos);
+    this.xpos = Math.sin(xpos);
   }
 }
 
@@ -52,6 +53,9 @@ class BaPageTestcaseVehicle extends PageBase {
       fl: null,
       fr: null,
     };
+
+    /** @type {Wheel} */
+    this.towerwheel = null;
   }
 
   /**
@@ -95,7 +99,9 @@ class BaPageTestcaseVehicle extends PageBase {
     this.controls = controls;
 
     this.create_environment_box();
-    this.create_vehicle();
+    //this.create_vehicle();
+    this.create_vehicle_tank();
+		AdTestcaseBowling.utils_create_boxes(this.physics);
   }
 
   input(type, start) {}
@@ -111,12 +117,30 @@ class BaPageTestcaseVehicle extends PageBase {
       case InputAction.action_a:
         for (const k in this.wheels) {
           const w = this.wheels[k];
-					const rx = -x;
-          w.motor_a.setMotor(-y * 16 + (w.xpos * 2 - rx) * rx * 4, 10);
-					w.body.wakeUp();
+          //const rx = -x;
+          //w.motor_a.setMotor(y * 16 + (w.xpos * 2 - rx) * rx * 4, 10);
+          w.motor_a.setMotor(y * 6 + Math.abs(x * 6) * Math.sin(y), 2);
+          w.body.wakeUp();
         }
+        const d = 0.4;
+        this.wheels.fl.motor_b.setLimits(-x * d, -x * d);
+        this.wheels.fr.motor_b.setLimits(-x * d, -x * d);
         break;
       case InputAction.action_b:
+        if (x + y !== 0) {
+          const cameradir = cache.vec3.v0;
+          const meshdir = cache.vec3.v1;
+          App.instance.render.camera.getWorldDirection(cameradir);
+          const towermesh = this.physics.meshlist[this.towerwheel.body.id];
+          towermesh.getWorldDirection(meshdir);
+          const camerarot = Math.atan2(cameradir.x, cameradir.z);
+          const meshrot = Math.atan2(meshdir.x, meshdir.z);
+          const inputrot = Math.atan2(-x, -y);
+          const angle = angle_sub(meshrot, inputrot + camerarot);
+          this.towerwheel.motor_b.setMotor(angle * 1, 10);
+        } else {
+          this.towerwheel.motor_b.setMotor(0, 0);
+        }
         break;
     }
   }
@@ -128,6 +152,7 @@ class BaPageTestcaseVehicle extends PageBase {
       RigidBodyType.STATIC,
     );
 
+    /*
 		const size = 40;
     this.physics.utils.create_physics_box(
       new Vector3(0, 0, size / 2),
@@ -149,6 +174,7 @@ class BaPageTestcaseVehicle extends PageBase {
       new Vector3(2, 2, size),
       RigidBodyType.STATIC,
     );
+		*/
   }
 
   create_vehicle() {
@@ -179,33 +205,121 @@ class BaPageTestcaseVehicle extends PageBase {
 		*/
 
     pos.set(0.7, 1, 0.7);
-    this.wheels.bl = this.create_wheel(pos, body, 1);
+    this.wheels.bl = this.create_wheel(pos, body);
     pos.set(-0.7, 1, 0.7);
-    this.wheels.br = this.create_wheel(pos, body, 1);
+    this.wheels.br = this.create_wheel(pos, body);
     pos.set(0.7, 1, -0.7);
-    this.wheels.fl = this.create_wheel(pos, body, 1);
+    this.wheels.fl = this.create_wheel(pos, body);
     pos.set(-0.7, 1, -0.7);
-    this.wheels.fr = this.create_wheel(pos, body, 1);
+    this.wheels.fr = this.create_wheel(pos, body);
   }
 
-  create_wheel(pos, root) {
-    const size = cache.vec3.v1;
+  create_vehicle_tank() {
+    Loader.instance.get_gltf("tanks/pawn1.glb").then((gltf) => {
+      /** @type {THREE.Object3D} */
+      const scene = gltf.scene.clone();
+      App.instance.render.scene.add(scene);
+
+      const bodymesh = scene.getObjectByName("Tank_osnova");
+      const bodyprops = this.get_body_size_pos(bodymesh);
+      bodyprops.size.multiplyScalar(0.7);
+      const body = this.physics.create_box(
+        bodyprops.pos,
+        bodyprops.size,
+        RigidBodyType.DYNAMIC,
+        {
+          density: 5,
+          ldamping: 1,
+          adamping: 3,
+        },
+      );
+      this.physics.attach(body, bodymesh);
+      this.controls.set_target(bodymesh);
+
+      const create_wheel = (meshname, wheelname, rotdir) => {
+        const mesh = scene.getObjectByName(meshname);
+        const props = this.get_body_size_pos(mesh);
+        props.size.x *= 0.5;
+        const wheel = (this.wheels[wheelname] = this.create_wheel(
+          props.pos,
+          body,
+          props.size,
+          (Math.PI / 2) * rotdir,
+        ));
+
+        this.physics.attach(wheel.body, mesh);
+      };
+      create_wheel("Koleso_left_back", "bl", 1);
+      create_wheel("Koleso_right_back", "br", -1);
+      create_wheel("Koleso_left_front", "fl", 1);
+      create_wheel("Koleso_right_front", "fr", -1);
+
+      const towermesh = scene.getObjectByName("Tank_verh");
+			towermesh.position.y += 0.3;
+			towermesh.position.z += 0.3;
+      const towerprops = this.get_body_size_pos(towermesh);
+      const towerbody = this.physics.create_box(
+        towerprops.pos,
+        towerprops.size,
+        RigidBodyType.DYNAMIC,
+        {
+          density: 0.1,
+          ldamping: 1,
+          adamping: 3,
+        },
+      );
+      this.physics.attach(towerbody, towermesh);
+      const towerwheel = this.create_wheel_joint(
+        towerbody,
+        body,
+        towerbody.getPosition(),
+      );
+      towerwheel.rotXLimit.setLimits(0, 0);
+      towerwheel.rotYLimit.setLimits(-1, 1); // disable
+      this.towerwheel = new Wheel(
+        towerbody,
+        towerwheel.rotXLimit,
+        towerwheel.rotYLimit,
+        towerwheel.rotZLimit,
+      );
+    });
+  }
+
+  /**
+   * @param {THREE.Object3D} mesh
+   */
+  get_body_size_pos(mesh) {
+    const bb = mesh.geometry.boundingBox;
+    /** @type {Vector3} */
+    const size = bb.getSize(cache.vec3.v0);
+    const center = bb.getCenter(cache.vec3.v1);
+    /** @type {Vector3} */
+    const pos = mesh.getWorldPosition(cache.vec3.v2);
+    pos.add(center);
+
+    return { pos, size };
+  }
+
+  create_wheel(pos, root, size, rotate = Math.PI / 2) {
     const axis = this.physics.cache.vec3_0;
-    size.set(0.5, 0.2, 0);
-    const wheel_id = this.physics.utils.create_physics_cylinder(
+    if (!size) {
+      size = cache.vec3.v1;
+      size.set(0.5, 0.4, 0);
+    }
+    const wheel_body = this.physics.create_cylinder(
       pos,
       size,
       RigidBodyType.DYNAMIC,
       {
         density: 1,
-        adamping: 5,
+        adamping: 2,
         ldamping: 1,
-				friction: 2
+        friction: 1,
+        restitution: 0,
       },
     );
-		const wheel_body = this.physics.bodylist[wheel_id];
     const rot = this.physics.cache.vec3_0;
-    rot.init(0, 0, Math.PI / 2);
+    rot.init(0, 0, rotate);
     wheel_body.rotateXyz(rot);
 
     axis.init(1, 0, 0);
@@ -215,13 +329,17 @@ class BaPageTestcaseVehicle extends PageBase {
       torque: 10,
     });
 		*/
-    const opts = this.create_wheel_joint(root, wheel_body, wheel_body.getPosition());
+    const opts = this.create_wheel_joint(
+      root,
+      wheel_body,
+      wheel_body.getPosition(),
+    );
     const wheel = new Wheel(
       wheel_body,
       opts.rotXLimit,
       opts.rotYLimit,
       opts.rotZLimit,
-			pos.x
+      pos.x,
     );
 
     return wheel;
@@ -230,29 +348,30 @@ class BaPageTestcaseVehicle extends PageBase {
   create_wheel_joint(a, b, anchor) {
     const j = oimo.dynamics.constraint.joint;
     const config = new j.GenericJointConfig();
-    config.init(a, b, anchor, new oimo.common.Mat3(), new oimo.common.Mat3());
-    var rotXLimit = new j.RotationalLimitMotor();
+    const m = new oimo.common.Mat3();
+    config.init(b, a, anchor, m, m);
+    const rotXLimit = new j.RotationalLimitMotor();
     rotXLimit.setMotor(-0, 10);
-    var rotYLimit = new j.RotationalLimitMotor().setLimits(0, 0);
-    var rotZLimit = new j.RotationalLimitMotor().setLimits(0, 0);
-    var translXLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
-    var translYLimit = new j.TranslationalLimitMotor().setLimits(-0.1, 0.1);
-    var translZLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
-		const rotXSd = new j.SpringDamper().setSpring(0, 0);
-		const rotYSd = new j.SpringDamper().setSpring(0, 0);
-		const rotZSd = new j.SpringDamper().setSpring(0, 0);
+    const rotYLimit = new j.RotationalLimitMotor().setLimits(0, 0);
+    const rotZLimit = new j.RotationalLimitMotor().setLimits(0, 0);
+    const translXLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
+    const translYLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
+    const translZLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
+    const transXSd = new j.SpringDamper().setSpring(0, 0);
+    const transYSd = new j.SpringDamper().setSpring(0, 0);
+    const transZSd = new j.SpringDamper().setSpring(0, 0);
+    const rotXSd = new j.SpringDamper().setSpring(0, 0);
+    const rotYSd = new j.SpringDamper().setSpring(0, 0);
+    const rotZSd = new j.SpringDamper().setSpring(0, 0);
 
     config.translationalLimitMotors = [
       translXLimit,
       translYLimit,
       translZLimit,
     ];
+    config.translationalSpringDampers = [transXSd, transYSd, transZSd];
     config.rotationalLimitMotors = [rotXLimit, rotYLimit, rotZLimit];
-		config.rotationalSpringDampers = [
-			rotXSd,
-			rotYSd,
-			rotZSd
-		]
+    config.rotationalSpringDampers = [rotXSd, rotYSd, rotZSd];
 
     const joint = new oimo.dynamics.constraint.joint.GenericJoint(config);
     this.physics.world.addJoint(joint);

@@ -53,7 +53,5 @@ void main() {
 	//vec3 colorfin = mix(vec3(0.0), color2, color_factor1);
 	vec3 colorfin = mix(vec3(0.0), color2, color_factor1);
 
-
-
 	gl_FragColor = vec4(colorfin, 1.0);
 }

@@ -142,7 +142,7 @@ class AcPageTestcaseBowling extends PageBase {
       case InputAction.action_b:
         if (this.attack) {
           this.pointer_mesh_b.position.copy(bp);
-          this.camera_controls.set_direction(p);
+          this.camera_controls.zoom(p);
         } else {
           p.copy(this.pointer_mesh_b.position).sub(ap).normalize();
           // stick released

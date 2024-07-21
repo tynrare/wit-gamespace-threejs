@@ -7,6 +7,7 @@ import {
   ANIMATION_TRANSITION_MODE,
 } from "../animator";
 import { Vec3Up, Vec3Right, angle_sub, cache } from "../math.js";
+import logger from "../logger.js";
 
 class PawnDrawA {
   constructor() {
@@ -18,7 +19,7 @@ class PawnDrawA {
     this.pos = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.goal = new THREE.Vector3();
-		this.stun = false;
+    this.stun = false;
 
     this.rotation = 0;
 
@@ -49,14 +50,12 @@ class PawnDrawA {
     ) => {
       const clip = this.animator.getAnimation(clipname);
       if (!clip) {
-        throw new Error(
-          `Animator::register error - no clip "${clipname}" found`,
-        );
+        logger.error(`Animator::register error - no clip "${clipname}" found`);
       }
       const node = new AnimationNode(name, clip);
       node.playback_mode = playback_mode;
       node.speed = speed;
-			node.loop = loop;
+      node.loop = loop;
       am.register(node);
     };
 
@@ -70,8 +69,8 @@ class PawnDrawA {
     });
     register("stun", "STATIC", {
       playback_mode: ANIMATION_PLAYBACK_MODE.at_start,
-			speed: 1,
-			loop: false
+      speed: 1,
+      loop: false,
     });
 
     am.pair("idle", "run");
@@ -113,9 +112,9 @@ class PawnDrawA {
       this._target.rotation.y = this.rotation;
     }
 
-		if (this.stun) {
+    if (this.stun) {
       this.animator.transite("stun");
-		} else if (this.velocity.length() > 1e-2) {
+    } else if (this.velocity.length() > 1e-2) {
       this.animator.transite("run");
     } else {
       this.animator.transite("idle");

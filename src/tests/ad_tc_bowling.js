@@ -445,8 +445,12 @@ class AdTestcaseBowling {
       torque: 100,
     });
   }
-
+	
   utils_create_boxes() {
+		return AdTestcaseBowling.utils_create_boxes(this.physics);
+	}
+
+  static utils_create_boxes(physics) {
     const BOX_SIZE = 1;
     const amount = 4;
     for (let x = 0; x < amount; x++) {
@@ -462,14 +466,14 @@ class AdTestcaseBowling {
         const dynamic = Math.random() > 0.0;
         const type = dynamic ? RigidBodyType.DYNAMIC : RigidBodyType.STATIC;
         const color = dynamic ? 0xffffff : 0x000000;
-        const id = this.create_physics_box(
+				const id = physics.utils.create_physics_box(
           cache.vec3.v0.set(x1, y1, z1),
           cache.vec3.v1.set(w, h, d),
           type,
-          color,
-        );
-        const body = this.physics.bodylist[id];
-        const vel = this.physics.cache.vec3_0;
+					null,
+          color)
+        const body = physics.bodylist[id];
+        const vel = physics.cache.vec3_0;
         vel.init(
           (Math.random() - 0.5) * 10,
           (Math.random() - 0.5) * 10,
