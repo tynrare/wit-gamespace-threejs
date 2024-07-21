@@ -11,20 +11,22 @@ import { createImagePlane } from "./utils.js";
 import * as THREE from "three";
 
 /**
- * @class AfTestcaseBoulderPawn
+ * @class AdTestcaseTankPawn
  * @memberof Pages/Tests
  */
-class AfTestcaseBoulderPawn extends AdTestcaseBowlingPawn {
+class AdTestcaseTankPawn extends AdTestcaseBowlingPawn {
   constructor() {
     super();
-    /** @type {PawnDrawTankA} */
-    this.pawn_draw = null;
 
-    this.config.max_movement_speed = 5;
+    this.pawn_draw = {
+      _target: null,
+    }; // no need
+
+    this.config.max_movement_speed = 55;
     this.config.spawn_projectile_size = 0.7;
     this.config.throw_factor = 50;
 
-		this.aim_direction = new Vector3();
+    this.aim_direction = new Vector3();
   }
 
   /**
@@ -32,22 +34,23 @@ class AfTestcaseBoulderPawn extends AdTestcaseBowlingPawn {
    * @param {InputAction} action
    */
   set_goal(pos, action) {
-    if (!this.pawn_draw) {
-      return;
-    }
-
     switch (action) {
       case InputAction.action_a:
-        this.pawn_draw.goal.copy(pos);
         break;
       case InputAction.action_b:
-        const x = pos.x - this.pawn_draw._target.position.x;
-        const z = pos.z - this.pawn_draw._target.position.z;
-				this.aim_direction.set(x, 0, z);
-        this.pawn_draw.vfx_pawn_tank.look_at(x, z);
+        const x = pos.x - this.character_scene.position.x;
+        const z = pos.z - this.character_scene.position.z;
+        this.aim_direction.set(x, 0, z);
         break;
     }
   }
+
+  step_pawn(dt) {
+    this.character_scene.position.copy(this.pawn_dbg_mesh.position);
+    this.character_scene.quaternion.copy(this.pawn_dbg_mesh.quaternion);
+  }
+
+  stabilizate_pawn(dt, body = this.pawn_body, factor = 0.07) {}
 
   /**
    * @param {THREE.Vector3} pos
@@ -61,31 +64,22 @@ class AfTestcaseBoulderPawn extends AdTestcaseBowlingPawn {
   }
 
   apply_move(vec) {
-    const attack = this.attack || this.spawn_projectile_requested;
-
-    const velocity = this._physics.cache.vec3_2;
-    this.pawn_body.getLinearVelocityTo(velocity);
+    const pos = this._physics.cache.vec3_2;
+    this.pawn_body.getPositionTo(pos);
     const force = this._physics.cache.vec3_0;
     force.init(vec.x, 0, vec.z);
-    if (attack) {
-      force.init(0, 0, 0);
-    }
-		force.scaleEq(this.config.max_movement_speed);
-		force.y = velocity.y;
-    this.pawn_body.setLinearVelocity(force);
-
-		force.init(0, 0, 0);
-		this.pawn_body.setRotationFactor(force);
+    force.scaleEq(this.config.max_movement_speed);
+    this.pawn_body.applyForce(force, pos);
   }
 
   create_phys_body() {
     const pos = new Vector3(0, 1, 0);
-    const size = new Vector3(0.9, 1, 0);
-    const id = this._physics.utils.create_physics_cylinder(
+    const size = 0.5;
+    const id = this._physics.utils.create_physics_sphere(
       pos,
       size,
       RigidBodyType.DYNAMIC,
-      { friction: 0, density: 2, adamping: 5, ldamping: 1 },
+      { friction: 10, density: 20, adamping: 0, ldamping: 0 },
       0x48a9b1,
     );
 
@@ -93,17 +87,15 @@ class AfTestcaseBoulderPawn extends AdTestcaseBowlingPawn {
   }
 
   async _load_pawn() {
-    this.character_gltf = await Loader.instance.get_gltf("tanks/pawn0.glb");
-    this.character_scene = SkeletonUtils.clone(this.character_gltf.scene);
-    this.projectile_gltf = await Loader.instance.get_gltf(
+    this.character_gltf = await Loader.instance.get_gltf(
       "bowling/projectile1.glb",
     );
+    this.character_scene = SkeletonUtils.clone(this.character_gltf.scene);
   }
 
   _create_pawn_draw() {
-    this.pawn_draw = new PawnDrawTankA();
-    this.pawn_draw.init(this.character_gltf, this.character_scene);
     App.instance.render.scene.add(this.character_scene);
+    this.pawn_draw._target = this.character_scene;
   }
 
   _step_requested_spawn_projectile() {
@@ -123,15 +115,10 @@ class AfTestcaseBoulderPawn extends AdTestcaseBowlingPawn {
   }
 
   animate(dt) {
-    if (!this.pawn_draw) {
-      return;
-    }
-
     super.animate(dt);
 
-    this.pointer_mesh_charge.rotation.y =
-      this.pawn_draw.vfx_pawn_tank.tower.rotation.y;
+    //this.pointer_mesh_charge.rotation.y =
   }
 }
 
-export default AfTestcaseBoulderPawn;
+export default AdTestcaseTankPawn;

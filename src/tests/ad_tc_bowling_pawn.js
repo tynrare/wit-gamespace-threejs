@@ -34,11 +34,11 @@ class AdTestcaseBowlingPawn {
     this.charge_applied = 0;
 
     this.config = {
-      charge_duration: 600,
+      charge_duration: 300,
       throw_factor: 30,
-      stun_duration: 1.2,
-      movement_acceletation: 4,
-      max_movement_speed: 5,
+      stun_duration: 0.5,
+      movement_acceletation: 2,
+      max_movement_speed: 3,
       spawn_projectile_size: 0.4,
     };
 

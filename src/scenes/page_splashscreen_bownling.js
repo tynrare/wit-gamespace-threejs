@@ -199,8 +199,8 @@ class PageSplashscreenBowling extends PageBase {
     this.inputs.run();
 
     this.camera_controls = new CameraTopdown();
-    this.camera_controls.config.distance = 10;
-    this.camera_controls.config.height = 10;
+    this.camera_controls.config.distance = 15;
+    this.camera_controls.config.height = 20;
     this.camera_controls.init(
       App.instance.render.camera,
       this.level.pawn.pawn_dbg_mesh,

@@ -61,7 +61,7 @@ class PawnDrawA {
 
     register("idle", "IDLE");
     register("run", "RUN", {
-      speed: 1.5,
+      speed: 1.2,
     });
     register("hit", "HIT", {
       speed: 2,
@@ -108,7 +108,7 @@ class PawnDrawA {
       if (this.allow_move) {
         this._target.position.add(facing_direction.multiplyScalar(df * 0.04));
       }
-      this.rotation += rotate * df * 0.1;
+      this.rotation += rotate * df * 0.9;
       this._target.rotation.y = this.rotation;
     }
 

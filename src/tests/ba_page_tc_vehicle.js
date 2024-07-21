@@ -56,6 +56,13 @@ class BaPageTestcaseVehicle extends PageBase {
 
     /** @type {Wheel} */
     this.towerwheel = null;
+
+    this.config = {
+      wheels_rot_limit: 1.0,
+      wheels_rot_speed: 16,
+      wheels_rot_torque: 10,
+			wheels_friction: 3
+    };
   }
 
   /**
@@ -83,6 +90,7 @@ class BaPageTestcaseVehicle extends PageBase {
 
     scene.background = new THREE.Color(0x66c0dc);
     this.lights = new LightsA().run(App.instance.render);
+		this.lights.lights.directional.intensity = 1;
 
     // floor
     {
@@ -99,9 +107,9 @@ class BaPageTestcaseVehicle extends PageBase {
     this.controls = controls;
 
     this.create_environment_box();
-    //this.create_vehicle();
-    this.create_vehicle_tank();
-		AdTestcaseBowling.utils_create_boxes(this.physics);
+    this.create_vehicle();
+    //this.create_vehicle_tank();
+    AdTestcaseBowling.utils_create_boxes(this.physics);
   }
 
   input(type, start) {}
@@ -119,14 +127,21 @@ class BaPageTestcaseVehicle extends PageBase {
           const w = this.wheels[k];
           //const rx = -x;
           //w.motor_a.setMotor(y * 16 + (w.xpos * 2 - rx) * rx * 4, 10);
-          w.motor_a.setMotor(y * 6 + Math.abs(x * 6) * Math.sin(y), 2);
+          const d = this.config.wheels_rot_speed;
+          w.motor_a.setMotor(
+            y * d + Math.abs(x * d) * Math.sin(y),
+            this.config.wheels_rot_torque,
+          );
           w.body.wakeUp();
         }
-        const d = 0.4;
+        const d = this.config.wheels_rot_limit;
         this.wheels.fl.motor_b.setLimits(-x * d, -x * d);
         this.wheels.fr.motor_b.setLimits(-x * d, -x * d);
         break;
       case InputAction.action_b:
+        if (!this.towerwheel) {
+          break;
+        }
         if (x + y !== 0) {
           const cameradir = cache.vec3.v0;
           const meshdir = cache.vec3.v1;
@@ -205,13 +220,13 @@ class BaPageTestcaseVehicle extends PageBase {
 		*/
 
     pos.set(0.7, 1, 0.7);
-    this.wheels.bl = this.create_wheel(pos, body);
+    this.wheels.bl = this.create_wheel(pos, body, null, null, true);
     pos.set(-0.7, 1, 0.7);
-    this.wheels.br = this.create_wheel(pos, body);
+    this.wheels.br = this.create_wheel(pos, body, null, null, true);
     pos.set(0.7, 1, -0.7);
-    this.wheels.fl = this.create_wheel(pos, body);
+    this.wheels.fl = this.create_wheel(pos, body, null, null, true);
     pos.set(-0.7, 1, -0.7);
-    this.wheels.fr = this.create_wheel(pos, body);
+    this.wheels.fr = this.create_wheel(pos, body, null, null, true);
   }
 
   create_vehicle_tank() {
@@ -255,8 +270,8 @@ class BaPageTestcaseVehicle extends PageBase {
       create_wheel("Koleso_right_front", "fr", -1);
 
       const towermesh = scene.getObjectByName("Tank_verh");
-			towermesh.position.y += 0.3;
-			towermesh.position.z += 0.3;
+      towermesh.position.y += 0.3;
+      towermesh.position.z += 0.3;
       const towerprops = this.get_body_size_pos(towermesh);
       const towerbody = this.physics.create_box(
         towerprops.pos,
@@ -300,13 +315,13 @@ class BaPageTestcaseVehicle extends PageBase {
     return { pos, size };
   }
 
-  create_wheel(pos, root, size, rotate = Math.PI / 2) {
+  create_wheel(pos, root, size, rotate = Math.PI / 2, makemesh = false) {
     const axis = this.physics.cache.vec3_0;
     if (!size) {
       size = cache.vec3.v1;
       size.set(0.5, 0.4, 0);
     }
-    const wheel_body = this.physics.create_cylinder(
+    const wheel_id = this.physics.utils.create_physics_cylinder(
       pos,
       size,
       RigidBodyType.DYNAMIC,
@@ -314,12 +329,15 @@ class BaPageTestcaseVehicle extends PageBase {
         density: 1,
         adamping: 2,
         ldamping: 1,
-        friction: 1,
+        friction: this.config.wheels_friction,
         restitution: 0,
       },
     );
+		const wheel_body = this.physics.bodylist[wheel_id];
+		const wheel_mesh = this.physics.meshlist[wheel_id];
+		wheel_mesh.visible = makemesh;
     const rot = this.physics.cache.vec3_0;
-    rot.init(0, 0, rotate);
+    rot.init(0, 0, rotate ?? Math.PI / 2);
     wheel_body.rotateXyz(rot);
 
     axis.init(1, 0, 0);
