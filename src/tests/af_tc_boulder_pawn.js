@@ -48,6 +48,7 @@ class AdTestcaseTankPawn extends AdTestcaseBowlingPawn {
   step_pawn(dt) {
     this.character_scene.position.copy(this.pawn_dbg_mesh.position);
     this.character_scene.quaternion.copy(this.pawn_dbg_mesh.quaternion);
+		this._step_requested_spawn_projectile();
   }
 
   stabilizate_pawn(dt, body = this.pawn_body, factor = 0.07) {}
@@ -101,23 +102,39 @@ class AdTestcaseTankPawn extends AdTestcaseBowlingPawn {
   _step_requested_spawn_projectile() {
     if (this.spawn_projectile_requested) {
       this.spawn_projectile_requested = false;
-      this._spawn_projectile();
     }
   }
 
   spawn_projectile() {
     this.spawn_projectile_requested = true;
     this.charge_applied = this.charge;
+
+    const force = this._physics.cache.vec3_0;
+		force.init(0, 0, 0);
+		this.pawn_body.setLinearVelocity(force);
+    const pos = this._physics.cache.vec3_2;
+    this.pawn_body.getPositionTo(pos);
+    force.init(this.aim_direction.x, 0.7, this.aim_direction.z);
+    force.scaleEq(this.config.max_movement_speed * this.charge);
+    this.pawn_body.applyImpulse(force, pos);
   }
 
   _get_spawn_projectile_direction() {
     return this.aim_direction;
   }
 
+  _create_pointer_mesh() {
+		super._create_pointer_mesh();
+		this.pointer_mesh_charge.removeFromParent();
+		App.instance.render.scene.add(this.pointer_mesh_charge);
+  }
+
   animate(dt) {
     super.animate(dt);
 
-    //this.pointer_mesh_charge.rotation.y =
+		this.pointer_mesh_charge.position.copy(this.pawn_dbg_mesh.position);
+		const rot = Math.atan2(this.aim_direction.x, this.aim_direction.z);
+		this.pointer_mesh_charge.rotation.y = rot - Math.PI * 0.5;
   }
 }
 
