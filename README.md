@@ -30,3 +30,8 @@ build:
 > npm run build
 ```
 
+# notes
+
+`res` is public server directory
+`assets` is source code assets such fonts
+

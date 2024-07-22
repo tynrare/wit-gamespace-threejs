@@ -1,5 +1,10 @@
 @import "./pawn/joystiks.less";
 
+@font-face {
+  font-family: Rubik;
+  src: url("../assets/fonts/Rubik-ExtraBold.ttf") format('truetype');
+}
+
 html,
 body,
 #approot,
@@ -39,7 +44,7 @@ page {
     font-weight: bold;
     color: #3ecbb1;
     background-color: #f3f3d6;
-    padding: 0.4em 2.2em;
+    padding: 0.4em 2.0em;
     border-radius: 50em;
     border: 6px solid;
     box-shadow: 0px 8px #24554a, 0px 8px 100px 50px #f3f3d690;
@@ -76,10 +81,12 @@ page {
 		#ssb_play_btn {
 			margin: auto;
 			margin-bottom: 10vh;
-			font-size: 2em;
+			font-size: 2.5em;
 			opacity: 0;
 			transition-duration: 1s;
 			transition-property: opacity;
+			font-family: "Rubik";
+			text-shadow: 0px 3px #2b917e;
 			&.show {
 				transition-delay: 1s;
 				opacity: 1;
@@ -95,16 +102,27 @@ page {
   display: flex;
   backdrop-filter: blur(8px);
 	background-color: #d6decdaa;
-  text-shadow: 0.2em 0.2em #50aacb;
-  color: #fff;
+	font-family: "Rubik";
+  color: #50aacb;
+	text-shadow: 0px 0.2em #37758c;
 
   &.hidden {
     display: none;
   }
 
+	@keyframes hover {
+		from { top: -10px; }
+		to { top: 10px; }
+	}
   header {
     margin: auto;
     font-size: min(15vh, 15vw);
+		position: relative;
+		animation-name: hover;
+		animation-duration: 2s;
+		animation-iteration-count: infinite;
+		animation-direction: alternate;
+		animation-timing-function: ease-in-out;
   }
 }
 

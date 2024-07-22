@@ -1,4 +1,4 @@
-# гостеприимный мир
+# меню
 
 # [main menu](#mainmenu)
 # [bowling menu](#splashscreen_bowling)
