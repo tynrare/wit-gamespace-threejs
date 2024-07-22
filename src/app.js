@@ -18,7 +18,6 @@ import AePageTestcaseTank from "./tests/ae_page_tc_tank.js";
 import AfPageTestcaseBoulder from "./tests/af_page_tc_boulder.js";
 import BaPageTestcaseVehicle from "./tests/ba_page_tc_vehicle.js";
 
-
 import logger from "./logger.js";
 import Render from "./render.js";
 import Stats from "./stats.js";
@@ -48,7 +47,7 @@ class App {
     this.pages = {
       mainmenu: new PageMainmenu(),
       settings: new PageSettings(),
-			splashscreen_bowling: new PageSplashscreenBowling(),
+      splashscreen_bowling: new PageSplashscreenBowling(),
 
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
@@ -157,7 +156,7 @@ class App {
       window.location.hash = this.config.base_location;
     }
 
-		document.getElementById("splashscreen_loading").classList.add("hidden");
+    document.getElementById("splashscreen_loading").classList.add("hidden");
 
     this.onhashchange();
 
@@ -207,8 +206,16 @@ class App {
       return;
     }
 
-    this.activepage.stop();
-    this.activepage.dispose();
+    try {
+      this.activepage.stop();
+    } catch (err) {
+      logger.warn("Active page stop error:", err);
+    }
+    try {
+      this.activepage.dispose();
+    } catch (err) {
+      logger.warn("Active page dispose error:", err);
+    }
     this.activepage = null;
 
     logger.log(`App::closepage - active page closed`);

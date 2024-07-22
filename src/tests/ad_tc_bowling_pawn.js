@@ -435,7 +435,9 @@ class AdTestcaseBowlingPawn {
   }
 
   stop() {
-    this.pawn_draw?.dispose();
+		if (this.pawn_draw?.dispose) {
+			this.pawn_draw.dispose();
+		}
     this.character_scene = null;
     this.character_gltf = null;
     this.pawn_draw = null;
