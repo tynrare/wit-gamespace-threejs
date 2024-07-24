@@ -5,6 +5,12 @@
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) index.md
 	page#log
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) log.md
+	page#minigame_a
+		overlay.fill-abs
+			label#mga_score 0
+			label#mga_time 00:00:00
+			label#mga_scoreboard ...
+			btn#mga_btn.btn-style-a SCOREUP
 	page#splashscreen_bowling
 		render.fill-abs
 		overlay.fill-abs

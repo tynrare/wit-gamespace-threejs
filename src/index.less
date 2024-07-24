@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: Rubik;
-  src: url("../assets/fonts/Rubik-ExtraBold.ttf") format('truetype');
+  src: url("../assets/fonts/Rubik-ExtraBold.ttf") format("truetype");
 }
 
 html,
@@ -15,7 +15,8 @@ page {
 }
 
 #approot {
-  font-family: "Source Code Pro", "Lucida Console", "Courier New", "Droid Sans Mono", monospace;
+  font-family: "Source Code Pro", "Lucida Console", "Courier New",
+    "Droid Sans Mono", monospace;
   page {
     display: none;
     position: absolute;
@@ -44,18 +45,23 @@ page {
     font-weight: bold;
     color: #3ecbb1;
     background-color: #f3f3d6;
-    padding: 0.4em 2.0em;
+    padding: 0.4em 2em;
     border-radius: 50em;
     border: 6px solid;
-    box-shadow: 0px 8px #24554a, 0px 8px 100px 50px #f3f3d690;
-		user-select: none;
+    box-shadow:
+      0px 8px #24554a,
+      0px 8px 100px 50px #f3f3d690;
+    user-select: none;
+		-webkit-tap-highlight-color: transparent;
 
-		&:active {
-			position: relative;
-			top: 8px;
-			border: 6px solid; 
-			box-shadow: 0px 0px, 0px 0px 100px 50px #fffa;
-		}
+    &:active {
+      position: relative;
+      top: 8px;
+      border: 6px solid;
+      box-shadow:
+        0px 0px,
+        0px 0px 100px 50px #fffa;
+    }
   }
 }
 
@@ -74,25 +80,56 @@ page {
   }
 }
 
-#approot #splashscreen_bowling {
-	overlay {
-		display: flex;
+#approot #minigame_a {
+  overlay {
+    display: flex;
+    flex-direction: column;
+    font-family: "Rubik";
 
-		#ssb_play_btn {
-			margin: auto;
-			margin-bottom: 10vh;
-			font-size: 2.5em;
-			opacity: 0;
-			transition-duration: 1s;
-			transition-property: opacity;
-			font-family: "Rubik";
-			text-shadow: 0px 3px #2b917e;
-			&.show {
-				transition-delay: 1s;
-				opacity: 1;
-			}
+    #mga_btn {
+      margin: auto;
+			font-size: min(10vh, 10vw);
+    }
+
+    #mga_score {
+			font-size: min(35vh, 35vw);
+      color: #50aacb;
+      text-shadow: 0px 10px #37758c;
+      margin: auto;
+    }
+
+		#mga_scoreboard {
+      margin: auto;
 		}
-	}
+
+    #mga_time {
+			font-size: min(15vh, 15vw);
+      color: #50aacb;
+      text-shadow: 0px 5px #37758c;
+      margin: auto;
+    }
+  }
+}
+
+#approot #splashscreen_bowling {
+  overlay {
+    display: flex;
+
+    #ssb_play_btn {
+      margin: auto;
+      margin-bottom: 10vh;
+      font-size: 2.5em;
+      opacity: 0;
+      transition-duration: 1s;
+      transition-property: opacity;
+      font-family: "Rubik";
+      text-shadow: 0px 3px #2b917e;
+      &.show {
+        transition-delay: 1s;
+        opacity: 1;
+      }
+    }
+  }
 }
 #approot #splashscreen_loading {
   width: 100%;
@@ -101,28 +138,32 @@ page {
   pointer-events: none;
   display: flex;
   backdrop-filter: blur(8px);
-	background-color: #d6decdaa;
-	font-family: "Rubik";
+  background-color: #d6decdaa;
+  font-family: "Rubik";
   color: #50aacb;
-	text-shadow: 0px 0.2em #37758c;
+  text-shadow: 0px 0.2em #37758c;
 
   &.hidden {
     display: none;
   }
 
-	@keyframes hover {
-		from { top: -10px; }
-		to { top: 10px; }
-	}
+  @keyframes hover {
+    from {
+      top: -10px;
+    }
+    to {
+      top: 10px;
+    }
+  }
   header {
     margin: auto;
     font-size: min(15vh, 15vw);
-		position: relative;
-		animation-name: hover;
-		animation-duration: 2s;
-		animation-iteration-count: infinite;
-		animation-direction: alternate;
-		animation-timing-function: ease-in-out;
+    position: relative;
+    animation-name: hover;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
   }
 }
 

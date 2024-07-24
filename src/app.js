@@ -4,6 +4,7 @@ import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";
 import PageSettings from "./page_settings.js";
 import PageSplashscreenBowling from "./scenes/page_splashscreen_bownling.js";
+import PageMinigameA from "./scenes/page_minigame_a.js";
 
 import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
@@ -24,6 +25,7 @@ import Stats from "./stats.js";
 import Loop from "./loop.js";
 import Session from "./session.js";
 import Settings from "./settings.js";
+import Scoreboard from "./scoreboard.js";
 
 /**
  * Core class. Handles hash changes and switches subapps
@@ -48,6 +50,7 @@ class App {
       mainmenu: new PageMainmenu(),
       settings: new PageSettings(),
       splashscreen_bowling: new PageSplashscreenBowling(),
+			minigame_a: new PageMinigameA(),
 
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
@@ -107,7 +110,9 @@ class App {
    */
   start(container) {
     this.playsession.start();
-    this.render.run(container);
+		if (container) {
+			this.render.run(container);
+		}
     this.loop.start();
   }
 
@@ -172,6 +177,9 @@ class App {
 		if (mode !== "prod") {
 			document.getElementById("stats").classList.remove("hidden");
 		}
+
+    const server_url = urlParams.get('server');
+		Scoreboard.instance.init(server_url);
 
     return this;
   }
