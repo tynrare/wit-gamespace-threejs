@@ -14,7 +14,7 @@ class Scoreboard {
 		}
 
     var request = new window.XMLHttpRequest();
-    request.open("GET", `${this.server_url}/score`, true);
+    request.open("GET", `https://${this.server_url}/score`, true);
     request.onload = function () {
       if (request.status >= 200 && request.status < 300) {
         let json = null;
@@ -40,7 +40,7 @@ class Scoreboard {
 		}
 
     var request = new window.XMLHttpRequest();
-    request.open("POST", `${this.server_url}/score`, true);
+    request.open("POST", `https://${this.server_url}/score`, true);
     request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
     request.send('{"score": ' + score + "}");
   }
