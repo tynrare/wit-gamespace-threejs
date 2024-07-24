@@ -173,7 +173,8 @@ class App {
 		}
 
     const server_url = urlParams.get('server');
-		Scoreboard.instance.init(server_url);
+    const server_token = urlParams.get('token');
+		Scoreboard.instance.init(server_url, server_token);
 
     this.onhashchange();
 

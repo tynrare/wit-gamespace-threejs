@@ -1,20 +1,25 @@
 import logger from "./logger.js";
 
 class Scoreboard {
-  init(server_url) {
+  init(server_url, token) {
     this.server_url = server_url || "";
+    this.token = token || "";
     if (!this.server_url) {
       logger.warn("No server url set. Scoreboard not available");
     }
   }
 
   get_rating(cb) {
-		if (!this.server_url) {
-			return cb(null);
-		}
+    if (!this.server_url) {
+      return cb(null);
+    }
 
     var request = new window.XMLHttpRequest();
-    request.open("GET", `https://${this.server_url}/score`, true);
+    request.open(
+      "GET",
+      `https://${this.server_url}/score?token=${this.token}`,
+      true,
+    );
     request.onload = function () {
       if (request.status >= 200 && request.status < 300) {
         let json = null;
@@ -35,12 +40,16 @@ class Scoreboard {
   }
 
   save_score(score) {
-		if (!this.server_url) {
-			return;
-		}
+    if (!this.server_url) {
+      return;
+    }
 
     var request = new window.XMLHttpRequest();
-    request.open("POST", `https://${this.server_url}/score`, true);
+    request.open(
+      "POST",
+      `https://${this.server_url}/score?token=${this.token}`,
+      true,
+    );
     request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
     request.send('{"score": ' + score + "}");
   }
