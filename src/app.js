@@ -237,13 +237,14 @@ class App {
   }
 
   onhashchange() {
-    if (this._ignore_hashchange) {
-      this._ignore_hashchange = false;
-      return;
-    }
-
     const hash = window.location.hash;
-    const pagename = hash.substring(1);
+    let pagename = hash.substring(1);
+		const query_index = pagename.indexOf("?");
+		if (query_index >= 0) {
+			pagename = pagename.substring(0, query_index);
+			window.location.hash = "#" + pagename;
+			return;
+		}
 
     this.closepage();
     this.openpage(pagename);
