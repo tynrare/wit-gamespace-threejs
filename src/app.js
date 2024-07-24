@@ -163,12 +163,6 @@ class App {
 
     document.getElementById("splashscreen_loading").classList.add("hidden");
 
-    this.onhashchange();
-
-    this._hashchange_listener = this.onhashchange.bind(this);
-    window.addEventListener("hashchange", this._hashchange_listener);
-
-
     this.routine();
     this._routine_timer_id = setInterval(this.routine.bind(this), 1000);
 
@@ -180,6 +174,11 @@ class App {
 
     const server_url = urlParams.get('server');
 		Scoreboard.instance.init(server_url);
+
+    this.onhashchange();
+
+    this._hashchange_listener = this.onhashchange.bind(this);
+    window.addEventListener("hashchange", this._hashchange_listener);
 
     return this;
   }
