@@ -33,9 +33,12 @@ class Scoreboard {
     return await fetch(url, {
       method: "POST",
       body: JSON.stringify({ score }),
+			headers: {
+				"Content-Type": "application/json; charset=UTF-8"
+			}
     });
 
-    //request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    //request.setRequestHeader();
   }
 
   /**
