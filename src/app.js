@@ -163,8 +163,15 @@ class App {
     this._hashchange_listener = this.onhashchange.bind(this);
     window.addEventListener("hashchange", this._hashchange_listener);
 
+
     this.routine();
     this._routine_timer_id = setInterval(this.routine.bind(this), 1000);
+
+		const urlParams = new URLSearchParams(window.location.search);
+		const mode = urlParams.get('mode');
+		if (mode !== "prod") {
+			document.getElementById("stats").classList.remove("hidden");
+		}
 
     return this;
   }
@@ -235,8 +242,10 @@ class App {
   }
 
   spashscreen(visible) {
-    const el = document.getElementById("splashscreen");
-    el.classList[visible ? "add" : "remove"]("active");
+    const el1 = document.getElementById("splashscreen");
+    const el2 = document.getElementById("splashscreen_loading");
+    el1.classList[visible ? "add" : "remove"]("active");
+    el2.classList[!visible ? "add" : "remove"]("hidden");
   }
 
   /**
