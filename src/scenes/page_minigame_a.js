@@ -61,11 +61,12 @@ class PageMinigameA extends PageBase {
 
     this.btn_el.innerHTML = "PLAY";
     this.text_el.innerHTML = this.score;
-		this.timer_el.classList.add("hidden");
-		this.scoreboard_el.classList.remove("hidden");
-		Scoreboard.instance.get_rating((r) => {
-			this.scoreboard_el.innerHTML = r;
-		});
+    this.timer_el.classList.add("hidden");
+    this.scoreboard_el.classList.remove("hidden");
+    Scoreboard.instance.get_rating().then((r) => {
+      this.scoreboard_el.innerHTML =
+        Scoreboard.instance.construct_scoreboard(r);
+    });
   }
 
   play() {
@@ -74,22 +75,23 @@ class PageMinigameA extends PageBase {
     this.elapsed = 0;
     this.score = 0;
     this.text_el.innerHTML = this.score;
-		this.timer_el.classList.remove("hidden");
-		this.scoreboard_el.classList.add("hidden");
+    this.timer_el.classList.remove("hidden");
+    this.scoreboard_el.classList.add("hidden");
   }
 
   endgame() {
     this.state = 2;
     this.btn_el.innerHTML = "GAMEOVER";
-		this.elapsed = 0;
+    this.elapsed = 0;
 
-		this.timer_el.classList.add("hidden");
-		this.scoreboard_el.classList.remove("hidden");
+    this.timer_el.classList.add("hidden");
+    this.scoreboard_el.classList.remove("hidden");
 
-		Scoreboard.instance.save_score(this.score);
-		Scoreboard.instance.get_rating((r) => {
-			this.scoreboard_el.innerHTML = r;
-		});
+    Scoreboard.instance.save_score(this.score).then(async () => {
+      const r = await Scoreboard.instance.get_rating();
+      this.scoreboard_el.innerHTML =
+        Scoreboard.instance.construct_scoreboard(r);
+    });
   }
 
   tap() {

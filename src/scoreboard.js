@@ -9,49 +9,60 @@ class Scoreboard {
     }
   }
 
-  get_rating(cb) {
-    if (!this.server_url) {
-      return cb(null);
-    }
-
-    var request = new window.XMLHttpRequest();
-    request.open(
-      "GET",
-      `https://${this.server_url}/score?token=${this.token}`,
-      true,
-    );
-    request.onload = function () {
-      if (request.status >= 200 && request.status < 300) {
-        let json = null;
-        try {
-          const json = JSON.parse(request.responseText);
-        } catch (err) {
-          logger.warn(err);
-        }
-        if (json) {
-          cb(json);
-        }
-      } else {
-        cb(request.status);
-      }
-    };
-    request.onerror = cb;
-    request.send();
-  }
-
-  save_score(score) {
+  async get_rating() {
     if (!this.server_url) {
       return;
     }
 
-    var request = new window.XMLHttpRequest();
-    request.open(
-      "POST",
-      `https://${this.server_url}/score?token=${this.token}`,
-      true,
-    );
-    request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-    request.send('{"score": ' + score + "}");
+    const url = `https://${this.server_url}/score?token=${this.token}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(response);
+    }
+
+    return await response.json();
+  }
+
+  async save_score(score) {
+    if (!this.server_url) {
+      return;
+    }
+
+    const url = `https://${this.server_url}/score?token=${this.token}`;
+    return await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({ score }),
+    });
+
+    //request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+  }
+
+  /**
+   * @param {Object} data .
+   * @param {number} data.position
+   * @param {number} data.score
+   * @param {Object} data.user
+   * @param {string} data.user.first_name
+   * @param {string} data.user.last_name
+   * @param {string} data.user.username
+   */
+  construct_scoreentry(data) {
+    const user = data.user;
+    return `
+		<div>
+		${data.score} ${user.first_name} ${user.last_name}
+		</div>
+		`;
+  }
+
+  construct_scoreboard(data) {
+    let str = "";
+    for (const i in data) {
+      str += this.construct_scoreentry(data[i]);
+    }
+
+    return str;
   }
 
   /**
