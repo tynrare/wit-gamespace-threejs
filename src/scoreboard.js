@@ -54,7 +54,9 @@ class Scoreboard {
     const user = data.user;
     return `
 		<div>
-		${data.position}. ${user.first_name} ${user.last_name ?? ""}: ${data.score}p 
+		<div class="position"${data.position}.</div>
+		<div class="name">${user.first_name} ${user.last_name ?? ""}:</div>
+		<div class="score">${data.score}p </div>
 		</div>
 		`;
   }

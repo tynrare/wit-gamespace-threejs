@@ -106,6 +106,12 @@ page {
       margin: auto;
       display: flex;
       flex-direction: column;
+      text-shadow: none;
+      color: black;
+
+      & > div {
+        background-color: #fff5;
+      }
     }
 
     #mga_time {
@@ -113,6 +119,33 @@ page {
       color: #50aacb;
       text-shadow: 0px 5px #37758c;
       margin: auto;
+    }
+  }
+}
+
+#approot .scoreboard-style-a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 30vw;
+  color: white;
+  text-shadow: 1px 1px black;
+
+  & > div {
+    display: flex;
+    flex-direction: row;
+    gap: 1ch;
+    background-color: #00000055;
+    border-radius: 4px;
+    padding: 2px 8px;
+    backdrop-filter: blur(8px);
+
+    .score {
+      margin-right: 0;
+      margin-left: auto;
+      &::after {
+        content: "p";
+      }
     }
   }
 }
@@ -181,18 +214,24 @@ page {
 
     #ssb_scoreboard {
       margin: auto;
-      display: flex;
-      flex-direction: column;
-			gap: 2px;
-			min-width: 30vw;
 
-      div {
-        background-color: #00000055;
-        border-radius: 4px;
-				padding: 2px 8px;
-        color: white;
-        text-shadow: 1px 1px black;
-        backdrop-filter: blur(8px);
+      & > div .score {
+        display: flex;
+        flex-direction: row;
+
+        &::after {
+          margin: auto;
+          padding-left: 8px;
+          content: "";
+          background-image: url("../assets/pic/star.png");
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          width: 1em;
+          height: 1em;
+          position: relative;
+          display: block;
+        }
       }
     }
 
