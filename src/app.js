@@ -213,6 +213,8 @@ class App {
     this.activepage = page.init(container);
     this.activepage.run();
 
+		this.activepage.container.classList.add("target");
+
     logger.log(`App::openpage - page ${name} opened`);
   }
 
@@ -220,6 +222,8 @@ class App {
     if (!this.activepage) {
       return;
     }
+
+		this.activepage.container?.classList.remove("target");
 
     try {
       this.activepage.stop();
@@ -242,8 +246,6 @@ class App {
 		const query_index = pagename.indexOf("?");
 		if (query_index >= 0) {
 			pagename = pagename.substring(0, query_index);
-			window.location.hash = "#" + pagename;
-			return;
 		}
 
     this.closepage();
