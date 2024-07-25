@@ -1,16 +1,18 @@
 /** @namespace Pages/Scenes */
 
-import AdTestcaseBowling from "../tests/ad_tc_bowling.js";
-import PageBase from "../page_base.js";
+import * as THREE from "three";
+import { Color, Vector3 } from "three";
+
 import App from "../app.js";
-import { Vector3 } from "three";
-import { Vec3Up, Vec3Zero, cache, clamp } from "../math.js";
 import { oimo } from "../lib/OimoPhysics.js";
 import Loader from "../loader.js";
-import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
+import { cache, clamp, Vec3Up, Vec3Zero } from "../math.js";
+import PageBase from "../page_base.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
-import { update_shaders, get_material_blob_a } from "../vfx/shaders.js";
+import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import { RigidBodyType } from "../physics.js";
+import AdTestcaseBowling from "../tests/ad_tc_bowling.js";
+import { get_material_blob_a, update_shaders } from "../vfx/shaders.js";
 
 class PageSplashscreenBowling extends PageBase {
   constructor() {
@@ -33,12 +35,21 @@ class PageSplashscreenBowling extends PageBase {
     this.btn_play = null;
     /** @type {HTMLElement} */
     this.page_inputs_overlay = null;
+    /** @type {HTMLElement} */
+    this.page_ui_overlay = null;
 
     /** @type {InputsDualstick} */
     this.inputs = null;
 
     /** @type {CameraTopdown} */
     this.camera_controls = null;
+
+    this.game_hearts_max = 3;
+    this.game_hearts = 0;
+    this.game_score = 0;
+    this.game_hitlog = {};
+
+    this.inplay = false;
   }
 
   /**
@@ -49,7 +60,7 @@ class PageSplashscreenBowling extends PageBase {
       return;
     }
 
-		update_shaders();
+    update_shaders();
 
     this.elapsed += dt;
 
@@ -105,6 +116,39 @@ class PageSplashscreenBowling extends PageBase {
       this.scenario_bots_spawned = true;
       this.level.create_bots(5);
     }
+
+    this.step_inplay(dt);
+  }
+
+  step_inplay(dt) {
+    if (!this.inplay) {
+      return;
+    }
+
+    if (this.game_hearts_max - this.level.pawn.falls != this.game_hearts) {
+      this.game_hearts = this.game_hearts_max - this.level.pawn.falls;
+      const hearts = this.page_ui_overlay.querySelectorAll("#hearts pic.heart");
+      hearts.forEach((h, i) => {
+        h.classList[i < this.game_hearts ? "remove" : "add"]("disabled");
+      });
+    }
+
+    const l = this.page_ui_overlay.querySelector("#score label.score");
+    l.innerHTML = this.game_score;
+
+    for (const i in this.level.pawns) {
+      const p = this.level.pawns[i];
+      if (p == this.level.pawn) {
+        continue;
+      }
+      if (p.hitby.id == this.level.pawn.id && p.hitby.stun_timestamp) {
+        if (this.game_hitlog[p.hitby.stun_timestamp]) {
+          continue;
+        }
+        this.game_hitlog[p.hitby.stun_timestamp] = p.hitby.id;
+        this.game_score += 1;
+      }
+    }
   }
 
   run() {
@@ -113,22 +157,38 @@ class PageSplashscreenBowling extends PageBase {
 
     const render = App.instance.render;
     this.camerapos.set(9, 7, 0);
-    //this.camerapos.set(0, 45, 0);
+    // this.camerapos.set(0, 45, 0);
     render.camera.position.copy(this.camerapos);
 
     this.level = new AdTestcaseBowling();
     this.load();
 
-    const floor_id = this.level.physics.utils.create_physics_box(
-      new Vector3(0, -1, 0),
-      new Vector3(25, 2, 25),
-      RigidBodyType.STATIC,
-    );
-    /** @type {THREE.Mesh} */
-    const floor_mesh = /** @type {any} */ this.level.physics.meshlist[floor_id];
-    floor_mesh.material = get_material_blob_a(
-      Loader.instance.get_texture("tex_noise0.png"),
-    );
+    {
+      const pos = new Vector3(0, -1, 0);
+      const size = new Vector3(13, 2, 0);
+      const type = RigidBodyType.STATIC;
+      const opts = { sides: 32 };
+      const body = this.level.physics.create_cylinder(pos, size, type, opts);
+
+      size.set(20, 2, 0);
+      let geometry = new THREE.CylinderGeometry(
+        size.x,
+        size.x,
+        size.y,
+        opts?.sides ?? 6,
+      );
+      let material = get_material_blob_a(
+        Loader.instance.get_texture("tex_noise0.png"),
+      );
+
+      let mesh = new THREE.Mesh(geometry, material);
+      App.instance.render.scene.add(mesh);
+
+      this.level.physics.attach(body, mesh);
+      /** @type {THREE.Mesh} */
+      const floor_mesh = mesh;
+    }
+    App.instance.render.scene.background = new Color(0x000);
 
     this.scenario_bots_spawned = false;
 
@@ -136,6 +196,7 @@ class PageSplashscreenBowling extends PageBase {
     this.page_inputs_overlay = this.container.querySelector(
       "overlay#ssb_joysticks",
     );
+    this.page_ui_overlay = this.container.querySelector("overlay#ssb_ui");
     this._btn_play_click_listener = this._start_play.bind(this);
     this.btn_play.addEventListener("click", this._btn_play_click_listener);
   }
@@ -179,7 +240,16 @@ class PageSplashscreenBowling extends PageBase {
       this.loaded = true;
       this.btn_play.classList.add("show");
       this.page_inputs_overlay.classList.add("hidden");
+      this.page_ui_overlay.classList.add("hidden");
     });
+  }
+
+  _end_play() {
+    if (!this.inplay) {
+      return;
+    }
+
+    this.inplay = false;
   }
 
   _start_play() {
@@ -187,7 +257,10 @@ class PageSplashscreenBowling extends PageBase {
       return;
     }
 
+    this.inplay = true;
+
     this.page_inputs_overlay.classList.remove("hidden");
+    this.page_ui_overlay.classList.remove("hidden");
     this.btn_play.classList.remove("show");
 
     this.inputs = new InputsDualstick(
@@ -199,12 +272,22 @@ class PageSplashscreenBowling extends PageBase {
     this.inputs.run();
 
     this.camera_controls = new CameraTopdown();
-    this.camera_controls.config.distance = 15;
-    this.camera_controls.config.height = 20;
+    this.camera_controls.config.distance = 10;
+    this.camera_controls.config.height = 15;
     this.camera_controls.init(
       App.instance.render.camera,
       this.level.pawn.pawn_dbg_mesh,
     );
+
+    for (const i in this.level.pawns) {
+      const p = this.level.pawns[i];
+      p.falls = 0;
+      p.stuns_count = 0;
+    }
+
+    this.game_hearts = 0;
+    this.game_score = 0;
+    this.game_hitlog = {}
   }
 
   input(type, start) {
@@ -237,6 +320,7 @@ class PageSplashscreenBowling extends PageBase {
     this._btn_play_click_listener = null;
     this.btn_play = null;
     this.page_inputs_overlay = null;
+    this.page_ui_overlay = null;
     this.inputs?.stop();
     this.inputs = null;
     this.camera_controls?.dispose();

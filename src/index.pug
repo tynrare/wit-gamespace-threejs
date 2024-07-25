@@ -13,6 +13,15 @@
 			btn#mga_btn.btn-style-a SCOREUP
 	page#splashscreen_bowling
 		render.fill-abs
+		overlay#ssb_ui.fill-abs
+			container#hearts
+				pic.heart
+				pic.heart
+				pic.heart
+				pic.heart
+				pic.heart
+			container#score
+				label.score 111
 		overlay.fill-abs
 			btn#ssb_play_btn.btn-style-a PLAY
 		overlay#ssb_joysticks.fill-abs: include ./pawn/joysticks.pug

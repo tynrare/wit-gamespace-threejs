@@ -9,13 +9,20 @@ import { dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
 import { InputAction } from "../pawn/inputs_dualstick.js";
 import { createImagePlane } from "./utils.js";
 import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
+import logger from "../logger.js";
 
 /**
  * @class AdTestcaseBowlingPawn
  * @memberof Pages/Tests
  */
 class AdTestcaseBowlingPawn {
-  constructor() {
+  /**
+   * @param {string} id .
+   */
+  constructor(id) {
+    /** @type {string} */
+    this.id = id;
+
     /** @type {PawnDrawA} */
     this.pawn_draw = null;
 
@@ -29,6 +36,12 @@ class AdTestcaseBowlingPawn {
     this._physics = null;
 
     this.stun = 0;
+		// this value resets only when pawn gets back on legs
+		this.stun_active = false;
+		// this value disables stun for required time
+    this.stun_protection = 0;
+		// this value just counts total stuns
+		this.stuns_count = 0;
     this.charge_elapsed = 0;
     this.charge = 0;
     this.charge_applied = 0;
@@ -40,10 +53,25 @@ class AdTestcaseBowlingPawn {
       movement_acceletation: 2,
       max_movement_speed: 3,
       spawn_projectile_size: 0.4,
+      /** speed that required for hit event */
+      hitby_speed_threshold: 2,
+      /** maximum time that hit event counts as hit */
+      hitby_time_threshold: 2,
     };
 
     this.attack = false;
     this.move = false;
+
+    this.hitby = {
+      /** @type {string} */
+      id: null,
+      /** @type {number} */
+      timestamp: null,
+      /** @type {number} */
+      stun_timestamp: null,
+    };
+
+		this.falls = 0;
   }
 
   /**
@@ -125,22 +153,46 @@ class AdTestcaseBowlingPawn {
       this.charge_elapsed / this.config.charge_duration,
     );
 
+    this.update_collisions();
     this.step_pawn(dt);
     this.animate(dt);
     this.stabilizate_pawn(dt);
 
     this.stun -= dt * 1e-3;
     this.stun = Math.max(this.stun, 0);
+    this.stun_protection -= dt * 1e-3;
+    this.stun_protection = Math.max(this.stun_protection, 0);
+
     if (this.pawn_draw) {
       if (this.stun && this.pawn_draw.stun != !!this.stun) {
         this.spawn_projectile_requested = true;
       }
       this.pawn_draw.stun = !!this.stun;
     }
+  }
 
-    if (this.stun) {
-      this.charge_elapsed = 0;
-      this.charge_applied = 0;
+  update_collisions() {
+    let contact_link_list = this.pawn_body.getContactLinkList();
+    while (contact_link_list) {
+      const contact = contact_link_list.getContact();
+      const other = contact_link_list.getOther();
+
+      contact_link_list = contact_link_list.getNext();
+
+      if (other._bowling_type === "projectile") {
+        const v = this._physics.cache.vec3_0;
+        other.getLinearVelocityTo(v);
+        const speed = v.length();
+        if (speed > this.config.hitby_speed_threshold) {
+          this.hitby.id = other._pawn_id;
+          this.hitby.timestamp = Date.now();
+          /*
+					logger.log(
+						`Pawn #${this.id} hit by ${other._pawn_id}'s projectile at speed ${speed}`,
+					);
+					*/
+        }
+      }
     }
   }
 
@@ -154,7 +206,14 @@ class AdTestcaseBowlingPawn {
     for (let i = 0; i < stars_amount; i++) {
       const c = this.vfx_animation_stars.children[i];
       const f = 0.5 * (i / stars_amount) + 0.2;
-      c.scale.setScalar(dlerp(c.scale.x, star_size, f, dt * 1e-3));
+			const maxy = 0.5;
+			if (this.stun > 0) {
+				const y = i < this.stuns_count ? maxy : 0;
+				c.position.y = dlerp(c.position.y, y, 0.02, dt * 1e-3);
+			}
+			const ss2 = 1 - c.position.y / maxy;
+
+      c.scale.setScalar(dlerp(c.scale.x, star_size * ss2, f, dt * 1e-3));
     }
 
     this.vfx_animation_stars.rotation.y += dt * 3e-3;
@@ -174,10 +233,14 @@ class AdTestcaseBowlingPawn {
     if (!this.pawn_draw) {
       return;
     }
+
     const up = this._physics.get_body_up_dot(this.pawn_body);
-    if (up < 0.9) {
+    if (up < 0.9 && !this.stun_protection) {
+      this._on_stun();
       this.stun = this.config.stun_duration;
-    }
+    } else if (up > 0.9) {
+			this._on_stun_end();
+		}
 
     // apply decoration mesh rotation
     const shift = cache.vec3.v4.set(0, -0.5, 0);
@@ -197,6 +260,44 @@ class AdTestcaseBowlingPawn {
     this._step_requested_spawn_projectile();
   }
 
+	_on_stun_end() {
+    if (!this.stun_active) {
+			return;
+		}
+
+		this.stun_active = false;
+		this.hitby.stun_timestamp = null;
+		this.hitby.id = null;
+		this.hitby.timestamp = null;
+		this.stun_protection += 2;
+		this.spawn_projectile_requested = false;
+	}
+
+  _on_stun() {
+    if (this.stun_active) {
+      // already in stun state
+      return;
+    }
+
+		this.stun_active = true;
+		// should be counted externally
+		//this.stuns_count += 1;
+
+		// drop projectile
+		this.spawn_projectile_requested = true;
+		this.charge_elapsed = 0;
+		this.charge_applied = 0;
+
+    const now = Date.now();
+    if (
+      this.hitby.id &&
+      now - this.hitby.timestamp < this.config.hitby_time_threshold * 1000
+    ) {
+      this.hitby.stun_timestamp = now;
+      logger.log(`Pawn #${this.id} stunned by ${this.hitby.id}'s projectile`);
+    }
+  }
+
   _step_requested_spawn_projectile() {
     // spawn projectile in animation middleplay
     const action_hit =
@@ -209,13 +310,13 @@ class AdTestcaseBowlingPawn {
     const stun_spawn_requested = action_stun.enabled && action_stun.time > 0.6;
     const spawn_requested = hit_spawn_requested || stun_spawn_requested;
     if (this.spawn_projectile_requested && spawn_requested) {
-			const direction = cache.vec3.v0;
-			if (hit_spawn_requested) {
-				direction.copy(this._get_spawn_projectile_direction());
-			} else if (stun_spawn_requested) {
-				this.pawn_draw._target.getWorldDirection(direction);
-				direction.cross(Vec3Up).negate();
-			}
+      const direction = cache.vec3.v0;
+      if (hit_spawn_requested) {
+        direction.copy(this._get_spawn_projectile_direction());
+      } else if (stun_spawn_requested) {
+        this.pawn_draw._target.getWorldDirection(direction);
+        direction.cross(Vec3Up).negate();
+      }
       this._spawn_projectile(direction);
       this.spawn_projectile_requested = false;
     } else if (this.spawn_projectile_requested && !spawn_queried) {
@@ -235,8 +336,9 @@ class AdTestcaseBowlingPawn {
 
     // torque applied ach step - it fas to be frame dependent
     const df = dt / 30;
-		// should it be  inverse-square time?
-    const s = factor * df;
+    const f2 = this.stun_protection ? 2 : 1;
+    // should it be  inverse-square time?
+    const s = factor * df * f2;
 
     stabilization.init(-r.x * s, -r.y * s, -r.z * s);
     stabilization.scaleEq(1 - up);
@@ -309,6 +411,9 @@ class AdTestcaseBowlingPawn {
     const body = this._physics.bodylist[id];
     this.pawn_body = body;
     this.pawn_dbg_mesh = mesh;
+
+		// could be helpful for debug without external meshes
+    this.pawn_dbg_mesh.visible = false;
 
     const render = App.instance.render;
     const scene = render.scene;
@@ -398,7 +503,7 @@ class AdTestcaseBowlingPawn {
   _spawn_projectile(direction) {
     const radius = this.config.spawn_projectile_size;
     const pos = cache.vec3.v1;
-		const dir = direction ?? this._get_spawn_projectile_direction();
+    const dir = direction ?? this._get_spawn_projectile_direction();
     pos
       .copy(dir)
       .setLength(radius * 2)
@@ -419,6 +524,9 @@ class AdTestcaseBowlingPawn {
       },
     );
     body.temporal = true;
+    body._bowling_type = "projectile";
+    body._pawn_id = this.id;
+    body._timestamp = Date.now();
     const mesh = this.projectile_gltf.scene.clone();
     mesh.scale.multiplyScalar(radius * 2);
     mesh.position.copy(pos);
@@ -435,9 +543,9 @@ class AdTestcaseBowlingPawn {
   }
 
   stop() {
-		if (this.pawn_draw?.dispose) {
-			this.pawn_draw.dispose();
-		}
+    if (this.pawn_draw?.dispose) {
+      this.pawn_draw.dispose();
+    }
     this.character_scene = null;
     this.character_gltf = null;
     this.pawn_draw = null;

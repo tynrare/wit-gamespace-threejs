@@ -117,6 +117,57 @@ page {
 }
 
 #approot #splashscreen_bowling {
+	overlay#ssb_ui {
+		container#hearts, container#score {
+			display: flex;
+			flex-direction: row;
+			gap: 10px;
+			padding: 10px;
+			margin: auto;
+			margin-top: 0;
+			margin-left: 0;
+		}
+		container#score {
+			margin-top: 0;
+			margin-right: 1em;
+
+			label.score {
+				display: flex;
+				flex-direction: row;
+				&::after {
+					margin: auto;
+					padding-left: 8px;
+					content: "";
+					background-image: url("../assets/pic/star.png");
+					background-size: contain;
+					background-position: center;
+					background-repeat: no-repeat;
+					width: 1em;
+					height: 1em;
+					position: relative;
+					display: block;
+				}
+				font-size: 2em;
+				font-family: "Rubik";
+				color: #f0c755;
+				text-shadow: 0px 1px #ffe59e, 0px 3px #c35002;
+			}
+		}
+		pic.heart {
+			background-image: url("../assets/pic/heart.png");
+			background-size: contain;
+			background-position: center;
+			background-repeat: no-repeat;
+			width: 2em;
+			height: 2em;
+			position: relative;
+			display: block;
+
+			&.disabled {
+				filter: grayscale(1);
+			}
+		}
+	}
   overlay {
     display: flex;
 

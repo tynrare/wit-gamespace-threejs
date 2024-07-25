@@ -98,6 +98,8 @@ class AdTestcaseBowling {
     this.spawnpoints = [];
 
 		this.paused = false;
+
+		this.guids = 0;
   }
 
   /**
@@ -132,6 +134,13 @@ class AdTestcaseBowling {
       b.setPosition(
         this.physics.cache.vec3_0.init(position.x, position.y, position.z),
       );
+
+			/** @type {AdTestcaseBowlingPawn} */
+			const pawn = this.pawns.find((p) => p.pawn_body == b);
+			if (pawn) {
+				pawn.stun_protection = 5;
+				pawn.falls += 1;
+			}
     }
   }
 
@@ -233,7 +242,7 @@ class AdTestcaseBowling {
     for (let i = 0; i < count; i++) {
       const pawn = this.create_pawn(this.get_rand_spawnpoint(), pawnclass);
       this.bots.push(new BowlingPawnBot(pawn));
-      pawn.stun = 5;
+      pawn.stun_protection = 5;
     }
 	}
 
@@ -242,7 +251,8 @@ class AdTestcaseBowling {
    * @param {Vector3?} position .
    */
   create_pawn(position, pawnclass = AdTestcaseBowlingPawn, load = true) {
-    const pawn = new (pawnclass ?? AdTestcaseBowlingPawn)().run(this.physics);
+		const id = "p" + this.guids++;
+    const pawn = new (pawnclass ?? AdTestcaseBowlingPawn)(id).run(this.physics);
     this.pawns.push(pawn);
     if (position) {
       pawn.pawn_body.setPosition(
@@ -258,9 +268,9 @@ class AdTestcaseBowling {
   get_rand_spawnpoint() {
     if (!this.spawnpoints.length) {
       const pos = cache.vec3.v0;
-      pos.x = (Math.random() - 0.5) * 25;
+      pos.x = (Math.random() - 0.5) * 10;
       pos.y = 10;
-      pos.z = (Math.random() - 0.5) * 25;
+      pos.z = (Math.random() - 0.5) * 10;
 
       return pos;
     }

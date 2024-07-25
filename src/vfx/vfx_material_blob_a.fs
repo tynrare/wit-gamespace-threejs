@@ -36,22 +36,22 @@ float checker(float size, vec2 uv) {
 void main() {
 	float scale = 0.2;
 	float dist = distance(vPosition.xz * scale, vec2(0));
-	dist = pow(clamp(dist * 1.2 - 0.6, 0.0, 1.0), 1.9);
+	dist = pow(clamp(dist - 2.2, 0.0, 1.0), 1.9);
 
 	float noise_scale = 0.2;
 	float t = time * 1e-4;
 	vec2 uv = rotate2D(vUv * noise_scale, t * 0.01);
 	vec4 noise0 = texture2D( noise0, uv + t * 0.005);
 	float noise = noise0.x + 0.1;
-	
 
-	float color_factor1 = step(0.04, noise * dist);
-	//vec2 tile = tile(vPosition.xz, 0.1);
-	//vec3 color2 = vec3(box(tile,vec2(0.7),0.01));
-	float color_factor2 = checker(0.4, vPosition.xz);
-	vec3 color2 = mix(vec3(0.8), vec3(0.9), color_factor2);
-	//vec3 colorfin = mix(vec3(0.0), color2, color_factor1);
-	vec3 colorfin = mix(vec3(0.0), color2, color_factor1);
+	float color_factor_blob = step(0.04, noise * dist);
+
+	// transparent blob
+	//if  (color_factor_blob > 0.5) discard;
+
+	float color_factor_checker = checker(0.4, vPosition.xz);
+	vec3 color_checker = mix(vec3(0.8), vec3(0.9), color_factor_checker);
+	vec3 colorfin = mix(color_checker, vec3(0.0), color_factor_blob);
 
 	gl_FragColor = vec4(colorfin, 1.0);
 }

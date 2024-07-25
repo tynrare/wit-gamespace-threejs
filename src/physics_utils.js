@@ -66,12 +66,13 @@ class PhysicsUtils {
    * @param {RigidBodyType} type .
    * @param {object?} [opts] .
    * @param {number} [opts.friction=1] .
+   * @param {number} [opts.sides=6] .
    * @param {number} [color] .
    * @returns {string} body id
    */
   create_physics_cylinder(pos, size, type, opts, color = 0xffffff) {
     const body = this._physics.create_cylinder(pos, size, type, opts);
-    let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y, 6);
+    let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y, opts?.sides ?? 6);
     let material = App.instance.render.utils.create_material0(color);
     let mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
