@@ -208,7 +208,7 @@ class AdTestcaseBowlingPawn {
       const f = 0.5 * (i / stars_amount) + 0.2;
 			const maxy = 0.5;
 			if (this.stun > 0) {
-				const y = i < this.stuns_count ? maxy : 0;
+				const y = i * 0.5 < this.stuns_count ? maxy : 0;
 				c.position.y = dlerp(c.position.y, y, 0.02, dt * 1e-3);
 			}
 			const ss2 = 1 - c.position.y / maxy;
