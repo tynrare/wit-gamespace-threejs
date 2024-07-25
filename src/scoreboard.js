@@ -33,9 +33,9 @@ class Scoreboard {
     return await fetch(url, {
       method: "POST",
       body: JSON.stringify({ score }),
-			headers: {
-				"Content-Type": "application/json; charset=UTF-8"
-			}
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
     });
 
     //request.setRequestHeader();
@@ -54,7 +54,7 @@ class Scoreboard {
     const user = data.user;
     return `
 		<div>
-		${data.position}. ${user.first_name} ${user.last_name}: ${data.score}p 
+		${data.position}. ${user.first_name} ${user.last_name ?? ""}: ${data.score}p 
 		</div>
 		`;
   }
