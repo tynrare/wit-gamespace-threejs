@@ -202,6 +202,7 @@ class PageSplashscreenBowling extends PageBase {
       "overlay#ssb_joysticks",
     );
     this.page_ui_overlay = this.container.querySelector("overlay#ssb_ui");
+		this.page_scoreboard = this.container.querySelector("#ssb_scoreboard");
     this._btn_play_click_listener = this._start_play.bind(this);
     this.btn_play.addEventListener("click", this._btn_play_click_listener);
   }
@@ -251,10 +252,10 @@ class PageSplashscreenBowling extends PageBase {
     this.btn_play.classList.add("show");
     this.page_inputs_overlay.classList.add("hidden");
     this.page_ui_overlay.classList.add("hidden");
+    this.page_scoreboard.classList.remove("hidden");
 
     Scoreboard.instance.get_rating().then((r) => {
-			const el = this.container.querySelector("#ssb_scoreboard");
-      el.innerHTML =
+      this.page_scoreboard.innerHTML =
         Scoreboard.instance.construct_scoreboard(r);
     });
   }
@@ -263,6 +264,7 @@ class PageSplashscreenBowling extends PageBase {
     this.page_inputs_overlay.classList.remove("hidden");
     this.page_ui_overlay.classList.remove("hidden");
     this.btn_play.classList.remove("show");
+    this.page_scoreboard.classList.add("hidden");
 	}
 
   _end_play() {
