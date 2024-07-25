@@ -79,6 +79,8 @@ class App {
     this.session = null;
     /** @type {Session} */
     this.playsession = null;
+
+		this.DEBUG = true;
   }
 
   /**
@@ -168,7 +170,9 @@ class App {
 
 		const urlParams = new URLSearchParams(window.location.search);
 		const mode = urlParams.get('mode');
-		if (mode !== "prod") {
+		if (mode === "prod") {
+			this.DEBUG = false;
+		} else {
 			document.getElementById("stats").classList.remove("hidden");
 		}
 

@@ -13,6 +13,7 @@ import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import { RigidBodyType } from "../physics.js";
 import AdTestcaseBowling from "../tests/ad_tc_bowling.js";
 import { get_material_blob_a, update_shaders } from "../vfx/shaders.js";
+import Scoreboard from "../scoreboard.js";
 
 class PageSplashscreenBowling extends PageBase {
   constructor() {
@@ -149,6 +150,10 @@ class PageSplashscreenBowling extends PageBase {
         this.game_score += 1;
       }
     }
+
+		if (this.game_hearts <= 0) {
+			this._end_play();
+		}
   }
 
   run() {
@@ -238,11 +243,27 @@ class PageSplashscreenBowling extends PageBase {
     Promise.all(p).then(() => {
       App.instance.spashscreen(false);
       this.loaded = true;
-      this.btn_play.classList.add("show");
-      this.page_inputs_overlay.classList.add("hidden");
-      this.page_ui_overlay.classList.add("hidden");
+      this.show_menu();
     });
   }
+
+  show_menu() {
+    this.btn_play.classList.add("show");
+    this.page_inputs_overlay.classList.add("hidden");
+    this.page_ui_overlay.classList.add("hidden");
+
+    Scoreboard.instance.get_rating().then((r) => {
+			const el = this.container.querySelector("#ssb_scoreboard");
+      el.innerHTML =
+        Scoreboard.instance.construct_scoreboard(r);
+    });
+  }
+
+  show_play() {
+    this.page_inputs_overlay.classList.remove("hidden");
+    this.page_ui_overlay.classList.remove("hidden");
+    this.btn_play.classList.remove("show");
+	}
 
   _end_play() {
     if (!this.inplay) {
@@ -250,6 +271,23 @@ class PageSplashscreenBowling extends PageBase {
     }
 
     this.inplay = false;
+
+    Scoreboard.instance
+      .save_score(this.game_score)
+      .then(() => this.show_menu());
+
+    this.camera_controls?.dispose();
+    this.camera_controls = null;
+
+    this.inputs?.stop();
+    this.inputs = null;
+
+		const pb = this.level?.pawn?.pawn_body;
+		if (pb) {
+			const v = this.level.physics.cache.vec3_0;
+			v.init(0, 10, 0);
+			pb.setPosition(v);
+		}
   }
 
   _start_play() {
@@ -259,9 +297,7 @@ class PageSplashscreenBowling extends PageBase {
 
     this.inplay = true;
 
-    this.page_inputs_overlay.classList.remove("hidden");
-    this.page_ui_overlay.classList.remove("hidden");
-    this.btn_play.classList.remove("show");
+		this.show_play();
 
     this.inputs = new InputsDualstick(
       this.container,
@@ -287,7 +323,7 @@ class PageSplashscreenBowling extends PageBase {
 
     this.game_hearts = 0;
     this.game_score = 0;
-    this.game_hitlog = {}
+    this.game_hitlog = {};
   }
 
   input(type, start) {

@@ -421,6 +421,8 @@ class AdTestcaseBowlingPawn {
     this.pointer_mesh_b = render.utils.spawn_icosphere0(0xb7e968);
     scene.add(this.pointer_mesh_a);
     scene.add(this.pointer_mesh_b);
+		this.pointer_mesh_a.visible = App.instance.DEBUG;
+		this.pointer_mesh_b.visible = App.instance.DEBUG;
 
     return this;
   }

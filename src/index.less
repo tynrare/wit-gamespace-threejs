@@ -21,7 +21,8 @@ page {
     display: none;
     position: absolute;
   }
-  page:target, page.target {
+  page:target,
+  page.target {
     display: flex;
   }
 
@@ -52,7 +53,7 @@ page {
       0px 8px #24554a,
       0px 8px 100px 50px #f3f3d690;
     user-select: none;
-		-webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent;
 
     &:active {
       position: relative;
@@ -88,27 +89,27 @@ page {
 
     #mga_btn {
       margin: auto;
-			font-size: min(10vh, 10vw);
+      font-size: min(10vh, 10vw);
     }
 
     #mga_score {
-			font-size: min(35vh, 35vw);
+      font-size: min(35vh, 35vw);
       color: #50aacb;
       text-shadow: 0px 10px #37758c;
       margin: auto;
     }
 
-		#mga_scoreboard {
-			&:before {
-				content: "leaderboard:"
-			}
+    #mga_scoreboard {
+      &:before {
+        content: "leaderboard:";
+      }
       margin: auto;
-			display: flex;
-			flex-direction: column;
-		}
+      display: flex;
+      flex-direction: column;
+    }
 
     #mga_time {
-			font-size: min(15vh, 15vw);
+      font-size: min(15vh, 15vw);
       color: #50aacb;
       text-shadow: 0px 5px #37758c;
       margin: auto;
@@ -117,59 +118,82 @@ page {
 }
 
 #approot #splashscreen_bowling {
-	overlay#ssb_ui {
-		container#hearts, container#score {
-			display: flex;
-			flex-direction: row;
-			gap: 10px;
-			padding: 10px;
-			margin: auto;
-			margin-top: 0;
-			margin-left: 0;
-		}
-		container#score {
-			margin-top: 0;
-			margin-right: 1em;
-
-			label.score {
-				display: flex;
-				flex-direction: row;
-				&::after {
-					margin: auto;
-					padding-left: 8px;
-					content: "";
-					background-image: url("../assets/pic/star.png");
-					background-size: contain;
-					background-position: center;
-					background-repeat: no-repeat;
-					width: 1em;
-					height: 1em;
-					position: relative;
-					display: block;
-				}
-				font-size: 2em;
-				font-family: "Rubik";
-				color: #f0c755;
-				text-shadow: 0px 1px #ffe59e, 0px 3px #c35002;
-			}
-		}
-		pic.heart {
-			background-image: url("../assets/pic/heart.png");
-			background-size: contain;
-			background-position: center;
-			background-repeat: no-repeat;
-			width: 2em;
-			height: 2em;
-			position: relative;
-			display: block;
-
-			&.disabled {
-				filter: grayscale(1);
-			}
-		}
-	}
-  overlay {
+  overlay#ssb_ui {
     display: flex;
+
+    container#hearts,
+    container#score {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      padding: 10px;
+      margin: auto;
+      margin-top: 0;
+      margin-left: 0;
+    }
+    container#score {
+      margin-top: 0;
+      margin-right: 1em;
+
+      label.score {
+        display: flex;
+        flex-direction: row;
+        &::after {
+          margin: auto;
+          padding-left: 8px;
+          content: "";
+          background-image: url("../assets/pic/star.png");
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          width: 1em;
+          height: 1em;
+          position: relative;
+          display: block;
+        }
+        font-size: 2em;
+        font-family: "Rubik";
+        color: #f0c755;
+        text-shadow:
+          0px 1px #ffe59e,
+          0px 3px #c35002;
+      }
+    }
+    pic.heart {
+      background-image: url("../assets/pic/heart.png");
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      width: 2em;
+      height: 2em;
+      position: relative;
+      display: block;
+
+      &.disabled {
+        filter: grayscale(1);
+      }
+    }
+  }
+  overlay#ssb_menu {
+    display: flex;
+    flex-direction: column;
+
+    #ssb_scoreboard {
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+			gap: 2px;
+			min-width: 30vw;
+
+      div {
+        background-color: #00000055;
+        border-radius: 4px;
+				padding: 2px 8px;
+        color: white;
+        text-shadow: 1px 1px black;
+        backdrop-filter: blur(8px);
+      }
+    }
 
     #ssb_play_btn {
       margin: auto;
