@@ -47,7 +47,7 @@ class AdTestcaseBowlingPawn {
     this.charge_applied = 0;
 
     this.config = {
-      charge_duration: 300,
+      charge_duration: 600,
       throw_factor: 30,
       stun_duration: 0.5,
       movement_acceletation: 2,

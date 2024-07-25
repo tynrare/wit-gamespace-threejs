@@ -11,9 +11,9 @@ import PageBase from "../page_base.js";
 import CameraTopdown from "../pawn/camera_topdown.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import { RigidBodyType } from "../physics.js";
+import Scoreboard from "../scoreboard.js";
 import AdTestcaseBowling from "../tests/ad_tc_bowling.js";
 import { get_material_blob_a, update_shaders } from "../vfx/shaders.js";
-import Scoreboard from "../scoreboard.js";
 
 class PageSplashscreenBowling extends PageBase {
   constructor() {
@@ -139,21 +139,25 @@ class PageSplashscreenBowling extends PageBase {
 
     for (const i in this.level.pawns) {
       const p = this.level.pawns[i];
-      if (p == this.level.pawn) {
+      if (!p.hitby.stun_timestamp || this.game_hitlog[p.hitby.stun_timestamp]) {
         continue;
       }
-      if (p.hitby.id == this.level.pawn.id && p.hitby.stun_timestamp) {
-        if (this.game_hitlog[p.hitby.stun_timestamp]) {
-          continue;
-        }
+
+      if (p.id == this.level.pawn.id) {
+        // player pawn stunned
+        this.game_hitlog[p.hitby.stun_timestamp] = p.hitby.id;
+        this.level.pawn.falls += 1;
+        this.level.pawn.stuns_count += 1;
+      } else if (p.hitby.id == this.level.pawn.id) {
+        // other pawn stunned by player
         this.game_hitlog[p.hitby.stun_timestamp] = p.hitby.id;
         this.game_score += 1;
       }
     }
 
-		if (this.game_hearts <= 0) {
-			this._end_play();
-		}
+    if (this.game_hearts <= 0) {
+      this._end_play();
+    }
   }
 
   run() {
@@ -202,7 +206,7 @@ class PageSplashscreenBowling extends PageBase {
       "overlay#ssb_joysticks",
     );
     this.page_ui_overlay = this.container.querySelector("overlay#ssb_ui");
-		this.page_scoreboard = this.container.querySelector("#ssb_scoreboard");
+    this.page_scoreboard = this.container.querySelector("#ssb_scoreboard");
     this._btn_play_click_listener = this._start_play.bind(this);
     this.btn_play.addEventListener("click", this._btn_play_click_listener);
   }
@@ -265,7 +269,7 @@ class PageSplashscreenBowling extends PageBase {
     this.page_ui_overlay.classList.remove("hidden");
     this.btn_play.classList.remove("show");
     this.page_scoreboard.classList.add("hidden");
-	}
+  }
 
   _end_play() {
     if (!this.inplay) {
@@ -284,12 +288,12 @@ class PageSplashscreenBowling extends PageBase {
     this.inputs?.stop();
     this.inputs = null;
 
-		const pb = this.level?.pawn?.pawn_body;
-		if (pb) {
-			const v = this.level.physics.cache.vec3_0;
-			v.init(0, 10, 0);
-			pb.setPosition(v);
-		}
+    const pb = this.level?.pawn?.pawn_body;
+    if (pb) {
+      const v = this.level.physics.cache.vec3_0;
+      v.init(0, 10, 0);
+      pb.setPosition(v);
+    }
   }
 
   _start_play() {
@@ -299,7 +303,7 @@ class PageSplashscreenBowling extends PageBase {
 
     this.inplay = true;
 
-		this.show_play();
+    this.show_play();
 
     this.inputs = new InputsDualstick(
       this.container,
