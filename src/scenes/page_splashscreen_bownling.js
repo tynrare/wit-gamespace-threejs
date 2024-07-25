@@ -325,6 +325,9 @@ class PageSplashscreenBowling extends PageBase {
       const p = this.level.pawns[i];
       p.falls = 0;
       p.stuns_count = 0;
+			p.hitby.id = null;
+			p.hitby.stun_timestamp = null;
+			p.hitby.timestamp = null;
     }
 
     this.game_hearts = 0;
