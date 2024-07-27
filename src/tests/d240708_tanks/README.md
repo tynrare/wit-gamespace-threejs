@@ -1,0 +1,1 @@
+In this test Z on UP axis.

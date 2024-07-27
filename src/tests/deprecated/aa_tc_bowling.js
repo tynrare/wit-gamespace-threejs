@@ -5,7 +5,7 @@ import Loader from "../../loader.js";
 import PageBase from "../../page_base.js";
 import App from "../../app.js";
 import LightsA from "../../lights_a.js";
-import PawnDrawA from "../../pawn/d240710_pawn.js";
+import PawnDrawA from "../d240727_bowling/d240710_pawn.js";
 import { dlerp, Vec3Up, cache } from "../../math.js";
 
 /**

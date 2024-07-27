@@ -3,7 +3,7 @@
 import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";
 import PageSettings from "./page_settings.js";
-import PageSplashscreenBowling from "./scenes/page_splashscreen_bownling.js";
+import PageSplashscreenBowling from "./tests/d240727_bowling/page_splashscreen_bownling.js";
 import PageMinigameA from "./scenes/page_minigame_a.js";
 
 import PageTestcase1 from "./tests/page_testcase1.js";
@@ -15,8 +15,8 @@ import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
 import AcPageTestcaseBowling from "./tests/deprecated/ac_page_tc_bowling.js";
 import AdPageTestcaseBowling from "./tests/d240727_bowling/ad_page_tc_bowling.js";
 import AePageTestcaseBowling from "./tests/d240727_bowling/ae_page_tc_bowling.js";
-import AePageTestcaseTank from "./tests/d240727_bowling/ae_page_tc_tank.js";
-import AfPageTestcaseBoulder from "./tests/d240727_bowling/af_page_tc_boulder.js";
+import AePageTestcaseTank from "./tests/d240727_extras/ae_page_tc_tank.js";
+import AfPageTestcaseBoulder from "./tests/d240727_extras/af_page_tc_boulder.js";
 import BaPageTestcaseVehicle from "./tests/d240727_extras/ba_page_tc_vehicle.js";
 
 import logger from "./logger.js";

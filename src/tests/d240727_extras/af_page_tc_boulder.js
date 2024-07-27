@@ -7,7 +7,7 @@ import LightsA from "../../lights_a.js";
 import PageBase from "../../page_base.js";
 import App from "../../app.js";
 import { Vec3Up, dlerp, cache } from "../../math.js";
-import AdTestcaseBowling from "./ad_tc_bowling.js";
+import AdTestcaseBowling from "../d240727_bowling/ad_tc_bowling.js";
 import AfTestcaseBoulderPawn from "./af_tc_boulder_pawn.js";
 import { InputAction, InputsDualstick } from "../../pawn/inputs_dualstick.js";
 import CameraTopdown from "../../pawn/camera_topdown.js";

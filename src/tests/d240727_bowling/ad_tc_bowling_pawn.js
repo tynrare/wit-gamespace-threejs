@@ -1,4 +1,4 @@
-import PawnDrawA from "../../pawn/d240710_pawn.js";
+import PawnDrawA from "./d240710_pawn.js";
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { oimo } from "../../lib/OimoPhysics.js";

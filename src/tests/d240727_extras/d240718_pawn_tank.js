@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { Vec3Up, Vec3Right, angle_sub, cache } from "../math.js";
-import VfxMeshWobble from "./vfx_mesh_wobble.js";
-import VfxPawnTankA from "./vfx_pawn_tank_a.js";
+import { Vec3Up, Vec3Right, angle_sub, cache } from "../../math.js";
+import VfxMeshWobble from "../../pawn/vfx_mesh_wobble.js";
+import VfxPawnTankA from "../../pawn/vfx_pawn_tank_a.js";
 
 class PawnDrawTankA {
   constructor() {

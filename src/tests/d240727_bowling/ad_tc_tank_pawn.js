@@ -1,5 +1,5 @@
 import AdTestcaseBowlingPawn from "./ad_tc_bowling_pawn.js";
-import PawnDrawTankA from "../../pawn/d240718_pawn_tank.js";
+import PawnDrawTankA from "../d240727_extras/d240718_pawn_tank.js";
 import { Vector3 } from "three";
 import { Physics, RigidBody, RigidBodyType } from "../../physics.js";
 import Loader from "../../loader.js";

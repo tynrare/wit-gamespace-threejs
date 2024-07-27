@@ -5,9 +5,9 @@ import {
   AnimationMachine,
   ANIMATION_PLAYBACK_MODE,
   ANIMATION_TRANSITION_MODE,
-} from "../animator";
-import { Vec3Up, Vec3Right, angle_sub, cache } from "../math.js";
-import logger from "../logger.js";
+} from "../../animator.js";
+import { Vec3Up, Vec3Right, angle_sub, cache } from "../../math.js";
+import logger from "../../logger.js";
 
 class PawnDrawA {
   constructor() {
