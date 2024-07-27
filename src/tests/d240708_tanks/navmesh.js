@@ -9,7 +9,7 @@ import {
   project_line_on_line,
   project_on_line_clamp,
   cache as mathcache,
-} from "../math.js";
+} from "../../math.js";
 
 class Vertex {
   constructor(x, y, z, r = 1, g = 1, b = 1) {

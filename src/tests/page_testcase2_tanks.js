@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import PageBase from "../page_base.js";
 import App from "../app.js";
-import PlayspaceTanks from "../d240708_tanks/playspace.js";
+import PlayspaceTanks from "./d240708_tanks/playspace.js";
 import { InputsDualstick } from "../pawn/inputs_dualstick.js";
 
 /**

@@ -1,7 +1,7 @@
 /** @namespace Gamespace */
 import * as THREE from "three";
 import Navmesh from "./navmesh.js";
-import { vec_align_to_normal, cache } from "../math.js";
+import { vec_align_to_normal, cache } from "../../math.js";
 
 import { Vec3Up, Vec3Right, Vec3Forward } from "./consts.js";
 /**

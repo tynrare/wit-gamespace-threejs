@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { angle_sub, dlerp, dlerp_vec3 } from "../math.js";
+import { angle_sub, dlerp, dlerp_vec3 } from "../../math.js";
 import { Vec3Up, Vec3Right, Vec3Forward } from "./consts.js";
 
 class VfxMeshWobble {

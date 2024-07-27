@@ -1,18 +1,18 @@
 /** @namespace Gamespace/Tanks */
 
 import * as THREE from "three";
-import App from "../app.js";
-import Loader from "../loader.js";
+import App from "../../app.js";
+import Loader from "../../loader.js";
 import CameraTopdown from "./camera_topdown.js";
 import PawnTankA from "./pawn_tank_a.js";
 import ProjectilesSystem from "./projectiles_system.js";
-import { clamp } from "../math.js";
-import Render from "../render.js";
-import LightsA from "../lights_a.js";
+import { clamp } from "../../math.js";
+import Render from "../../render.js";
+import LightsA from "../../lights_a.js";
 import Navmesh from "./navmesh.js";
 import MovementSystem from "./movement_system.js";
 
-import { InputAction } from "../pawn/inputs_dualstick.js";
+import { InputAction } from "../../pawn/inputs_dualstick.js";
 
 /**
  * threejs tanks scene
