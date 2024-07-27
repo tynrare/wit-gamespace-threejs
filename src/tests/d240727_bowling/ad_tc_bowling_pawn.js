@@ -1,15 +1,15 @@
-import PawnDrawA from "../pawn/d240710_pawn.js";
+import PawnDrawA from "../../pawn/d240710_pawn.js";
 import * as THREE from "three";
 import { Vector3 } from "three";
-import { oimo } from "../lib/OimoPhysics.js";
-import { Physics, RigidBody, RigidBodyType } from "../physics.js";
-import Loader from "../loader.js";
-import App from "../app.js";
-import { dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
-import { InputAction } from "../pawn/inputs_dualstick.js";
-import { createImagePlane } from "./utils.js";
+import { oimo } from "../../lib/OimoPhysics.js";
+import { Physics, RigidBody, RigidBodyType } from "../../physics.js";
+import Loader from "../../loader.js";
+import App from "../../app.js";
+import { dlerp, Vec3Right, Vec3Up, cache } from "../../math.js";
+import { InputAction } from "../../pawn/inputs_dualstick.js";
+import { createImagePlane } from "../utils.js";
 import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
-import logger from "../logger.js";
+import logger from "../../logger.js";
 
 /**
  * @class AdTestcaseBowlingPawn

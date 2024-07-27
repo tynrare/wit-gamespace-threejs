@@ -2,22 +2,22 @@
 
 import * as THREE from "three";
 import { Vector3 } from "three";
-import Loader from "../loader.js";
-import LightsA from "../lights_a.js";
-import PageBase from "../page_base.js";
-import App from "../app.js";
-import { Vec3Up, dlerp, cache } from "../math.js";
+import Loader from "../../loader.js";
+import LightsA from "../../lights_a.js";
+import PageBase from "../../page_base.js";
+import App from "../../app.js";
+import { Vec3Up, dlerp, cache } from "../../math.js";
 import AdTestcaseBowling from "./ad_tc_bowling.js";
-import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
-import CameraTopdown from "../pawn/camera_topdown.js";
-import { Physics, RigidBodyType } from "../physics.js";
-import logger from "../logger.js";
+import { InputAction, InputsDualstick } from "../../pawn/inputs_dualstick.js";
+import CameraTopdown from "../../pawn/camera_topdown.js";
+import { Physics, RigidBodyType } from "../../physics.js";
+import logger from "../../logger.js";
 
 /**
- * @class AdPageTestcaseBowling
+ * @class AePageTestcaseBowling
  * @memberof Pages/Tests
  */
-class AdPageTestcaseBowling extends PageBase {
+class AePageTestcaseBowling extends PageBase {
   constructor() {
     super();
 
@@ -29,6 +29,7 @@ class AdPageTestcaseBowling extends PageBase {
 
     /** @type {CameraTopdown} */
     this.camera_controls = null;
+
   }
 
   /**
@@ -56,12 +57,11 @@ class AdPageTestcaseBowling extends PageBase {
 
     this.testcase = new AdTestcaseBowling();
     this.testcase.run(() => {
-      this._create_boxes();
-      this._create_motors(cache.vec3.v0.set(2, 0.2, -3));
-      this._create_motors(cache.vec3.v0.set(12, 0.3, -10));
-      this._create_motors(cache.vec3.v0.set(-20, 0.4, 10));
+      this.testcase.utils_create_motors(cache.vec3.v0.set(2, 0.2, -3));
+      this.testcase.utils_create_motors(cache.vec3.v0.set(12, 0.3, -10));
+      this.testcase.utils_create_motors(cache.vec3.v0.set(-20, 0.4, 10));
       App.instance.spashscreen(false);
-    });
+    }, { floor: true, scene: null, bots: 0 });
 
     this.camera_controls = new CameraTopdown();
     this.camera_controls.config.distance = 10;
@@ -89,18 +89,6 @@ class AdPageTestcaseBowling extends PageBase {
     this.testcase.pawn.action_analog(p.x, p.z, type);
   }
 
-  /**
-   * 
-   * @param {THREE.Vector3} pos . 
-   */
-  _create_motors(pos) {
-    return this.testcase.utils_create_motors(pos);
-  }
-
-  _create_boxes() {
-    return this.testcase.utils_create_boxes();
-  }
-
   stop() {
     this.testcase.stop();
     this.inputs.stop();
@@ -111,4 +99,4 @@ class AdPageTestcaseBowling extends PageBase {
   }
 }
 
-export default AdPageTestcaseBowling;
+export default AePageTestcaseBowling;

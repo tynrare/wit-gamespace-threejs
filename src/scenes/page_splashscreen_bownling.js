@@ -12,7 +12,7 @@ import CameraTopdown from "../pawn/camera_topdown.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import { RigidBodyType } from "../physics.js";
 import Scoreboard from "../scoreboard.js";
-import AdTestcaseBowling from "../tests/ad_tc_bowling.js";
+import AdTestcaseBowling from "../tests/d240727_bowling/ad_tc_bowling.js";
 import { get_material_blob_a, update_shaders } from "../vfx/shaders.js";
 
 class PageSplashscreenBowling extends PageBase {

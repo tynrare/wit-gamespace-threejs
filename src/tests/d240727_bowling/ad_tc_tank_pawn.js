@@ -1,13 +1,13 @@
 import AdTestcaseBowlingPawn from "./ad_tc_bowling_pawn.js";
-import PawnDrawTankA from "../pawn/d240718_pawn_tank.js";
+import PawnDrawTankA from "../../pawn/d240718_pawn_tank.js";
 import { Vector3 } from "three";
-import { Physics, RigidBody, RigidBodyType } from "../physics.js";
-import Loader from "../loader.js";
+import { Physics, RigidBody, RigidBodyType } from "../../physics.js";
+import Loader from "../../loader.js";
 import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
-import { InputAction } from "../pawn/inputs_dualstick.js";
-import App from "../app.js";
-import { dlerp, Vec3Right, Vec3Up, cache } from "../math.js";
-import { createImagePlane } from "./utils.js";
+import { InputAction } from "../../pawn/inputs_dualstick.js";
+import App from "../../app.js";
+import { dlerp, Vec3Right, Vec3Up, cache } from "../../math.js";
+import { createImagePlane } from "../utils.js";
 import * as THREE from "three";
 
 /**

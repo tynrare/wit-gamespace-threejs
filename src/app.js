@@ -13,11 +13,11 @@ import PageTestcase4 from "./tests/page_testcase4.js";
 import AaPageTestcaseBowling from "./tests/deprecated/aa_page_tc_bowling.js";
 import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
 import AcPageTestcaseBowling from "./tests/deprecated/ac_page_tc_bowling.js";
-import AdPageTestcaseBowling from "./tests/ad_page_tc_bowling.js";
-import AePageTestcaseBowling from "./tests/ae_page_tc_bowling.js";
-import AePageTestcaseTank from "./tests/ae_page_tc_tank.js";
-import AfPageTestcaseBoulder from "./tests/af_page_tc_boulder.js";
-import BaPageTestcaseVehicle from "./tests/ba_page_tc_vehicle.js";
+import AdPageTestcaseBowling from "./tests/d240727_bowling/ad_page_tc_bowling.js";
+import AePageTestcaseBowling from "./tests/d240727_bowling/ae_page_tc_bowling.js";
+import AePageTestcaseTank from "./tests/d240727_bowling/ae_page_tc_tank.js";
+import AfPageTestcaseBoulder from "./tests/d240727_bowling/af_page_tc_boulder.js";
+import BaPageTestcaseVehicle from "./tests/d240727_extras/ba_page_tc_vehicle.js";
 
 import logger from "./logger.js";
 import Render from "./render.js";

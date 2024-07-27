@@ -2,23 +2,22 @@
 
 import * as THREE from "three";
 import { Vector3 } from "three";
-import Loader from "../loader.js";
-import LightsA from "../lights_a.js";
-import PageBase from "../page_base.js";
-import App from "../app.js";
-import { Vec3Up, dlerp, cache } from "../math.js";
+import Loader from "../../loader.js";
+import LightsA from "../../lights_a.js";
+import PageBase from "../../page_base.js";
+import App from "../../app.js";
+import { Vec3Up, dlerp, cache } from "../../math.js";
 import AdTestcaseBowling from "./ad_tc_bowling.js";
-import AdTestcaseTankPawn from "./ad_tc_tank_pawn.js";
-import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
-import CameraTopdown from "../pawn/camera_topdown.js";
-import { Physics, RigidBodyType } from "../physics.js";
-import logger from "../logger.js";
+import { InputAction, InputsDualstick } from "../../pawn/inputs_dualstick.js";
+import CameraTopdown from "../../pawn/camera_topdown.js";
+import { Physics, RigidBodyType } from "../../physics.js";
+import logger from "../../logger.js";
 
 /**
- * @class AePageTestcaseTank
+ * @class AdPageTestcaseBowling
  * @memberof Pages/Tests
  */
-class AePageTestcaseTank extends PageBase {
+class AdPageTestcaseBowling extends PageBase {
   constructor() {
     super();
 
@@ -56,15 +55,13 @@ class AePageTestcaseTank extends PageBase {
     this.inputs.run();
 
     this.testcase = new AdTestcaseBowling();
-    this.testcase.run(
-      () => {
-        this.testcase.utils_create_motors(cache.vec3.v0.set(2, 0.2, -3));
-        this.testcase.utils_create_motors(cache.vec3.v0.set(12, 0.3, -10));
-        this.testcase.utils_create_motors(cache.vec3.v0.set(-20, 0.4, 10));
-        App.instance.spashscreen(false);
-      },
-      { pawnclass: AdTestcaseTankPawn, floor: true, scene: null, bots: 5 },
-    );
+    this.testcase.run(() => {
+      this._create_boxes();
+      this._create_motors(cache.vec3.v0.set(2, 0.2, -3));
+      this._create_motors(cache.vec3.v0.set(12, 0.3, -10));
+      this._create_motors(cache.vec3.v0.set(-20, 0.4, 10));
+      App.instance.spashscreen(false);
+    });
 
     this.camera_controls = new CameraTopdown();
     this.camera_controls.config.distance = 10;
@@ -74,7 +71,7 @@ class AePageTestcaseTank extends PageBase {
 
   input(type, start) {
     this.testcase.pawn.action(type, start);
-    this.camera_controls.zoom(type == InputAction.action_b && start);
+    this.camera_controls.zoom((type == InputAction.action_b) && start);
   }
 
   /**
@@ -92,6 +89,18 @@ class AePageTestcaseTank extends PageBase {
     this.testcase.pawn.action_analog(p.x, p.z, type);
   }
 
+  /**
+   * 
+   * @param {THREE.Vector3} pos . 
+   */
+  _create_motors(pos) {
+    return this.testcase.utils_create_motors(pos);
+  }
+
+  _create_boxes() {
+    return this.testcase.utils_create_boxes();
+  }
+
   stop() {
     this.testcase.stop();
     this.inputs.stop();
@@ -102,4 +111,4 @@ class AePageTestcaseTank extends PageBase {
   }
 }
 
-export default AePageTestcaseTank;
+export default AdPageTestcaseBowling;

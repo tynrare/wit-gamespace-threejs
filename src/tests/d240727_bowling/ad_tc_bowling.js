@@ -2,15 +2,15 @@
 
 import * as THREE from "three";
 import { Vector3 } from "three";
-import Loader from "../loader.js";
-import App from "../app.js";
-import LightsA from "../lights_a.js";
-import { cache } from "../math.js";
-import { oimo } from "../lib/OimoPhysics.js";
-import { Physics, RigidBodyType } from "../physics.js";
-import Environment1 from "./environment_1.js";
+import Loader from "../../loader.js";
+import App from "../../app.js";
+import LightsA from "../../lights_a.js";
+import { cache } from "../../math.js";
+import { oimo } from "../../lib/OimoPhysics.js";
+import { Physics, RigidBodyType } from "../../physics.js";
+import Environment1 from "../environment_1.js";
 import AdTestcaseBowlingPawn from "./ad_tc_bowling_pawn.js";
-import { InputAction } from "../pawn/inputs_dualstick.js";
+import { InputAction } from "../../pawn/inputs_dualstick.js";
 
 class BowlingPawnBot {
   /**

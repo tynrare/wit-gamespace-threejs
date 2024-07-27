@@ -1,18 +1,18 @@
 /** @namespace Pages/Tests */
 
 import * as THREE from "three";
-import Loader from "../loader.js";
-import PageBase from "../page_base.js";
-import App from "../app.js";
-import LightsA from "../lights_a.js";
-import CameraThirdPerson from "../pawn/camera_third_person.js";
-import { createFloorPlane } from "./utils.js";
-import { Physics, RigidBodyType } from "../physics.js";
-import { angle_sub, cache } from "../math.js";
+import Loader from "../../loader.js";
+import PageBase from "../../page_base.js";
+import App from "../../app.js";
+import LightsA from "../../lights_a.js";
+import CameraThirdPerson from "../../pawn/camera_third_person.js";
+import { createFloorPlane } from "../utils.js";
+import { Physics, RigidBodyType } from "../../physics.js";
+import { angle_sub, cache } from "../../math.js";
 import { Vector3 } from "three";
-import { oimo } from "../lib/OimoPhysics.js";
-import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
-import AdTestcaseBowling from "./ad_tc_bowling.js";
+import { oimo } from "../../lib/OimoPhysics.js";
+import { InputAction, InputsDualstick } from "../../pawn/inputs_dualstick.js";
+import AdTestcaseBowling from "../d240727_bowling/ad_tc_bowling.js";
 
 class Wheel {
   constructor(body, motor_a, motor_b, motor_c, xpos) {
