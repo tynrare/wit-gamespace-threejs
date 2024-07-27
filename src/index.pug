@@ -7,8 +7,8 @@
 		root.document: include:markdown-it(html plugins=['markdown-it-anchor']) log.md
 	page#minigame_a
 		overlay.fill-abs
-			label#mga_score 0
-			label#mga_time 00:00:00
+			label#mga_score.label-style-a.color-gold 0
+			label#mga_time.label-style-a.color-blue  00:00:00
 			label#mga_scoreboard.scoreboard-style-a ...
 			btn#mga_btn.btn-style-a SCOREUP
 	page#splashscreen_bowling
@@ -53,7 +53,7 @@
 		#partfake
 		#partb
 	decor#splashscreen_loading
-		header Loading...
+		header.label-style-a.color-blue Loading...
 
 	ui#stats.abs.hidden
 		a(href="#mainmenu") menu

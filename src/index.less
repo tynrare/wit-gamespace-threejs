@@ -64,6 +64,24 @@ page {
         0px 0px 100px 50px #fffa;
     }
   }
+
+  .label-style-a {
+		font-family: "Rubik";
+		.theme(@color) {
+			color: @color;
+			text-shadow:
+				0px 1px 1px #fffa,
+				0px min(0.1em, 5px) overlay(@color, #111);
+		}
+
+		&.color-gold {
+			.theme(#f0c755);
+		}
+
+		&.color-blue {
+			.theme(#50aacb);
+		}
+  }
 }
 
 #approot #stats {
@@ -94,8 +112,6 @@ page {
 
     #mga_score {
       font-size: min(35vh, 35vw);
-      color: #50aacb;
-      text-shadow: 0px 10px #37758c;
       margin: auto;
     }
 
@@ -116,8 +132,8 @@ page {
 
     #mga_time {
       font-size: min(15vh, 15vw);
-      color: #50aacb;
-      text-shadow: 0px 5px #37758c;
+      //color: #50aacb;
+      //text-shadow: 0px 5px #37758c;
       margin: auto;
     }
   }
@@ -259,9 +275,9 @@ page {
   display: flex;
   backdrop-filter: blur(8px);
   background-color: #d6decdaa;
-  font-family: "Rubik";
-  color: #50aacb;
-  text-shadow: 0px 0.2em #37758c;
+  //font-family: "Rubik";
+  //color: #50aacb;
+  //text-shadow: 0px 0.2em #37758c;
 
   &.hidden {
     display: none;
