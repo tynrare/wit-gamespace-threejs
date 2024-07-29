@@ -184,7 +184,7 @@ class LevelBlockbreaker {
   _spawn_ball() {
     const pos = cache.vec3.v0;
     const ball = this.physics.create_sphere(
-      pos.set(0, 0, this.config.pawnposz - 1),
+      pos.set(0, 0, this.config.pawnposz - 1.5),
       0.5,
       RigidBodyType.DYNAMIC,
       {
@@ -212,7 +212,7 @@ class LevelBlockbreaker {
       friction: 0,
     };
 
-    const thikness = 4;
+    const thikness = 10;
     const wallheight = 2;
 
     /*
@@ -225,7 +225,7 @@ class LevelBlockbreaker {
 		*/
     this.physics.utils.create_physics_box(
       pos.set(0, wallheight * 0.5, -h * 0.5 - thikness * 0.5),
-      size.set(w + thikness, wallheight, thikness),
+      size.set(w + thikness * 2, wallheight, thikness),
       RigidBodyType.STATIC,
       opts,
     );
@@ -451,7 +451,7 @@ class LevelBlockbreaker {
 
     const pawn_body_id = this.physics.utils.create_physics_box(
       pos.set(0, 0.5, this.config.pawnposz),
-      size.set(this.config.pawnwidth, 1, 0.5),
+      size.set(this.config.pawnwidth, 1, 1),
       RigidBodyType.DYNAMIC,
       {
         friction: 0,
@@ -630,7 +630,7 @@ class PageBlockbreaker extends PageBase {
   run() {
     App.instance.start(this.container.querySelector("render"));
     App.instance.render.get_camera_fov_factor = (w, h) => {
-      return h / w;
+      return Math.max(2, h / w);
     };
 
     this.session = new SimpleSession().init(this.container, () =>
