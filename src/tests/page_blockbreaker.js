@@ -678,7 +678,7 @@ class PageBlockbreaker extends PageBase {
   }
 
 	endplay() {
-		this.session.endplay();
+		this.session.endplay(this.score);
 		this.scene.stop();
 		App.instance.render.scene.clear();
     this.scene = new SceneBlockbreaker().run();
