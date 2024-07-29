@@ -95,16 +95,16 @@ class SimpleSession {
   }
 
   printhearts(total, hurt) {
-		for (let i = 0; i < Math.max(total, this.hearts.children.length); i++) {
-			let h = this.hearts.children[i];
-			if (!h) {
-				h = document.createElement("pic");
-				h.classList.add("heart");
-				this.hearts.appendChild(h);
-			}
-			h.classList[i >= total ? "add" : "remove"]("hidden");
-			h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
-		}
+    for (let i = 0; i < Math.max(total, this.hearts.children.length); i++) {
+      let h = this.hearts.children[i];
+      if (!h) {
+        h = document.createElement("pic");
+        h.classList.add("heart");
+        this.hearts.appendChild(h);
+      }
+      h.classList[i >= total ? "add" : "remove"]("hidden");
+      h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
+    }
   }
 
   dispose() {
@@ -150,6 +150,7 @@ class LevelBlockbreaker {
       width: 15,
       height: 25,
       pawnposz: 10,
+			pawnspeed: 7,
       pawnwidth: 4,
       respawn_brick_threshold: 1,
     };
@@ -183,7 +184,7 @@ class LevelBlockbreaker {
 
   _spawn_ball() {
     const pos = cache.vec3.v0;
-		const size = 0.7;
+    const size = 0.7;
     const ball = this.physics.create_sphere(
       pos.set(0, 0, this.config.pawnposz - 1.5),
       size,
@@ -194,7 +195,10 @@ class LevelBlockbreaker {
       },
     );
     this.ball_body = ball;
-    const ball_mesh = App.instance.render.utils.spawn_icosphere0(0xffff00, size);
+    const ball_mesh = App.instance.render.utils.spawn_icosphere0(
+      0xffff00,
+      size,
+    );
     App.instance.render.scene.add(ball_mesh);
     this.physics.attach(ball, ball_mesh);
   }
@@ -319,8 +323,8 @@ class LevelBlockbreaker {
   }
 
   ballfail() {
-		this.physics.remove(this.ball_body);
-		this._spawn_ball();
+    this.physics.remove(this.ball_body);
+    this._spawn_ball();
     this.fails += 1;
   }
 
@@ -475,6 +479,7 @@ class LevelBlockbreaker {
       pawn_body.getPosition(),
     );
     gopts.transZSd.setSpring(8.0, 1.0);
+		this.pawn_rot_limit = gopts.rotYLimit;
 
     // required to disable wobble
     gopts.transXSd.setSpring(4.0, 1.0);
@@ -524,9 +529,10 @@ class SceneBlockbreaker {
     this.controls?.update();
     this.level.step(dt);
 
+    const pawnpos = this.level.physics.cache.vec3_0;
+    const targpos = this.level.physics.cache.vec3_1;
+		this.level.pawn_root.getPositionTo(pawnpos);
     if (this.targetpos.length()) {
-      const pawnpos = this.level.physics.cache.vec3_0;
-      const targpos = this.level.physics.cache.vec3_1;
       const halfpawnwidth = this.level.config.pawnwidth * 0.5 + 0.5;
       const halflevelwidth = this.level.config.width * 0.5;
       const x = clamp(
@@ -535,13 +541,19 @@ class SceneBlockbreaker {
         this.targetpos.x,
       );
       targpos.init(x, this.targetpos.y, this.level.config.pawnposz);
-      this.level.pawn_root.getPositionTo(pawnpos);
-      targpos.subEq(pawnpos).scaleEq(5);
+      targpos.subEq(pawnpos).scaleEq(this.level.config.pawnspeed);
       this.level.pawn_root.setLinearVelocity(targpos);
 
       pawnpos.z += clamp(-1, 1, this.targetdelta.z);
       this.level.pawn_spring.setPosition(pawnpos);
     }
+
+		// minor pawn rotation
+		this.level.ball_body.getPositionTo(targpos);
+		targpos.subEq(pawnpos);
+		const angle = Math.atan2(targpos.x, -targpos.z);
+		const clamped_angle = clamp(-0.1, 0.1, angle * 0.1);
+		this.level.pawn_rot_limit.setLimits(clamped_angle, clamped_angle);
   }
 
   run() {
@@ -604,7 +616,7 @@ class PageBlockbreaker extends PageBase {
 
     this.score = 0;
     this.fails = 0;
-		this.hearts = 3;
+    this.hearts = 3;
   }
 
   /**
@@ -621,11 +633,11 @@ class PageBlockbreaker extends PageBase {
 
     if (this.fails != this.scene.level.fails) {
       this.fails = this.scene.level.fails;
-			this.session.printhearts(this.hearts, this.fails);
-			if (this.fails >= this.hearts) {
-				this.endplay();
-			}
-		}
+      this.session.printhearts(this.hearts, this.fails);
+      if (this.fails >= this.hearts) {
+        this.endplay();
+      }
+    }
   }
 
   run() {
@@ -672,18 +684,18 @@ class PageBlockbreaker extends PageBase {
   }
 
   startplay() {
-		this.score = 0;
-		this.fails = 0;
+    this.score = 0;
+    this.fails = 0;
     this.scene.startplay();
     this.score = this.scene.level.score;
   }
 
-	endplay() {
-		this.session.endplay(this.score);
-		this.scene.stop();
-		App.instance.render.scene.clear();
+  endplay() {
+    this.session.endplay(this.score);
+    this.scene.stop();
+    App.instance.render.scene.clear();
     this.scene = new SceneBlockbreaker().run();
-	}
+  }
 
   stop() {
     App.instance.pause();
