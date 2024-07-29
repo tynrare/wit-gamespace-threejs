@@ -1,16 +1,16 @@
 import Physics from "./physics";
 import App from "./app.js";
 import * as THREE from "three";
+import { oimo } from "./lib/OimoPhysics.js";
 
 class PhysicsUtils {
-    /**
-     * 
-     * @param {Physics} physics .
-     */
-    constructor(physics) {
-        this._physics = physics;
-    }
-
+  /**
+   *
+   * @param {Physics} physics .
+   */
+  constructor(physics) {
+    this._physics = physics;
+  }
 
   /**
    * Creates box with mesh
@@ -72,7 +72,12 @@ class PhysicsUtils {
    */
   create_physics_cylinder(pos, size, type, opts, color = 0xffffff) {
     const body = this._physics.create_cylinder(pos, size, type, opts);
-    let geometry = new THREE.CylinderGeometry(size.x, size.x, size.y, opts?.sides ?? 6);
+    let geometry = new THREE.CylinderGeometry(
+      size.x,
+      size.x,
+      size.y,
+      opts?.sides ?? 6,
+    );
     let material = App.instance.render.utils.create_material0(color);
     let mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
@@ -81,6 +86,74 @@ class PhysicsUtils {
     this._physics.attach(body, mesh);
 
     return body.id;
+  }
+
+  /**
+   * @param {oimo.dynamics.rigidbody.RigidBody} a .
+   * @param {oimo.dynamics.rigidbody.RigidBody} b .
+   * @param {oimo.common.Vec3} anchor .
+   */
+  create_generic_joint(a, b, anchor) {
+    const j = oimo.dynamics.constraint.joint;
+    const config = new j.GenericJointConfig();
+    const m = new oimo.common.Mat3();
+    config.init(b, a, anchor, m, m);
+    const rotXLimit = new j.RotationalLimitMotor().setLimits(0, 0);
+    const rotYLimit = new j.RotationalLimitMotor().setLimits(0, 0);
+    const rotZLimit = new j.RotationalLimitMotor().setLimits(0, 0);
+    const translXLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
+    const translYLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
+    const translZLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
+
+		// zero springs works badly.. Should has some nonzero values
+    const transXSd = new j.SpringDamper().setSpring(0, 0);
+    const transYSd = new j.SpringDamper().setSpring(0, 0);
+    const transZSd = new j.SpringDamper().setSpring(0, 0);
+    const rotXSd = new j.SpringDamper().setSpring(0, 0);
+    const rotYSd = new j.SpringDamper().setSpring(0, 0);
+    const rotZSd = new j.SpringDamper().setSpring(0, 0);
+
+    config.translationalLimitMotors = [
+      translXLimit,
+      translYLimit,
+      translZLimit,
+    ];
+    config.translationalSpringDampers = [transXSd, transYSd, transZSd];
+    config.rotationalLimitMotors = [rotXLimit, rotYLimit, rotZLimit];
+    config.rotationalSpringDampers = [rotXSd, rotYSd, rotZSd];
+
+    const joint = new oimo.dynamics.constraint.joint.GenericJoint(config);
+    this._physics.world.addJoint(joint);
+
+    const rlm = joint.getRotationalLimitMotors();
+    const tsd = joint.getTranslationalSpringDampers();
+    return {
+      joint,
+      rotXLimit: rlm[0],
+      rotYLimit: rlm[1],
+      rotZLimit: rlm[2],
+      transXSd: tsd[0],
+      transYSd: tsd[1],
+      transZSd: tsd[2],
+    };
+  }
+
+  /**
+   * @param {oimo.dynamics.rigidbody.RigidBody} a .
+   * @param {oimo.dynamics.rigidbody.RigidBody} b .
+   * @param {oimo.common.Vec3} anchor .
+   */
+  create_spherical_joint(a, b, anchor) {
+    const j = oimo.dynamics.constraint.joint;
+    const config = new j.SphericalJointConfig();
+    config.init(a, b, anchor);
+    config.springDamper.frequency = 4.0;
+    config.springDamper.dampingRatio = 1.0;
+
+    const joint = new j.SphericalJoint(config);
+    this._physics.world.addJoint(joint);
+
+    return joint;
   }
 }
 

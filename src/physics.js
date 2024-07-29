@@ -45,7 +45,7 @@ class Physics {
 
     this.config = {
       fixed_step: true,
-			limit_step: true
+      limit_step: true,
     };
 
     /** @type {Object<string, oimo.dynamics.rigidbody.RigidBody>} */
@@ -59,10 +59,12 @@ class Physics {
       vec3_0: new oimo.common.Vec3(),
       vec3_1: new oimo.common.Vec3(),
       vec3_2: new oimo.common.Vec3(),
-			vec3up: new oimo.common.Vec3().init(0, 1, 0),
+      vec3up: new oimo.common.Vec3().init(0, 1, 0),
       quat: new oimo.common.Quat(),
-			mat3: new oimo.common.Mat3(),
+      mat3: new oimo.common.Mat3(),
       raycast: new oimo.dynamics.callback.RayCastCallback(),
+      transform: new oimo.common.Transform(),
+      transformZero: new oimo.common.Transform(),
     };
 
     this.utils = new PhysicsUtils(this);
@@ -79,66 +81,74 @@ class Physics {
     this.config.fixed_step = opts?.fixed_step ?? this.config.fixed_step;
     this.config.limit_step = opts?.limit_step ?? this.config.limit_step;
 
-    const broadphase = 2; // 1 brute force, 2 sweep and prune, 3 volume tree
     this.world = new oimo.dynamics.World(
-      broadphase,
+      oimo.collision.broadphase.BroadPhaseType.BVH,
       new oimo.common.Vec3(0, -9.8, 0),
     );
 
-		if (App.instance.settings.debug) {
-			this.debug_draw = new DebugDraw(App.instance.render.scene);
-			this.debug_draw.wireframe = true;
-			this.debug_draw.drawJointLimits = true;
-			this.debug_draw.drawBases = true;
-			this.world.setDebugDraw(this.debug_draw);
-		}
+    if (App.instance.settings.debug) {
+      this.debug_draw = new DebugDraw(App.instance.render.scene);
+      this.debug_draw.wireframe = true;
+      this.debug_draw.drawJointLimits = true;
+      this.debug_draw.drawBases = true;
+      this.world.setDebugDraw(this.debug_draw);
+    }
 
     return this;
   }
 
-  stop() {
+  stop(cleanup = true) {
     this.world = null;
     this.bodylist = {};
     this.meshlist = {};
     this.attachopts = {};
+    if (cleanup) {
+      for (const k in this.bodylist) {
+        this.remove(this.bodylist[k]);
+      }
+    }
   }
 
   step(dt) {
-		let fdt = this.config.fixed_step ? 1 / 60 : dt * 1e-3;
-		if (this.config.limit_step && !this.config.fixed_step) {
-			fdt = Math.min(1/20, fdt);
-		}
+    let fdt = this.config.fixed_step ? 1 / 60 : dt * 1e-3;
+    if (this.config.limit_step && !this.config.fixed_step) {
+      fdt = Math.min(1 / 20, fdt);
+    }
 
     this.world.step(fdt);
 
-		if (this.debug_draw) {
-			this.debug_draw.begin();
-			this.world.debugDraw();
-			this.debug_draw.end();
-		}
+    if (this.debug_draw) {
+      this.debug_draw.begin();
+      this.world.debugDraw();
+      this.debug_draw.end();
+    }
 
     for (const k in this.meshlist) {
-      /** @type {oimo.dynamics.rigidbody.RigidBody} */
-      const body = this.bodylist[k];
-      const mesh = this.meshlist[k];
-      const opts = this.attachopts[k];
-			const parent_wp = mesh.parent.getWorldPosition(cache.vec3.v0);
+      this.step_attach(k);
+    }
+  }
 
-      const position = this.cache.vec3_0;
-      body.getPositionTo(position);
-      const quaternion = this.cache.quat;
-      body.getOrientationTo(quaternion);
-      if (opts?.allow_translate ?? true) {
-        mesh.position.x = position.x + (opts?.shift?.x ?? 0) - parent_wp.x;
-        mesh.position.y = position.y + (opts?.shift?.y ?? 0) - parent_wp.y;
-        mesh.position.z = position.z + (opts?.shift?.z ?? 0) - parent_wp.z;
-      }
-      if (opts?.allow_rotate ?? true) {
-        mesh.quaternion.x = quaternion.x;
-        mesh.quaternion.y = quaternion.y;
-        mesh.quaternion.z = quaternion.z;
-        mesh.quaternion.w = quaternion.w;
-      }
+  step_attach(id) {
+    /** @type {oimo.dynamics.rigidbody.RigidBody} */
+    const body = this.bodylist[id];
+    const mesh = this.meshlist[id];
+    const opts = this.attachopts[id];
+    const parent_wp = mesh.parent.getWorldPosition(cache.vec3.v9);
+
+    const position = this.cache.vec3_0;
+    body.getPositionTo(position);
+    const quaternion = this.cache.quat;
+    body.getOrientationTo(quaternion);
+    if (opts?.allow_translate ?? true) {
+      mesh.position.x = position.x + (opts?.shift?.x ?? 0) - parent_wp.x;
+      mesh.position.y = position.y + (opts?.shift?.y ?? 0) - parent_wp.y;
+      mesh.position.z = position.z + (opts?.shift?.z ?? 0) - parent_wp.z;
+    }
+    if (opts?.allow_rotate ?? true) {
+      mesh.quaternion.x = quaternion.x;
+      mesh.quaternion.y = quaternion.y;
+      mesh.quaternion.z = quaternion.z;
+      mesh.quaternion.w = quaternion.w;
     }
   }
 
@@ -226,6 +236,8 @@ class Physics {
     if (opts) {
       this.attachopts[body.id] = opts;
     }
+
+    this.step_attach(body.id);
   }
 
   /**
@@ -233,7 +245,7 @@ class Physics {
    * @param {oimo.dynamics.rigidbody.RigidBody} b
    * @param {Vector3?} [anchor] .
    * @param {Vector3?} [axis] .
-	 * @param {object?} [opts] .
+   * @param {object?} [opts] .
    * @param {number} [opts.torque=0] .
    * @param {number} [opts.speed=0] .
    * @param {number} [opts.spring=0] .
@@ -242,14 +254,14 @@ class Physics {
     const motor = new oimo.dynamics.constraint.joint.RotationalLimitMotor();
     const config = new oimo.dynamics.constraint.joint.RevoluteJointConfig();
     const _axis = this.cache.vec3_0;
-		_axis.init(axis?.x ?? 0, axis?.y ?? 1, axis?.z ?? 0);
+    _axis.init(axis?.x ?? 0, axis?.y ?? 1, axis?.z ?? 0);
     config.init(a, b, anchor ?? a.getPosition(), _axis);
     motor.setMotor(opts?.speed ?? 0, opts?.torque ?? 0);
     config.limitMotor = motor;
-		if (opts?.spring) {
-			config.springDamper = new oimo.dynamics.constraint.joint.SpringDamper();
-			config.springDamper.setSpring(opts.spring, 0.2);
-		}
+    if (opts?.spring) {
+      config.springDamper = new oimo.dynamics.constraint.joint.SpringDamper();
+      config.springDamper.setSpring(opts.spring, 0.2);
+    }
 
     const joint = new oimo.dynamics.constraint.joint.RevoluteJoint(config);
     this.world.addJoint(joint);
@@ -269,25 +281,23 @@ class Physics {
     this.world.rayCast(ray_a, ray_b, this.cache.raycast);
   }
 
-	/**
-	 * uses physics.cache.vec3_0
-	 *
-	 * @param {oimo.dynamics.rigidbody.RigidBody} body .
-	 */
-	get_body_up_dot(body) {
+  /**
+   * uses physics.cache.vec3_0
+   *
+   * @param {oimo.dynamics.rigidbody.RigidBody} body .
+   */
+  get_body_up_dot(body) {
     const local_up = this.cache.vec3_0;
     local_up.init(0, 1, 0);
-    local_up.mulMat3Eq(
-      body.getRotation().transposeEq(),
-    );
+    local_up.mulMat3Eq(body.getRotation().transposeEq());
     const dot = local_up.dot(this.cache.vec3up);
 
-		return dot;
-	}
+    return dot;
+  }
 
-	/**
-	 * @param {oimo.dynamics.rigidbody.RigidBody} body .
-	 */
+  /**
+   * @param {oimo.dynamics.rigidbody.RigidBody} body .
+   */
   remove(body) {
     this.world.removeRigidBody(body);
     const mesh = this.meshlist[body.id];

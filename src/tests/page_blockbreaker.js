@@ -10,7 +10,8 @@ import { createFloorPlane } from "./utils.js";
 import Scoreboard from "../scoreboard.js";
 import { InputsMap, InputAction } from "../pawn/inputs_map.js";
 import { Physics, RigidBodyType } from "../physics.js";
-import { cache } from "../math.js";
+import { cache, clamp } from "../math.js";
+import { oimo } from "../lib/OimoPhysics.js";
 
 /** @enum {number} */
 const SimpleSessionState = {
@@ -93,6 +94,19 @@ class SimpleSession {
     this.score.innerHTML = score;
   }
 
+  printhearts(total, hurt) {
+		for (let i = 0; i < Math.max(total, this.hearts.children.length); i++) {
+			let h = this.hearts.children[i];
+			if (!h) {
+				h = document.createElement("pic");
+				h.classList.add("heart");
+				this.hearts.appendChild(h);
+			}
+			h.classList[i >= total ? "add" : "remove"]("hidden");
+			h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
+		}
+  }
+
   dispose() {
     this.playbtn.removeEventListener("click", this._playbtn_click_event);
     this._playbtn_click_event = null;
@@ -100,10 +114,11 @@ class SimpleSession {
 }
 
 const __SimpleBlockbreakerBrickColors = [
-  0x000000, 0xee0000, 0x00ff00, 0xffffff,
+  0x370d6b, 0x9358ff, 0xc0e2d8, 0x07f23e,
 ];
 class SimpleBlockbreakerBrick {
   constructor(body, model) {
+    /** @type {oimo.dynamics.rigidbody.RigidBody} */
     this.body = body;
     this.model = model;
     this.hit_timestamp = null;
@@ -111,7 +126,9 @@ class SimpleBlockbreakerBrick {
   }
 
   static get_color(hitpoints) {
-    return __SimpleBlockbreakerBrickColors[hitpoints - 1] ?? 0xff00ff;
+    return (
+      __SimpleBlockbreakerBrickColors[Math.max(0, hitpoints - 1)] ?? 0xff00ff
+    );
   }
 }
 
@@ -124,27 +141,50 @@ class LevelBlockbreaker {
     this.bricks = {};
     /** @type {Object<string, SimpleBlockbreakerBrick>} */
     this.bricks_del_query = {};
+    this.bricks_count = 0;
+    this.bricks_total = 0;
 
     this.config = {
       ball_speed: 20,
+      ball_speed_max: 40,
+      width: 15,
+      height: 25,
+      pawnposz: 10,
+      pawnwidth: 4,
+      respawn_brick_threshold: 1,
     };
+
+    this.score = 0;
+    this.fails = 0;
+    this.respawn_brick_timestamp = 0;
   }
 
   startplay() {
+    /*
     const v = this.physics.cache.vec3_0;
     v.init(10, 0, 10);
     this.ball_body.setLinearVelocity(v);
+		*/
+
+    this.score = 0;
+    this.fails = 0;
   }
 
   run() {
     this.physics = new Physics().run({ fixed_step: false });
 
-    this._create_level_box(15, 25);
+    this._create_level_box(this.config.width, this.config.height);
     this._create_bricks(new THREE.Vector3(0, 0, -7), new THREE.Vector2(6, 7));
+    this._create_pawn();
+    this._spawn_ball();
 
+    return this;
+  }
+
+  _spawn_ball() {
     const pos = cache.vec3.v0;
     const ball = this.physics.create_sphere(
-      pos.set(0, 0, 0),
+      pos.set(0, 0, this.config.pawnposz - 1),
       0.5,
       RigidBodyType.DYNAMIC,
       {
@@ -156,8 +196,6 @@ class LevelBlockbreaker {
     const ball_mesh = App.instance.render.utils.spawn_icosphere0(0xffff00, 0.5);
     App.instance.render.scene.add(ball_mesh);
     this.physics.attach(ball, ball_mesh);
-
-    return this;
   }
 
   _create_level_box(w = 20, h = 20) {
@@ -174,37 +212,40 @@ class LevelBlockbreaker {
       friction: 0,
     };
 
+    const thikness = 4;
+    const wallheight = 2;
+
+    /*
     this.physics.utils.create_physics_box(
-      pos.set(0, 1, h * 0.5),
-      size.set(w + 1, 1, 1),
+      pos.set(0, wallheight * 0.5, h * 0.5 + thikness * 0.5),
+      size.set(w + thikness, wallheight, thikness),
+      RigidBodyType.STATIC,
+      opts,
+    );
+		*/
+    this.physics.utils.create_physics_box(
+      pos.set(0, wallheight * 0.5, -h * 0.5 - thikness * 0.5),
+      size.set(w + thikness, wallheight, thikness),
       RigidBodyType.STATIC,
       opts,
     );
     this.physics.utils.create_physics_box(
-      pos.set(0, 1, -h * 0.5),
-      size.set(w + 1, 1, 1),
+      pos.set(w * 0.5 + thikness * 0.5, wallheight * 0.5, 0),
+      size.set(thikness, wallheight, h + thikness),
       RigidBodyType.STATIC,
       opts,
     );
     this.physics.utils.create_physics_box(
-      pos.set(w * 0.5, 1, 0),
-      size.set(1, 1, h + 1),
-      RigidBodyType.STATIC,
-      opts,
-    );
-    this.physics.utils.create_physics_box(
-      pos.set(-w * 0.5, 1, 0),
-      size.set(1, 1, h + 1),
+      pos.set(-w * 0.5 - thikness * 0.5, wallheight * 0.5, 0),
+      size.set(thikness, wallheight, h + thikness),
       RigidBodyType.STATIC,
       opts,
     );
   }
 
   _create_bricks(origin, grid, randompos = 0) {
+    this.bricks_total = grid.x * grid.y;
     const BOX_SIZE = cache.vec3.v0.set(2, 0.5, 1);
-    const opts = {
-      restitution: 1,
-    };
     for (let x = 0; x < grid.x; x++) {
       for (let y = 0; y < grid.y; y++) {
         let x1 =
@@ -216,48 +257,70 @@ class LevelBlockbreaker {
           origin.z +
           (y - grid.y * 0.5 + 0.5) * BOX_SIZE.z * 1.2 +
           Math.random() * randompos;
-        let color = new THREE.Color(
-          Math.random(),
-          Math.random(),
-          Math.random(),
-        );
-        const hitpoints = Math.round(Math.random() * 3 + 1);
-        const dynamic = hitpoints > 1;
-        const type = dynamic ? RigidBodyType.DYNAMIC : RigidBodyType.STATIC;
-        color = SimpleBlockbreakerBrick.get_color(hitpoints);
-        const id = this.physics.utils.create_physics_box(
-          cache.vec3.v1.set(x1, y1, z1),
-          BOX_SIZE,
-          type,
-          opts,
-          color,
-        );
 
-        const brick = new SimpleBlockbreakerBrick(
-          this.physics.bodylist[id],
-          this.physics.meshlist[id],
-        );
-        brick.hitpoints = hitpoints;
-        this.bricks[id] = brick;
+        this._spawn_brick(cache.vec3.v1.set(x1, y1, z1), BOX_SIZE);
       }
     }
+  }
+
+  _spawn_brick(pos, size, opts, allowstatic = true) {
+    opts = opts ?? {
+      restitution: 0.1,
+    };
+    const hitpoints = Math.round(Math.random() * 3 + 1);
+    const dynamic = !allowstatic || hitpoints > 1;
+    const type = dynamic ? RigidBodyType.DYNAMIC : RigidBodyType.STATIC;
+    const color = SimpleBlockbreakerBrick.get_color(hitpoints);
+    const id = this.physics.utils.create_physics_box(
+      pos,
+      size,
+      type,
+      opts,
+      color,
+    );
+
+    const brick = new SimpleBlockbreakerBrick(
+      this.physics.bodylist[id],
+      this.physics.meshlist[id],
+    );
+    brick.hitpoints = hitpoints;
+    this.bricks[id] = brick;
+    this.bricks_count += 1;
+
+    return brick;
   }
 
   step(dt) {
     this.physics.step(dt);
     this.update_del_bricks_query();
+    this.update_respawn_bricks();
     this.update_ball();
   }
 
   update_ball() {
     this.update_ball_collisions();
     const vel = this.physics.cache.vec3_0;
+    const pos = this.physics.cache.vec3_1;
     this.ball_body.getLinearVelocityTo(vel);
+    this.ball_body.getPositionTo(pos);
     const speed = vel.length();
     const vely = vel.y;
-    vel.normalize().scaleEq(Math.max(speed, this.config.ball_speed));
-    vel.y = vely * 0.1;
+    const s = Math.max(speed, this.config.ball_speed);
+    vel.normalize().scaleEq(Math.min(this.config.ball_speed_max, s));
+    if (vely > 0) {
+      vel.y = vely * 0.1;
+    }
     this.ball_body.setLinearVelocity(vel);
+
+    if (pos.z > this.config.height) {
+      this.ballfail();
+    }
+  }
+
+  ballfail() {
+		this.physics.remove(this.ball_body);
+		this._spawn_ball();
+    this.fails += 1;
   }
 
   update_ball_collisions() {
@@ -295,6 +358,8 @@ class LevelBlockbreaker {
     delete this.bricks[id];
     brick.hit_timestamp = Date.now();
     this.bricks_del_query[id] = brick;
+
+    this.score += 1;
   }
 
   update_del_bricks_query() {
@@ -310,7 +375,119 @@ class LevelBlockbreaker {
       this.physics.remove(brick.body);
       brick.model.removeFromParent();
       delete this.bricks_del_query[k];
+      this.bricks_count -= 1;
     }
+  }
+
+  update_respawn_bricks() {
+    if (this.bricks_count >= this.bricks_total) {
+      return;
+    }
+    if (
+      Date.now() - this.respawn_brick_timestamp <
+      this.config.respawn_brick_threshold * 1e3
+    ) {
+      return;
+    }
+
+    let brick = this._query_respawn_brick;
+    const pos = cache.vec3.v0;
+
+    if (!brick) {
+      pos.set(0, -10, 0);
+      const size = cache.vec3.v1;
+      size.set(2, 0.5, 1);
+
+      brick = this._query_respawn_brick = this._spawn_brick(
+        pos,
+        size,
+        null,
+        false,
+      );
+      brick.body.sleep();
+    }
+    const convex = brick.body.getShapeList().getGeometry();
+
+    const raytranslate = this.physics.cache.vec3_1.init(0, -10, 0);
+    const raycast = this.physics.cache.raycast;
+    let collided = false;
+    raycast.process = (s) => {
+      const body = s.getRigidBody();
+      if (this.bricks[body.id]) {
+        collided = true;
+      }
+    };
+
+    const transform = this.physics.cache.transform;
+    for (let attempts = 0; attempts <= 5; attempts++) {
+      collided = false;
+      pos.x = (Math.random() - 0.5) * this.config.width * 0.9;
+      pos.y = 10;
+      pos.z = -4 + (Math.random() - 0.5) * 8;
+
+      const opos = this.physics.cache.vec3_0.init(pos.x, pos.y, pos.z);
+      transform.copyFrom(this.physics.cache.transformZero);
+      transform.translate(opos);
+
+      this.physics.world.convexCast(convex, transform, raytranslate, raycast);
+      if (!collided) {
+        brick.body.setPosition(opos);
+        brick.body.wakeUp();
+        this._query_respawn_brick = null;
+        this.respawn_brick_timestamp = Date.now();
+        break;
+      }
+    }
+  }
+
+  _create_pawn() {
+    const pos = cache.vec3.v0;
+    const size = cache.vec3.v1;
+    const pawn_root = this.physics.create_box(
+      pos.set(0, 0.5, this.config.pawnposz),
+      size.set(0.1, 0.1, 0.1),
+      RigidBodyType.KINEMATIC,
+    );
+
+    const pawn_body_id = this.physics.utils.create_physics_box(
+      pos.set(0, 0.5, this.config.pawnposz),
+      size.set(this.config.pawnwidth, 1, 0.5),
+      RigidBodyType.DYNAMIC,
+      {
+        friction: 0,
+        restitution: 1,
+        ldamping: 10,
+        adamping: 10,
+      },
+    );
+    const pawn_body = this.physics.bodylist[pawn_body_id];
+
+    const pawn_spring = this.physics.create_box(
+      pos.set(0, 0.5, this.config.pawnposz),
+      size.set(0.1, 0.1, 0.1),
+      RigidBodyType.KINEMATIC,
+    );
+
+    const gopts = this.physics.utils.create_generic_joint(
+      pawn_root,
+      pawn_body,
+      pawn_body.getPosition(),
+    );
+    gopts.transZSd.setSpring(8.0, 1.0);
+
+    // required to disable wobble
+    gopts.transXSd.setSpring(4.0, 1.0);
+    gopts.transYSd.setSpring(4.0, 1.0);
+
+    const sjoint = this.physics.utils.create_spherical_joint(
+      pawn_spring,
+      pawn_body,
+      pawn_body.getPosition(),
+    );
+    sjoint.getSpringDamper().setSpring(16.0, 1.0);
+
+    this.pawn_root = pawn_root;
+    this.pawn_spring = pawn_spring;
   }
 
   stop() {
@@ -330,6 +507,9 @@ class SceneBlockbreaker {
 
     /** @type {LevelBlockbreaker} */
     this.level = null;
+
+    this.targetpos = new THREE.Vector3();
+    this.targetdelta = new THREE.Vector3();
   }
 
   startplay() {
@@ -342,6 +522,25 @@ class SceneBlockbreaker {
   step(dt) {
     this.controls?.update();
     this.level.step(dt);
+
+    if (this.targetpos.length()) {
+      const pawnpos = this.level.physics.cache.vec3_0;
+      const targpos = this.level.physics.cache.vec3_1;
+      const halfpawnwidth = this.level.config.pawnwidth * 0.5 + 0.5;
+      const halflevelwidth = this.level.config.width * 0.5;
+      const x = clamp(
+        -halflevelwidth + halfpawnwidth,
+        halflevelwidth - halfpawnwidth,
+        this.targetpos.x,
+      );
+      targpos.init(x, this.targetpos.y, this.level.config.pawnposz);
+      this.level.pawn_root.getPositionTo(pawnpos);
+      targpos.subEq(pawnpos).scaleEq(5);
+      this.level.pawn_root.setLinearVelocity(targpos);
+
+      pawnpos.z += clamp(-1, 1, this.targetdelta.z);
+      this.level.pawn_spring.setPosition(pawnpos);
+    }
   }
 
   run() {
@@ -401,6 +600,10 @@ class PageBlockbreaker extends PageBase {
 
     /** @type {InputsMap} */
     this.inputs = null;
+
+    this.score = 0;
+    this.fails = 0;
+		this.hearts = 3;
   }
 
   /**
@@ -409,6 +612,19 @@ class PageBlockbreaker extends PageBase {
    */
   step(dt) {
     this.scene.step(dt);
+
+    if (this.score != this.scene.level.score) {
+      this.score = this.scene.level.score;
+      this.session.printscore(this.score);
+    }
+
+    if (this.fails != this.scene.level.fails) {
+      this.fails = this.scene.level.fails;
+			this.session.printhearts(this.hearts, this.fails);
+			if (this.fails >= this.hearts) {
+				this.endplay();
+			}
+		}
   }
 
   run() {
@@ -436,7 +652,11 @@ class PageBlockbreaker extends PageBase {
    * @param {InputAction} action .
    * @param {boolean} start .
    */
-  input(action, start) {}
+  input(action, start) {
+    if (!start) {
+      this.scene.targetdelta.set(0, 0, 0);
+    }
+  }
 
   /**
    * @param {InputAction} action .
@@ -444,12 +664,25 @@ class PageBlockbreaker extends PageBase {
    */
   input_analog(x, z, action) {
     if (action === InputAction.action_c) {
+      this.scene.targetpos.set(x, 0, z);
+    } else if (action === InputAction.action_d) {
+      this.scene.targetdelta.set(x, 0, z);
     }
   }
 
   startplay() {
+		this.score = 0;
+		this.fails = 0;
     this.scene.startplay();
+    this.score = this.scene.level.score;
   }
+
+	endplay() {
+		this.session.endplay();
+		this.scene.stop();
+		App.instance.render.scene.clear();
+    this.scene = new SceneBlockbreaker().run();
+	}
 
   stop() {
     App.instance.pause();

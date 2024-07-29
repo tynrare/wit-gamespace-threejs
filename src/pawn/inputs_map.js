@@ -9,6 +9,7 @@ import Render from "../render.js";
  * InputAction.action_a is pointer click
  * InputAction.action_b is pointer move
  * InputAction.action_c is pointer move with pressed button
+ * InputAction.action_d is pointer move delta with pressed button
  *
  *
  * @memberof Core
@@ -22,12 +23,15 @@ function InputsMap(container, render, input, input_analog) {
     container.addEventListener("pointerdown", pointerdown);
     container.addEventListener("pointerup", pointerup);
     container.addEventListener("pointermove", pointermove);
+    container.addEventListener("touchmove", pointermove, { passive: false });
+    container.addEventListener("mousemove", pointermove);
   };
 
   this.stop = () => {
     container.removeEventListener("pointerdown", pointerdown);
     container.removeEventListener("pointerup", pointerup);
-    container.removeEventListener("pointermove", pointermove);
+    container.removeEventListener("touchmove", pointermove);
+    container.removeEventListener("mousemove", pointermove);
   };
 
   const pointer = new THREE.Vector2();
@@ -47,13 +51,29 @@ function InputsMap(container, render, input, input_analog) {
 
   let pdx = 0;
   let pdy = 0;
+
+	let wpdx = 0;
+	let wpdz = 0;
+
   let pressed = false;
+
   function pointerdown(ev) {
     pressed = true;
     input(InputAction.action_a, pressed);
 
     pdx = ev.layerX;
     pdy = ev.layerY;
+
+    const pos = trace(pdx, pdy);
+
+    if (!pos) {
+      return;
+    }
+
+		input_analog(pos.x, pos.z, InputAction.action_c);
+		wpdx = pos.x;
+		wpdz = pos.z;
+		input_analog(0, 0, InputAction.action_d);
   }
 
   function pointerup(ev) {
@@ -76,8 +96,17 @@ function InputsMap(container, render, input, input_analog) {
   }
 
   function pointermove(ev) {
-    const x = ev.layerX;
-    const y = ev.layerY;
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+
+    let x = ev.layerX;
+    let y = ev.layerY;
+
+    if (ev.touches?.length) {
+      const touch = ev.touches[0];
+      x = touch.clientX;
+      y = touch.clientY;
+    }
     const pos = trace(x, y);
 
     if (!pos) {
@@ -87,6 +116,7 @@ function InputsMap(container, render, input, input_analog) {
     input_analog(pos.x, pos.z, InputAction.action_b);
     if (pressed) {
       input_analog(pos.x, pos.z, InputAction.action_c);
+			input_analog(pos.x - wpdx, pos.z - wpdz, InputAction.action_d);
     }
   }
 }
