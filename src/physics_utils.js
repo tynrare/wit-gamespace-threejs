@@ -106,12 +106,12 @@ class PhysicsUtils {
     const translZLimit = new j.TranslationalLimitMotor().setLimits(0, 0);
 
 		// zero springs works badly.. Should has some nonzero values
-    const transXSd = new j.SpringDamper().setSpring(0, 0);
-    const transYSd = new j.SpringDamper().setSpring(0, 0);
-    const transZSd = new j.SpringDamper().setSpring(0, 0);
-    const rotXSd = new j.SpringDamper().setSpring(0, 0);
-    const rotYSd = new j.SpringDamper().setSpring(0, 0);
-    const rotZSd = new j.SpringDamper().setSpring(0, 0);
+    const transXSd = new j.SpringDamper().setSpring(4, 1);
+    const transYSd = new j.SpringDamper().setSpring(4, 1);
+    const transZSd = new j.SpringDamper().setSpring(4, 1);
+    const rotXSd = new j.SpringDamper().setSpring(4, 1);
+    const rotYSd = new j.SpringDamper().setSpring(4, 1);
+    const rotZSd = new j.SpringDamper().setSpring(4, 1);
 
     config.translationalLimitMotors = [
       translXLimit,
