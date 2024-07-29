@@ -24,12 +24,27 @@
 			label#ssb_scoreboard.scoreboard-style-a ...
 			btn#ssb_play_btn.btn-style-a PLAY
 		overlay#ssb_joysticks.fill-abs: include ./pawn/joysticks.pug
+	page#blockbreaker.gamepage-a
+		render.fill-abs
+		overlay#blockbreaker_ui.gp-ui.fill-abs
+			container#hearts.gp-ui-hearts
+				pic.heart
+				pic.heart
+				pic.heart
+			container#score.gp-ui-score
+				label.score 111
+		overlay#blockbreaker_menu.gp-menu.fill-abs
+			label#blockbreaker_scoreboard.scoreboard.scoreboard-style-a ...
+			btn#blockbreaker_playbtn.playbtn.btn-style-a.show PLAY
+		overlay#blockbreaker_inputs.gp-inputs.fill-abs
 	page#mainmenu
 		root.cardstyle-a
 			h3 ч1. Бег в никуда
 			a.btn(href="?#testcase8") 🞂 "boo ling" arena 0
 			h3 ч2. Полет не туда
 			a.btn(href="?#splashscreen_bowling") 🞂 "boo ling" menu
+			h3 ч3. Прыжок на месте
+			a.btn(href="?#blockbreaker") 🞂 blockbreaker
 			h3 extras
 			a.btn(href="#achievements") achievements
 			a.btn(href="#settings") settings

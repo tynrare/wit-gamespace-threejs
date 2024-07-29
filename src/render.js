@@ -142,6 +142,7 @@ class Render {
     }
 
     this.scale = typeof enable == "number" ? enable : 0.5;
+    this.scale /= this.renderer.getPixelRatio();
 
     this.composer = new EffectComposer(this.renderer);
     const renderPixelatedPass = new RenderPixelatedPass(
@@ -197,9 +198,14 @@ class Render {
     }
   }
 
+  get_camera_fov_factor(width, height) {
+    return Math.min(1, height / width);
+  }
+
   set_camera_aspect(width = this.viewport_w, height = this.viewport_h) {
     this.camera.aspect = width / height;
-    this.camera.fov = this.config.camera_fov * Math.min(1, height / width);
+    this.camera.fov =
+      this.config.camera_fov * this.get_camera_fov_factor(width, height);
     this.camera.updateProjectionMatrix();
   }
 }

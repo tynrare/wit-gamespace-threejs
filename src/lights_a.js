@@ -43,13 +43,14 @@ class LightsA {
         this._run_csm(render.camera, scene);
       } else {
         directional.castShadow = true;
-        directional.shadow.mapSize.width = 256;
-        directional.shadow.mapSize.height = 256;
+        directional.shadow.mapSize.width = 512;
+        directional.shadow.mapSize.height = 512;
         directional.shadow.camera.left = -32;
         directional.shadow.camera.bottom = -32;
         directional.shadow.camera.right = 32;
         directional.shadow.camera.top = 32;
         directional.shadow.camera.far = 10000;
+				directional.shadow.bias = 0.0001
       }
     }
 

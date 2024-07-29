@@ -5,6 +5,7 @@ import PageMainmenu from "./page_mainmenu.js";
 import PageSettings from "./page_settings.js";
 import PageSplashscreenBowling from "./tests/d240727_bowling/page_splashscreen_bownling.js";
 import PageMinigameA from "./scenes/page_minigame_a.js";
+import PageBlockbreaker from "./tests/page_blockbreaker.js";
 
 import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
@@ -50,7 +51,8 @@ class App {
       mainmenu: new PageMainmenu(),
       settings: new PageSettings(),
       splashscreen_bowling: new PageSplashscreenBowling(),
-			minigame_a: new PageMinigameA(),
+      minigame_a: new PageMinigameA(),
+      blockbreaker: new PageBlockbreaker(),
 
       testcase1: new PageTestcase1(),
       testcase2: new PageTestcase2Tanks(),
@@ -80,7 +82,7 @@ class App {
     /** @type {Session} */
     this.playsession = null;
 
-		this.DEBUG = true;
+    this.DEBUG = true;
   }
 
   /**
@@ -112,9 +114,9 @@ class App {
    */
   start(container) {
     this.playsession.start();
-		if (container) {
-			this.render.run(container);
-		}
+    if (container) {
+      this.render.run(container);
+    }
     this.loop.start();
   }
 
@@ -168,17 +170,17 @@ class App {
     this.routine();
     this._routine_timer_id = setInterval(this.routine.bind(this), 1000);
 
-		const urlParams = new URLSearchParams(window.location.search);
-		const mode = urlParams.get('mode');
-		if (mode === "prod") {
-			this.DEBUG = false;
-		} else {
-			document.getElementById("stats").classList.remove("hidden");
-		}
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get("mode");
+    if (mode === "prod") {
+      this.DEBUG = false;
+    } else {
+      document.getElementById("stats").classList.remove("hidden");
+    }
 
-    const server_url = urlParams.get('server');
-    const server_token = urlParams.get('token');
-		Scoreboard.instance.init(server_url, server_token);
+    const server_url = urlParams.get("server");
+    const server_token = urlParams.get("token");
+    Scoreboard.instance.init(server_url, server_token);
 
     this.onhashchange();
 
@@ -217,7 +219,7 @@ class App {
     this.activepage = page.init(container);
     this.activepage.run();
 
-		this.activepage.container.classList.add("target");
+    this.activepage.container.classList.add("target");
 
     logger.log(`App::openpage - page ${name} opened`);
   }
@@ -227,7 +229,7 @@ class App {
       return;
     }
 
-		this.activepage.container?.classList.remove("target");
+    this.activepage.container?.classList.remove("target");
 
     try {
       this.activepage.stop();
@@ -247,10 +249,10 @@ class App {
   onhashchange() {
     const hash = window.location.hash;
     let pagename = hash.substring(1);
-		const query_index = pagename.indexOf("?");
-		if (query_index >= 0) {
-			pagename = pagename.substring(0, query_index);
-		}
+    const query_index = pagename.indexOf("?");
+    if (query_index >= 0) {
+      pagename = pagename.substring(0, query_index);
+    }
 
     this.closepage();
     this.openpage(pagename);
@@ -261,6 +263,35 @@ class App {
     const el2 = document.getElementById("splashscreen_loading");
     el1.classList[visible ? "add" : "remove"]("active");
     el2.classList[!visible ? "add" : "remove"]("hidden");
+  }
+
+  fullscreen(enabled, element = document) {
+		if (this.DEBUG) {
+			logger.log("fullscreen requested. Ignored in DEBUG mode");
+			return;
+		}
+
+    if (!enabled) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        /* IE11 */
+        document.msExitFullscreen();
+      }
+    } else {
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.webkitRequestFullscreen) {
+        /* Safari */
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        /* IE11 */
+        element.msRequestFullscreen();
+      }
+    }
   }
 
   /**

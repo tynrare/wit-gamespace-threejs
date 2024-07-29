@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import { Color, Vector3 } from "three";
 
+import AdTestcaseBowling from "./ad_tc_bowling.js";
 import App from "../../app.js";
 import { oimo } from "../../lib/OimoPhysics.js";
 import Loader from "../../loader.js";
@@ -12,7 +13,6 @@ import CameraTopdown from "../../pawn/camera_topdown.js";
 import { InputAction, InputsDualstick } from "../../pawn/inputs_dualstick.js";
 import { RigidBodyType } from "../../physics.js";
 import Scoreboard from "../../scoreboard.js";
-import AdTestcaseBowling from "./ad_tc_bowling.js";
 import { get_material_blob_a, update_shaders } from "../../vfx/shaders.js";
 
 class PageSplashscreenBowling extends PageBase {

@@ -30,8 +30,8 @@ class RenderUtils {
   /**
  * @returns {THREE.Mesh}
  */
-  spawn_icosphere0(color) {
-    const geometry = new THREE.IcosahedronGeometry(0.1);
+  spawn_icosphere0(color, size = 0.1) {
+    const geometry = new THREE.IcosahedronGeometry(size);
     const material = this.create_material0(color);
     const mesh = new THREE.Mesh(geometry, material);
 
