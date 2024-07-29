@@ -149,7 +149,7 @@ class LevelBlockbreaker {
       ball_speed_max: 40,
       width: 15,
       height: 25,
-      pawnposz: 10,
+      pawnposz: 14,
 			pawnspeed: 7,
       pawnwidth: 4,
       respawn_brick_threshold: 1,
