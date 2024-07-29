@@ -172,7 +172,7 @@ class LevelBlockbreaker {
   }
 
   run() {
-    this.physics = new Physics().run({ fixed_step: true });
+    this.physics = new Physics().run({ fixed_step: false });
 
     this._create_level_box(this.config.width, this.config.height);
     this._create_bricks(new THREE.Vector3(0, 0, -7), new THREE.Vector2(6, 7));
