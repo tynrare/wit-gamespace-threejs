@@ -171,7 +171,7 @@ class LevelBlockbreaker {
   }
 
   run() {
-    this.physics = new Physics().run({ fixed_step: false });
+    this.physics = new Physics().run({ fixed_step: true });
 
     this._create_level_box(this.config.width, this.config.height);
     this._create_bricks(new THREE.Vector3(0, 0, -7), new THREE.Vector2(6, 7));
@@ -183,9 +183,10 @@ class LevelBlockbreaker {
 
   _spawn_ball() {
     const pos = cache.vec3.v0;
+		const size = 0.7;
     const ball = this.physics.create_sphere(
       pos.set(0, 0, this.config.pawnposz - 1.5),
-      0.5,
+      size,
       RigidBodyType.DYNAMIC,
       {
         restitution: 1,
@@ -193,7 +194,7 @@ class LevelBlockbreaker {
       },
     );
     this.ball_body = ball;
-    const ball_mesh = App.instance.render.utils.spawn_icosphere0(0xffff00, 0.5);
+    const ball_mesh = App.instance.render.utils.spawn_icosphere0(0xffff00, size);
     App.instance.render.scene.add(ball_mesh);
     this.physics.attach(ball, ball_mesh);
   }
@@ -245,7 +246,7 @@ class LevelBlockbreaker {
 
   _create_bricks(origin, grid, randompos = 0) {
     this.bricks_total = grid.x * grid.y;
-    const BOX_SIZE = cache.vec3.v0.set(2, 0.5, 1);
+    const BOX_SIZE = cache.vec3.v0.set(2, 0.7, 1);
     for (let x = 0; x < grid.x; x++) {
       for (let y = 0; y < grid.y; y++) {
         let x1 =
@@ -396,7 +397,7 @@ class LevelBlockbreaker {
     if (!brick) {
       pos.set(0, -10, 0);
       const size = cache.vec3.v1;
-      size.set(2, 0.5, 1);
+      size.set(2, 0.7, 1);
 
       brick = this._query_respawn_brick = this._spawn_brick(
         pos,
