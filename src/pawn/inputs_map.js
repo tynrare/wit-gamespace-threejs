@@ -122,3 +122,4 @@ function InputsMap(container, render, input, input_analog) {
 }
 
 export { InputAction, InputsMap };
+export default InputsMap;

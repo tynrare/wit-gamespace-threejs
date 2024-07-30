@@ -11,6 +11,7 @@ import PageTestcase1 from "./tests/page_testcase1.js";
 import PageTestcase2Tanks from "./tests/page_testcase2_tanks.js";
 import PageTestcase3 from "./tests/page_testcase3.js";
 import PageTestcase4 from "./tests/page_testcase4.js";
+import PageTestcase5Navmesh from "./tests/page_testcase5_navmesh.js";
 import AaPageTestcaseBowling from "./tests/deprecated/aa_page_tc_bowling.js";
 import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
 import AcPageTestcaseBowling from "./tests/deprecated/ac_page_tc_bowling.js";
@@ -66,6 +67,7 @@ class App {
       testcase10: new AePageTestcaseTank(),
       testcase11: new BaPageTestcaseVehicle(),
       testcase12: new AfPageTestcaseBoulder(),
+      testcase13: new PageTestcase5Navmesh(),
     };
 
     /** @type {Render} */

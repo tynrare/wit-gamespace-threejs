@@ -9,7 +9,7 @@ import ProjectilesSystem from "./projectiles_system.js";
 import { clamp } from "../../math.js";
 import Render from "../../render.js";
 import LightsA from "../../lights_a.js";
-import Navmesh from "./navmesh.js";
+import Navmesh from "../../navmesh.js";
 import MovementSystem from "./movement_system.js";
 
 import { InputAction } from "../../pawn/inputs_dualstick.js";

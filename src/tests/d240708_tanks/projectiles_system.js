@@ -1,7 +1,7 @@
 /** @namespace Gamespace */
 import * as THREE from "three";
 import { MovementSystem, MovementEntity } from "./movement_system.js";
-import Navmesh from "./navmesh.js";
+import Navmesh from "../../navmesh.js";
 import { Vector3 } from "three";
 import { cache } from "../../math.js";
 import logger from "../../logger.js";

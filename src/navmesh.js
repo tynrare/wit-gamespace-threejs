@@ -9,7 +9,8 @@ import {
   project_line_on_line,
   project_on_line_clamp,
   cache as mathcache,
-} from "../../math.js";
+  cache,
+} from "./math.js";
 
 class Vertex {
   constructor(x, y, z, r = 1, g = 1, b = 1) {
@@ -213,16 +214,15 @@ class Navmesh {
    * @returns {number} .
    */
   _fohash(a, b, c = 1.1) {
-		const aa = ((a || 1.1) + 1.1) * 100;
-		const bb = ((b || 1.1) + 1.1) * 10;
-		const cc = ((c || 1.1) + 1.1) * 1;
-    const hash = aa - bb - cc +
-      Math.log(Math.abs(aa / bb / cc) + 1);
+    const aa = ((a || 1.1) + 1.1) * 100;
+    const bb = ((b || 1.1) + 1.1) * 10;
+    const cc = ((c || 1.1) + 1.1) * 1;
+    const hash = aa - bb - cc + Math.log(Math.abs(aa / bb / cc) + 1);
     return hash;
   }
 
   /**
-   * Default has value
+   * Default hash value. Ordered
    *
    * @param {number} a
    * @param {number} b
@@ -230,7 +230,7 @@ class Navmesh {
    * @returns {number} .
    */
   _hash(a, b, c = 1.1) {
-    return Math.round(this._fhash(a, b, c) * 1e10);
+    return Math.round(this._fohash(a, b, c) * 1e10);
   }
 
   /**
@@ -282,8 +282,33 @@ class Navmesh {
    * @returns {NavmeshPoint?} point
    */
   register(pos) {
+    let closest_dist = Infinity;
+    let closest_face = null;
     for (const k in this.faces) {
       const face = this.faces[k];
+      const normal = face.normal;
+      const projected_pos = this.cache.v3.copy(
+        project_on_plane(pos, face.pa.pos, normal),
+      );
+      const dist = projected_pos.distanceTo(pos);
+      if (dist > closest_dist) {
+        continue;
+      }
+
+      const bcpos = get_barycentric_coordinates(
+        face.pa.pos,
+        face.pb.pos,
+        face.pc.pos,
+        projected_pos,
+      );
+      if (bcpos.x >= 0 && bcpos.y >= 0 && bcpos.z >= 0) {
+        closest_dist = dist;
+        closest_face = face;
+      }
+    }
+
+    if (closest_face) {
+      const face = closest_face;
       const normal = face.normal;
       const projected_pos = this.cache.v3.copy(
         project_on_plane(pos, face.pa.pos, normal),
@@ -294,13 +319,12 @@ class Navmesh {
         face.pc.pos,
         projected_pos,
       );
-      if (bcpos.x >= 0 && bcpos.y >= 0 && bcpos.z >= 0) {
-        const id = "p" + this.guids++;
-        const point = new NavmeshPoint(id, projected_pos, bcpos, face);
-        this.points[id] = point;
 
-        return point;
-      }
+      const id = "p" + this.guids++;
+      const point = new NavmeshPoint(id, projected_pos, bcpos, face);
+      this.points[id] = point;
+
+      return point;
     }
 
     return null;
@@ -408,6 +432,9 @@ class Navmesh {
     const p = positions.array;
     const c = colors?.array ?? [];
     console.log(indices, positions, colors);
+    const pos0 = cache.vec3.v0;
+    const pos1 = cache.vec3.v1;
+    const pos2 = cache.vec3.v2;
     for (let i = 0; i < indices.count; i += 3) {
       const pid1 = indices.array[i];
       const pid2 = indices.array[i + 1];
@@ -416,32 +443,38 @@ class Navmesh {
       const id2 = pid2 * 3;
       const id3 = pid3 * 3;
 
+      pos0.set(p[id1], p[id1 + 1], p[id1 + 2]);
+      pos1.set(p[id2], p[id2 + 1], p[id2 + 2]);
+      pos2.set(p[id3], p[id3 + 1], p[id3 + 2]);
+      const vhash0 = this._shash(pos0.x, pos0.y, pos0.z);
+      const vhash1 = this._shash(pos1.x, pos1.y, pos1.z);
+      const vhash2 = this._shash(pos2.x, pos2.y, pos2.z);
       const v1 =
-        this.verticies[pid1] ??
-        (this.verticies[pid1] = new Vertex(
-          p[id1],
-          p[id1 + 1],
-          p[id1 + 2],
+        this.verticies[vhash0] ??
+        (this.verticies[vhash0] = new Vertex(
+          pos0.x,
+          pos0.y,
+          pos0.z,
           c[id1],
           c[id1 + 1],
           c[id1 + 2],
         ));
       const v2 =
-        this.verticies[pid2] ??
-        (this.verticies[pid2] = new Vertex(
-          p[id2],
-          p[id2 + 1],
-          p[id2 + 2],
+        this.verticies[vhash1] ??
+        (this.verticies[vhash1] = new Vertex(
+          pos1.x,
+          pos1.y,
+          pos1.z,
           c[id2],
           c[id2 + 1],
           c[id2 + 2],
         ));
       const v3 =
-        this.verticies[pid3] ??
-        (this.verticies[pid3] = new Vertex(
-          p[id3],
-          p[id3 + 1],
-          p[id3 + 2],
+        this.verticies[vhash2] ??
+        (this.verticies[vhash2] = new Vertex(
+          pos2.x,
+          pos2.y,
+          pos2.z,
           c[id3],
           c[id3 + 1],
           c[id3 + 2],
@@ -479,4 +512,5 @@ class Navmesh {
   }
 }
 
+export { Navmesh, NavmeshPoint, Vertex, Edge, Face }
 export default Navmesh;

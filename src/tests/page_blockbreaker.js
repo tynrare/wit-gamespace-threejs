@@ -544,7 +544,7 @@ class SceneBlockbreaker {
       targpos.subEq(pawnpos).scaleEq(this.level.config.pawnspeed);
       this.level.pawn_root.setLinearVelocity(targpos);
 
-      pawnpos.z += clamp(-1, 1, this.targetdelta.z);
+      pawnpos.z += clamp(-1.5, 1, this.targetdelta.z);
       this.level.pawn_spring.setPosition(pawnpos);
     }
 
