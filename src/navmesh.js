@@ -8,6 +8,7 @@ import {
   barycentric_to_cartesian,
   project_line_on_line,
   project_on_line_clamp,
+  project_on_line,
   cache as mathcache,
   cache,
 } from "./math.js";
@@ -189,6 +190,9 @@ class Navmesh {
       },
       tested_edges: {},
     };
+
+    // should toggle it on later
+    this.origin = new THREE.Vector3();
   }
 
   /**
@@ -230,7 +234,7 @@ class Navmesh {
    * @returns {number} .
    */
   _hash(a, b, c = 1.1) {
-    return Math.round(this._fohash(a, b, c) * 1e10);
+    return Math.round(this._fhash(a, b, c) * 1e10);
   }
 
   /**
@@ -282,15 +286,16 @@ class Navmesh {
    * @returns {NavmeshPoint?} point
    */
   register(pos) {
+    const p = cache.vec3.v4.copy(pos).sub(this.origin);
     let closest_dist = Infinity;
     let closest_face = null;
     for (const k in this.faces) {
       const face = this.faces[k];
       const normal = face.normal;
       const projected_pos = this.cache.v3.copy(
-        project_on_plane(pos, face.pa.pos, normal),
+        project_on_plane(p, face.pa.pos, normal),
       );
-      const dist = projected_pos.distanceTo(pos);
+      const dist = projected_pos.distanceTo(p);
       if (dist > closest_dist) {
         continue;
       }
@@ -311,7 +316,7 @@ class Navmesh {
       const face = closest_face;
       const normal = face.normal;
       const projected_pos = this.cache.v3.copy(
-        project_on_plane(pos, face.pa.pos, normal),
+        project_on_plane(p, face.pa.pos, normal),
       );
       const bcpos = get_barycentric_coordinates(
         face.pa.pos,
@@ -319,6 +324,8 @@ class Navmesh {
         face.pc.pos,
         projected_pos,
       );
+
+      projected_pos.add(this.origin);
 
       const id = "p" + this.guids++;
       const point = new NavmeshPoint(id, projected_pos, bcpos, face);
@@ -334,8 +341,11 @@ class Navmesh {
    * @param {string} id id of registered point
    * @param {THREE.Vector3} newpos pos that has to be applied
    */
-  move(id, newpos, tested_edges = this.cache.tested_edges) {
+  move(id, newpos, tested_edges = this.cache.tested_edges, recursed = false) {
     const np = this.cache.v3.copy(newpos);
+		if (!recursed) {
+			np.sub(this.origin)
+		}
     const p = this.points[id];
 
     let changed = true;
@@ -390,7 +400,7 @@ class Navmesh {
             );
 
             // recursion!
-            return this.move(id, linepos, tested_edges);
+            return this.move(id, linepos, tested_edges, true);
           }
           break;
         }
@@ -400,14 +410,16 @@ class Navmesh {
       // apply data
       if (!changed) {
         p.bcpos.copy(bcpos);
-        p.worldpos.copy(
-          barycentric_to_cartesian(
-            p.face.pa.pos,
-            p.face.pb.pos,
-            p.face.pc.pos,
-            bcpos,
-          ),
-        );
+        p.worldpos
+          .copy(
+            barycentric_to_cartesian(
+              p.face.pa.pos,
+              p.face.pb.pos,
+              p.face.pc.pos,
+              bcpos,
+            ),
+          )
+          .add(this.origin);
       }
 
       if (deadlock > 10) {
@@ -426,12 +438,14 @@ class Navmesh {
    * @param {THREE.Mesh} mesh
    */
   build(mesh) {
+    mesh.getWorldPosition(this.origin);
+
     const indices = mesh.geometry.getIndex();
     const positions = mesh.geometry.getAttribute("position");
     const colors = mesh.geometry.getAttribute("color");
     const p = positions.array;
     const c = colors?.array ?? [];
-    console.log(indices, positions, colors);
+    //console.log(indices, positions, colors);
     const pos0 = cache.vec3.v0;
     const pos1 = cache.vec3.v1;
     const pos2 = cache.vec3.v2;
@@ -446,9 +460,9 @@ class Navmesh {
       pos0.set(p[id1], p[id1 + 1], p[id1 + 2]);
       pos1.set(p[id2], p[id2 + 1], p[id2 + 2]);
       pos2.set(p[id3], p[id3 + 1], p[id3 + 2]);
-      const vhash0 = this._shash(pos0.x, pos0.y, pos0.z);
-      const vhash1 = this._shash(pos1.x, pos1.y, pos1.z);
-      const vhash2 = this._shash(pos2.x, pos2.y, pos2.z);
+      const vhash0 = this._fohash(pos0.x, pos0.y, pos0.z);
+      const vhash1 = this._fohash(pos1.x, pos1.y, pos1.z);
+      const vhash2 = this._fohash(pos2.x, pos2.y, pos2.z);
       const v1 =
         this.verticies[vhash0] ??
         (this.verticies[vhash0] = new Vertex(
@@ -480,20 +494,20 @@ class Navmesh {
           c[id3 + 2],
         ));
 
-      const hash1 = this._svechash(v1.pos, v2.pos);
-      const hash2 = this._svechash(v2.pos, v3.pos);
-      const hash3 = this._svechash(v3.pos, v1.pos);
+      const hash0 = this._shash(vhash0, vhash1);
+      const hash1 = this._shash(vhash1, vhash2);
+      const hash2 = this._shash(vhash2, vhash0);
       /*
-			const hash1 = this._shash(id1, id2);
-			const hash2 = this._shash(id2, id3);
-			const hash3 = this._shash(id3, id1);
+			const hash0 = this._shash(id1, id2);
+			const hash1 = this._shash(id2, id3);
+			const hash2 = this._shash(id3, id1);
 			*/
       const e1 =
-        this.edges[hash1] ?? (this.edges[hash1] = new Edge(hash1, v1, v2));
+        this.edges[hash0] ?? (this.edges[hash0] = new Edge(hash0, v1, v2));
       const e2 =
-        this.edges[hash2] ?? (this.edges[hash2] = new Edge(hash2, v2, v3));
+        this.edges[hash1] ?? (this.edges[hash1] = new Edge(hash1, v2, v3));
       const e3 =
-        this.edges[hash3] ?? (this.edges[hash3] = new Edge(hash3, v3, v1));
+        this.edges[hash2] ?? (this.edges[hash2] = new Edge(hash2, v3, v1));
       const hashf = this._shash(id1, id2, id3);
       const face = new Face(hashf, v1, v2, v3, e1, e2, e3);
       this.faces[hashf] = face;
@@ -512,5 +526,5 @@ class Navmesh {
   }
 }
 
-export { Navmesh, NavmeshPoint, Vertex, Edge, Face }
+export { Navmesh, NavmeshPoint, Vertex, Edge, Face };
 export default Navmesh;

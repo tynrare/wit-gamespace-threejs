@@ -9,7 +9,9 @@ import { MapControls } from "three/addons/controls/MapControls.js";
 import { createFloorPlane } from "./utils.js";
 import { cache } from "../math.js";
 import { Navmesh, NavmeshPoint } from "../navmesh.js";
-import { InputsMap, InputAction } from "../pawn/inputs_map.js";
+import { InputsDualstick, InputAction } from "../pawn/inputs_dualstick.js";
+import CameraThirdPerson from "../pawn/camera_third_person_b.js";
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 class TestNavmesh {
   constructor() {
@@ -28,17 +30,19 @@ class TestNavmesh {
     /** @type {THREE.Object3D} */
     this.scene = null;
 
+    this.movedir = new THREE.Vector3();
+
     this.elapsed = 0;
   }
+
   run(mapname, origin, onload) {
     const render = App.instance.render;
     const scene = render.scene;
 
     this.pawn_model_actual = render.utils.spawn_box0(0xfa2123, 0.2);
     this.pawn_model_actual.material.wireframe = true;
-    this.pawn_model_visual = render.utils.spawn_box0(null, 0.2);
-    scene.add(this.pawn_model_actual);
-    scene.add(this.pawn_model_visual);
+    this.pawn_model_actual.visible = false;
+    this.pawn_model_visual = render.utils.spawn_box0(null, 0.4);
 
     this.navmesh = new Navmesh();
     const mesh = Loader.instance.get_gltf(mapname).then((gltf) => {
@@ -47,15 +51,19 @@ class TestNavmesh {
       scene.add(s);
       s.position.copy(origin);
       const m = s.children[0];
-      m.material.wireframe = true;
+      //m.material.wireframe = true;
       this.navmesh.build(m);
 
-			const p = cache.vec3.v0.copy(origin);
+      const p = cache.vec3.v0.copy(origin);
+      p.y += 2;
       this.pawn_npoint = this.navmesh.register(p);
 
-			if (onload) {
-				onload();
-			}
+      s.add(this.pawn_model_actual);
+      s.add(this.pawn_model_visual);
+
+      if (onload) {
+        onload();
+      }
     });
 
     return this;
@@ -64,43 +72,36 @@ class TestNavmesh {
     this.elapsed += dt;
 
     if (this.pawn_npoint) {
+      const wdir = cache.vec3.v0;
+
+      // move by movedir
+      wdir.set(0, 0, this.movedir.z + Math.abs(this.movedir.y));
+      wdir.applyQuaternion(this.pawn_model_actual.quaternion);
+      wdir.multiplyScalar(2 * dt * 1e-3);
+      wdir.add(this.pawn_model_actual.position);
+      this.navmesh.move(this.pawn_npoint.id, wdir);
+
+      // rotate by movedir
+      wdir.set(0, 1, 0);
+      wdir.applyQuaternion(this.pawn_model_actual.quaternion);
+      this.pawn_model_actual.rotateOnWorldAxis(wdir, this.movedir.y * 0.03);
+
+      // set position
       this.pawn_model_actual.position.copy(this.pawn_npoint.worldpos);
 
       // set face rotation
-      const wdir = cache.vec3.v0.set(0, 1, 0);
+      wdir.set(0, 1, 0);
       wdir.applyQuaternion(this.pawn_model_actual.quaternion);
       const angle = wdir.angleTo(this.pawn_npoint.face.normal);
       wdir.cross(this.pawn_npoint.face.normal).normalize();
       this.pawn_model_actual.rotateOnWorldAxis(wdir, angle);
-
-      // move forwards
-      wdir.set(0, 0, 1);
-      wdir.applyQuaternion(this.pawn_model_actual.quaternion);
-      wdir.multiplyScalar(0.01);
-      wdir.add(this.pawn_model_actual.position);
-      this.navmesh.move(this.pawn_npoint.id, wdir);
-
-      wdir.set(0, 1, 0);
-      wdir.applyQuaternion(this.pawn_model_actual.quaternion);
-      this.pawn_model_actual.rotateOnWorldAxis(
-        wdir,
-        Math.sin(this.elapsed * 1e-3) * 0.1,
-				//0.01
-      );
-
-      /*
-			const x = Math.sin(this.elapsed * 1e-3);
-			const z = Math.cos(this.elapsed * 1e-3);
-			const r = 0.9;
-			const p = cache.vec3.v0.set(x, 0, z).multiplyScalar(r);
-			this.navmesh.move(this.pawn_npoint.id, p);
-			*/
     }
 
+    // apply
     this.pawn_model_visual.position.copy(this.pawn_model_actual.position);
     this.pawn_model_visual.quaternion.slerp(
       this.pawn_model_actual.quaternion,
-      0.2
+      0.07,
     );
   }
 
@@ -128,7 +129,7 @@ class PageTestcase5Navmesh extends PageBase {
     /** @type {LightsA} */
     this.lights = null;
 
-    /** @type {MapControls} */
+    /** @type {CameraThirdPerson} */
     this.controls = null;
 
     /** @type {InputsMap} */
@@ -136,13 +137,15 @@ class PageTestcase5Navmesh extends PageBase {
 
     /** @type {Array<TestNavmesh>} */
     this.tests = [];
+
+    this.pawn = null;
   }
 
   /**
    * @param {number} dt .
    */
   step(dt) {
-    this.controls.update();
+    this.controls.step(dt);
 
     for (const i in this.tests) {
       this.tests[i].step(dt);
@@ -156,46 +159,55 @@ class PageTestcase5Navmesh extends PageBase {
     const scene = render.scene;
 
     scene.background = new THREE.Color(0x66c0dc);
+
+    new EXRLoader().load(
+      "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/1k/kloppenheim_07_1k.exr",
+			/**
+			 * @param {THREE.Texture} texture .
+			 */
+      (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = texture;
+				scene.environmentIntensity = 0.8;
+				this.lights.lights.directional.intensity = 0.5;
+				this.lights.lights.hemisphere.intensity = 0.4;
+      },
+    );
     this.lights = new LightsA().run(App.instance.render);
     this.lights.lights.directional.intensity = 1;
+    this.lights.lights.hemisphere.intensity = 1;
 
     // floor
     {
+      /*
       const plane = createFloorPlane();
       scene.add(plane);
       this.plane = plane;
+			*/
     }
 
-    this.inputs = new InputsMap(
+    this.inputs = new InputsDualstick(
       this.container,
-      render,
+      this.container,
       this.input.bind(this),
       this.input_analog.bind(this),
     );
+    this.inputs.run();
 
     // camera controls
-    const controls = new MapControls(render.camera, render.renderer.domElement);
-    controls.enableDamping = true;
+    const controls = new CameraThirdPerson();
+    controls.set_camera(render.camera);
     this.controls = controls;
 
-    this.tests.push(
-      new TestNavmesh().run(
-        "test/test_navmesh0.glb",
-        new THREE.Vector3(0, 1, 0),
-      ),
+    const t = new TestNavmesh().run(
+      "test/test_navmesh3.glb",
+      new THREE.Vector3(0, 0, 0),
+      () => {
+        this.pawn = t.pawn_model_actual;
+        controls.set_target(t.pawn_model_visual);
+      },
     );
-    this.tests.push(
-      new TestNavmesh().run(
-        "test/test_navmesh1.glb",
-        new THREE.Vector3(2.1, 1, 0),
-      ),
-    );
-    this.tests.push(
-      new TestNavmesh().run(
-        "test/test_navmesh2.glb",
-        new THREE.Vector3(4.2, 1, 0),
-      ),
-    );
+    this.tests.push(t);
   }
 
   /**
@@ -208,7 +220,13 @@ class PageTestcase5Navmesh extends PageBase {
    * @param {InputAction} action .
    * @param {boolean} start .
    */
-  input_analog(x, z, action) {}
+  input_analog(x, y, tag, action) {
+    if (tag != "movement") {
+      return;
+    }
+
+    this.tests[0].movedir.set(0, x, y);
+  }
 
   stop() {
     App.instance.pause();

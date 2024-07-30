@@ -26,6 +26,7 @@ class CameraThirdPerson {
 
     this.cache = {
       v3: new Vector3(),
+      v3_1: new Vector3(),
     };
 
     this.config = new CameraConfig();
@@ -36,11 +37,15 @@ class CameraThirdPerson {
       return;
     }
 
+		const up = this.cache.v3_1.set(0, 1, 0);
+		up.applyQuaternion(this._target.quaternion);
+
     // ---
     // construct local position vector
     const pos = this.cache.v3.set(0, 0, 1);
     pos.normalize().multiplyScalar(this.config.distance);
     pos.y += this.config.height;
+		//pos.applyQuaternion(this._target.quaternion);
 
     // -- angle
     // modify target rotation based on imput
@@ -84,7 +89,7 @@ class CameraThirdPerson {
     );
     this._target_lrot += angle_d * dist_angle_factor * rot_speed;
 
-    pos.applyAxisAngle(Vec3Up, this._target_lrot);
+    pos.applyAxisAngle(up, this._target_lrot);
 
     // ---
 
@@ -96,7 +101,7 @@ class CameraThirdPerson {
     this._camera_lpos.lerp(pos, this.config.camera_speed);
 
     this._camera.position.copy(this._camera_lpos);
-    this._camera.up = Vec3Up;
+    this._camera.up = up;
 
     this._camera.lookAt(this._target_lpos);
 

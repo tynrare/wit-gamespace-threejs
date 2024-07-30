@@ -37,6 +37,17 @@ class RenderUtils {
 
     return mesh;
   }
+
+  /**
+ * @returns {THREE.Mesh}
+ */
+  spawn_box0(color, size = 0.1) {
+    const geometry = new THREE.BoxGeometry(size, size, size);
+    const material = this.create_material0(color);
+    const mesh = new THREE.Mesh(geometry, material);
+
+    return mesh;
+  }
 }
 
 export default RenderUtils;

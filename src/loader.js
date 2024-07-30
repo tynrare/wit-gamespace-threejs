@@ -90,7 +90,8 @@ class Loader {
     this.notify_loading();
 
     logger.log(`Loader::get_texture texture ${url} loading..`);
-    const texture = new THREE.TextureLoader().load(
+		const loader = new THREE.TextureLoader();
+    const texture = loader.load(
       url,
       () => {
         this.confirm_loading();
