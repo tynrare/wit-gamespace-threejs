@@ -20,6 +20,7 @@
     "vite-plugin-pug": "^0.3.2"
   },
   "dependencies": {
+    "@poki/netlib": "^0.0.13",
     "three": "^0.166.1"
   }
 }

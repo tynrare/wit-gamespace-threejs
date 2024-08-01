@@ -77,7 +77,7 @@ class TestNavmesh {
       // move by movedir
       wdir.set(0, 0, this.movedir.z + Math.abs(this.movedir.y));
       wdir.applyQuaternion(this.pawn_model_actual.quaternion);
-      wdir.multiplyScalar(2 * dt * 1e-3);
+      wdir.multiplyScalar(4 * dt * 1e-3);
       wdir.add(this.pawn_model_actual.position);
       this.navmesh.move(this.pawn_npoint.id, wdir);
 
@@ -162,9 +162,6 @@ class PageTestcase5Navmesh extends PageBase {
 
     new EXRLoader().load(
       "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/1k/kloppenheim_07_1k.exr",
-			/**
-			 * @param {THREE.Texture} texture .
-			 */
       (texture) => {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.environment = texture;

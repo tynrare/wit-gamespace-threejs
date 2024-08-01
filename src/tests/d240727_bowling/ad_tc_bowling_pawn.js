@@ -511,9 +511,6 @@ class AdTestcaseBowlingPawn {
       .setLength(radius * 2)
       .add(this.pawn_draw._target.position);
     pos.y = 0.5;
-    const impulse = this._physics.cache.vec3_0;
-    impulse.init(dir.x, 0, dir.z);
-    impulse.scaleEq(this.config.throw_factor * this.charge_applied);
     let color = new THREE.Color(Math.random(), Math.random(), Math.random());
     const body = this._physics.create_sphere(
       pos,
@@ -534,6 +531,10 @@ class AdTestcaseBowlingPawn {
     mesh.position.copy(pos);
     App.instance.render.scene.add(mesh);
     this._physics.attach(body, mesh);
+
+    const impulse = this._physics.cache.vec3_0;
+    impulse.init(dir.x, 0, dir.z);
+    impulse.scaleEq(this.config.throw_factor * this.charge_applied);
     body.applyLinearImpulse(impulse);
     this.charge_applied = 0;
   }

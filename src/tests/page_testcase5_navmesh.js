@@ -196,6 +196,12 @@ class PageTestcase5Navmesh extends PageBase {
         new THREE.Vector3(4.2, 1, 0),
       ),
     );
+    this.tests.push(
+      new TestNavmesh().run(
+        "test/test_navmesh4.glb",
+        new THREE.Vector3(6.3, 1, 0),
+      ),
+    );
   }
 
   /**
