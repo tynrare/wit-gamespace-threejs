@@ -12,6 +12,7 @@ class Stats {
 
   init() {
     this.fps_el = document.getElementById("fps_stat");
+    this.print_el = document.getElementById("print_stat");
     this.loading_el = document.getElementById("loading_stat");
     this.elapsed_el = document.getElementById("elapsed_stat");
     this.elapsed_total_el = document.getElementById("elapsed_total_stat");
@@ -42,6 +43,10 @@ class Stats {
   show_loading(active) {
     this.loading_el.classList[active ? "remove" : "add"]("hidden");
   }
+
+	print(message) {
+		this.print_el.innerHTML = message;
+	}
 
   /**
    * @returns {Stats} .

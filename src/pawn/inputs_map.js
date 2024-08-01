@@ -96,8 +96,8 @@ function InputsMap(container, render, input, input_analog) {
   }
 
   function pointermove(ev) {
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
+    //ev.preventDefault();
+    //ev.stopImmediatePropagation();
 
     let x = ev.layerX;
     let y = ev.layerY;

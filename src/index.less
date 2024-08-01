@@ -93,11 +93,22 @@ page {
   text-shadow: 1px 1px black;
   backdrop-filter: blur(8px);
 
+	details summary {
+		cursor: pointer;
+	}
+
   .minor {
     font-size: 0.7em;
     opacity: 0.9;
     text-shadow: none;
   }
+
+	#print_stat:not(:empty) {
+		margin-top: 2px;
+		border-top: #fffa solid 2px;
+		display: flex;
+		flex-direction: column;
+	}
 }
 
 #approot #splashscreen_loading {
