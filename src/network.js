@@ -7,7 +7,57 @@ const fakenames = ["Bob", "Glob", "Dog", "Borg", "Dong", "Clomp"];
 const MESSAGE_TYPE = {
   GREET: 0,
   SYNC: 1,
+  GAME: 2,
 };
+
+const MESSAGE_GAME_ACTION_TYPE = {
+  POSITION: 0,
+  POSITION_FORCED: 1,
+};
+
+class NetPacket {
+  constructor(latency = 0) {
+    this.latency = 0;
+
+    const buffer = new ArrayBuffer(16);
+    this.buffer = buffer;
+    this._vtype = new Uint8Array(buffer, 0, 1);
+    this._vsubtype = new Uint8Array(buffer, 1, 1);
+    this._vstamp = new Uint16Array(buffer, 2, 1);
+    this.pos = new Float32Array(buffer, 4, 3);
+    this._len = new Uint8Array(buffer);
+  }
+
+  get type() {
+    return this._vtype[0];
+  }
+
+  set type(v) {
+    return (this._vtype[0] = v);
+  }
+
+  get subtype() {
+    return this._vsubtype[0];
+  }
+
+  set subtype(v) {
+    return (this._vsubtype[0] = v);
+  }
+
+  get stamp() {
+    return this._vstamp[0];
+  }
+
+  set stamp(v) {
+    return (this._vstamp[0] = v);
+  }
+
+  copy(buffer) {
+    this._len.set(new Uint8Array(buffer));
+
+    return this;
+  }
+}
 
 class NetPlayer {
   /**
@@ -16,18 +66,22 @@ class NetPlayer {
    */
   constructor(local = false, name = null, id = "") {
     this.name = name ?? fakenames[Math.floor(Math.random() * fakenames.length)];
-    this.stepnum = 0;
+    this.stamp = 0;
     this.id = id ?? "";
     this.local = local;
     this.alatency = 0;
+
+    this.packet = new NetPacket();
+    /** @type {Array<NetPacket>} */
+    this.query = [];
   }
 
   tostring() {
     const latency = this.alatency.toFixed(0).padStart(3, "0");
     const title = this.local ? "(  You  )" : "(" + latency + "ms)";
     const id = this.id.substr(-5);
-    const stepnum = this.stepnum.toString().padStart(4, "0");
-    return `${stepnum} | ${title} ${this.name} #${id}`;
+    const stamp = this.stamp.toString().padStart(4, "0");
+    return `${stamp} | ${title} ${this.name} #${id}`;
   }
 }
 
@@ -61,15 +115,13 @@ class Network {
    * @param {string} data .
    */
   _on_message(peer, channel, data) {
-    if (channel === "reliable") {
+    let player = this.players[peer.id];
+
+    if (typeof data === "string" && data[0] === "s") {
       logger.log(
         `Network: received '${data}' on channel ${channel} from ${peer.id}`,
       );
-    }
 
-    let player = this.players[peer.id];
-
-    if (data[0] === "s") {
       const args = data.split(",");
 
       switch (parseInt(args[1])) {
@@ -80,9 +132,19 @@ class Network {
             peer.id,
           );
           break;
+      }
+    } else if (player) {
+      const p = player.packet;
+      p.copy(data);
+
+      player.alatency = peer.latency.average;
+
+      switch (p.type) {
         case MESSAGE_TYPE.SYNC:
-          player.alatency = peer.latency.average;
-					player.stepnum = parseInt(args[2]);
+          player.stamp = p.stamp;
+          break;
+        case MESSAGE_TYPE.GAME:
+          player.query.push(new NetPacket(peer.latency.last).copy(data));
           break;
       }
     }
@@ -101,8 +163,25 @@ class Network {
   }
 
   _send_sync() {
-    const msg = `s,${MESSAGE_TYPE.SYNC},${this.playerlocal.stepnum}`;
-    this.netlib.broadcast("unreliable", msg);
+    const p = this.playerlocal.packet;
+    p.type = MESSAGE_TYPE.SYNC;
+    p.stamp = this.playerlocal.stamp;
+    this.netlib.broadcast("unreliable", p.buffer);
+  }
+
+  /**
+   * @param {MESSAGE_GAME_ACTION_TYPE} type .
+   */
+  send_game_action_pos(type, x, y, z) {
+    const p = this.playerlocal.packet;
+    p.type = MESSAGE_TYPE.GAME;
+    p.stamp = this.playerlocal.stamp;
+    p.subtype = type;
+    p.pos[0] = x;
+    p.pos[1] = y;
+    p.pos[2] = z;
+
+    this.netlib.broadcast("reliable", p.buffer);
   }
 
   /**
@@ -132,8 +211,8 @@ class Network {
       return;
     }
 
-    this.playerlocal.stepnum += dt / this.config.routine_dt;
-		this._send_sync();
+    this.playerlocal.stamp += dt / this.config.routine_dt;
+    this._send_sync();
   }
 
   run() {
@@ -203,4 +282,5 @@ class Network {
   }
 }
 
+export { MESSAGE_GAME_ACTION_TYPE, Network };
 export default Network;
