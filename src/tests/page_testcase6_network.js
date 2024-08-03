@@ -72,7 +72,7 @@ class CharacterSpritesheetTestcase6Network {
     const rand = alea(seed);
     switch (type) {
       case CHARACTER_SPRITESHEET_TYPE.CHARACTER:
-        this.set_character(rand.range(0, 6));
+        this.set_character(rand.range(0, 5));
         break;
       case CHARACTER_SPRITESHEET_TYPE.PROP:
         this.set_prop(rand.range(0, 3));
@@ -103,6 +103,13 @@ class CharacterSpritesheetTestcase6Network {
         start_y: 1,
         length: 5,
       },
+			gather: {
+        start_x: 4,
+        start_y: 3,
+        length: 2,
+				frame_time: 120,
+				once: true
+			}
     };
 
     this.width = 6;
@@ -211,13 +218,23 @@ class EntityDrawTestcase6Network {
     const frame_time = this.spritesheet.get_frame_time(this.animation);
     if (this.frame_elapsed >= frame_time) {
       this.frame_elapsed -= frame_time;
+			const animation = this.spritesheet.get_animation(this.animation);
+			const change = animation.once && this.frame + 1 >= animation.length;
+
       this.update_frame();
+			if (change) {
+				this.animation = "idle";
+			}
     }
+		const animation = this.spritesheet.get_animation(this.animation);
 
     const pawnpos = cache.vec3.v0.copy(this._pawn.get_pos());
     pawnpos.y += this.spritesheet.world_shift_y;
     this.sprite.position.lerp(pawnpos, 0.5);
-    this.animation = this._pawn.moving ? "run" : "idle";
+
+		if (!animation.once) {
+			this.animation = this._pawn.moving ? "run" : "idle";
+		}
 
     if (this.spritesheet.billboard) {
       const camera = App.instance.render.camera;
@@ -250,6 +267,11 @@ class EntityDrawTestcase6Network {
     this.spritesheet.texture.offset.y =
       spritesheet_h - (row + this.spritesheet.frame_shift_y) / spritesheet_h;
   }
+
+	play(key) {
+		this.animation = key;
+		this.frame = 0;
+	}
 }
 
 class EntityTestcase6Network {
@@ -258,13 +280,14 @@ class EntityTestcase6Network {
     this.entdraw = null;
     /** @type {PawnMap} */
     this.pawn = null;
-    this.index = 0;
+    this.index = index;
     this.id = id;
     this.local = index === null;
+		this.pickable = true;
   }
 
   init(spritesheet) {
-    this.pawn = new PawnMap();
+    this.pawn = new PawnMap(this.id);
     const entdraw = new EntityDrawTestcase6Network(spritesheet);
     entdraw.run(this.pawn);
     this.entdraw = entdraw;
@@ -365,6 +388,7 @@ class LevelTestcase6Network {
 
       const entity = make_entity(origin, CHARACTER_SPRITESHEET_TYPE.GRASS);
       entity.entdraw.sprite.receiveShadow = true;
+			entity.pickable = false;
       generate_island(origin, 2);
     }
   }
@@ -398,6 +422,10 @@ class LevelTestcase6Network {
 
   remove_entity(id) {
     const entity = this.entities[id];
+    if (!entity) {
+      logger.warn(`Attempted to remove entity ${id} which does not exist`);
+			return;
+    }
     delete this.entities[id];
     entity.dispose();
 
@@ -409,13 +437,40 @@ class LevelTestcase6Network {
 
     const index = entity.index;
     const reordered_entity_id = this.aentities.pop();
-    if (!reordered_entity_id) {
+    const reordered_entity = this.entities[reordered_entity_id];
+    if (!reordered_entity) {
       return;
     }
 
-    const reordered_entity = this.entities[reordered_entity_id];
     this.aentities[index] = reordered_entity.id;
     reordered_entity.index = index;
+  }
+
+  /**
+   * @returns {EntityTestcase6Network?}
+   */
+  pick(x, y, z, max_dist = 0.5) {
+    const entitypos = cache.vec3.v0;
+    const pickpos = cache.vec3.v1.set(x, y, z);
+    let closest_dist = max_dist;
+    /** @type {EntityTestcase6Network} */
+    let closest_entity = null;
+
+    for (const k in this.entities) {
+      const e = this.entities[k];
+			if (!e.pickable) {
+				continue;
+			}
+      const pawn = e.pawn;
+      e.pawn.get_pos(entitypos);
+      const dist = entitypos.distanceTo(pickpos);
+      if (closest_dist > dist) {
+        closest_dist = dist;
+        closest_entity = e;
+      }
+    }
+
+    return closest_entity;
   }
 
   stop() {
@@ -452,8 +507,12 @@ class PageTestcase6Network extends PageBase {
 
     this.lobby_loaded = false;
 
-    /** @type {PawnMap} */
+    /** @type {PawnMap?} */
     this.pawn_local = null;
+
+    /** @type {string?} */
+    this.entity_picked = null;
+		this.gather_delay = -1;
 
     /** @type {Object<string, PawnMap>} */
     this.pawns = {};
@@ -479,18 +538,25 @@ class PageTestcase6Network extends PageBase {
     }
   }
 
-  pick(x, z) {
-    const pos = cache.vec3.v0.set(x, 0, z);
-  }
-
   /**
    * @param {InputAction} action .
    * @param {boolean} start .
    */
   input_analog(x, z, action) {
     if (action === InputAction.action_a) {
-      this.pick(x, z);
-      this.set_goal(x, z);
+      this.entity_picked = null;
+      const picked = this.level.pick(x, 0, z);
+      const goal = cache.vec3.v0.set(x, 0, z);
+      if (picked) {
+        const picked_pos = picked.pawn.get_pos(cache.vec3.v1);
+        const dir = cache.vec3.v2.copy(this.pawn_local.get_pos(cache.vec3.v3));
+        dir.sub(picked_pos).normalize().multiplyScalar(0.3);
+
+        goal.copy(picked_pos.add(dir));
+
+        this.entity_picked = picked.id;
+      }
+      this.set_goal(goal.x, goal.z);
     } else if (action === InputAction.action_b) {
       // click-hold
     } else if (action === InputAction.action_c) {
@@ -524,6 +590,20 @@ class PageTestcase6Network extends PageBase {
 
     if (this.pawn_local) {
       this.input_goal_dbg_c?.position.copy(this.pawn_local.get_pos());
+
+      if (this.entity_picked && !this.pawn_local.moving) {
+				const pawn_entity = this.level.entities[this.pawn_local.id];
+
+				this.gather_delay += dt;
+				if (this.gather_delay > 120) {
+					this.level.remove_entity(this.entity_picked);
+					this.network.send_game_action_gather(this.entity_picked);
+					this.entity_picked = null;
+					this.gather_delay = -1;
+				} else {
+					pawn_entity?.entdraw.play("gather");
+				}
+      }
     }
 
     this.level.step(dt);
@@ -531,7 +611,7 @@ class PageTestcase6Network extends PageBase {
     this.routine_elapsed += dt;
     if (this.routine_elapsed > this.config.routine_dt) {
       this.routine_elapsed -= this.config.routine_dt;
-			this.process_network_entities_info();
+      this.process_network_entities_info();
     }
 
     this.precess_network_queries();
@@ -557,10 +637,27 @@ class PageTestcase6Network extends PageBase {
             break;
           case MESSAGE_TYPE.ASK_ENTITY: {
             const id = packet.tags[0];
+            const index = packet.tags[1];
             const entity = this.level.entities[id];
-            const pos = entity.pawn.get_pos();
-            const type = entity.entdraw.spritesheet.type;
-            this.network.send_entity_response(pos, type, id, entity.index, player.id);
+            const pos = cache.vec3.v0.set(-1, -1, -1);
+            if (!entity) {
+              this.network.send_entity_response(pos, 0, 0, index, player.id);
+            } else {
+              if (entity.index !== index) {
+                logger.warn(
+                  `Got index desync! entity #${entity.id} requested with index ${index}, here it has index ${entity.index}`,
+                );
+              }
+              const p = entity.pawn.get_pos(pos);
+              const type = entity.entdraw.spritesheet.type;
+              this.network.send_entity_response(
+                p,
+                type,
+                id,
+                entity.index,
+                player.id,
+              );
+            }
             break;
           }
           case MESSAGE_TYPE.RESPONSE_ENTITIES:
@@ -572,12 +669,14 @@ class PageTestcase6Network extends PageBase {
             break;
           case MESSAGE_TYPE.RESPONSE_ENTITY: {
             const id = packet.tags[0];
-            if (!this.level.entities[id]) {
+						const index = packet.tags[1];
+            if (id !== 0 && !this.level.entities[id]) {
               const pos = cache.vec3.v0;
               pos.set(packet.pos[0], packet.pos[1], packet.pos[2]);
-							const index = packet.tags[1];
-							const type = packet.subtype;
+              const type = packet.subtype;
               this.level.build_entity_prop(pos, id, type, index);
+            } else if (id === 0) {
+							this.level.aentities[index] = 0;
             }
             break;
           }
@@ -586,8 +685,11 @@ class PageTestcase6Network extends PageBase {
     }
   }
 
-  process_network_packet_game(id, packet) {
-    const entity = this.level.entities[id];
+  /**
+   * @param {NetPacket} packet .
+   */
+  process_network_packet_game(playerid, packet) {
+    const entity = this.level.entities[playerid];
     if (!entity) {
       return;
     }
@@ -603,6 +705,12 @@ class PageTestcase6Network extends PageBase {
       case MESSAGE_GAME_ACTION_TYPE.POSITION_FORCED:
         entity.teleport(pos);
         break;
+      case MESSAGE_GAME_ACTION_TYPE.GATHER: {
+        const id = packet.tags[0];
+        this.level.remove_entity(id);
+				entity.entdraw.play("gather");
+        break;
+      }
     }
   }
 
@@ -704,9 +812,10 @@ class PageTestcase6Network extends PageBase {
 
       if (this.level.aentities.length > this.level.entities_count) {
         for (let i = 0; i < 10; i++) {
-          const id = this.level.aentities[this._entities_asked];
+          const index = this._entities_asked;
+          const id = this.level.aentities[index];
           if (id && !this.level.entities[id]) {
-            this.network.send_entity_ask(id, p.id);
+            this.network.send_entity_ask(id, index, p.id);
           }
           this._entities_asked =
             (this._entities_asked + 1) % this.level.aentities.length;
@@ -787,6 +896,7 @@ class PageTestcase6Network extends PageBase {
     // It should be.
     const entity = this.level.create_entity(spritesheet, id, null);
     const pawn = entity.pawn;
+		entity.pickable = false;
 
     this.pawns[id] = pawn;
     if (local) {

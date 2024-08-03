@@ -23,14 +23,14 @@ class PawnMap {
     this.elapsed += dt;
   }
 
-  get_pos() {
+  get_pos(v = cache.vec3.v0) {
 		if (!this.movable) {
-			return this.path_a;
+			return v.copy(this.path_a);
 		}
 
     const path_time = (Date.now() - this.path_timestamp) * 1e-3;
     const path_len = this.path_len;
-    const path = cache.vec3.v0.copy(this.path_direction);
+    const path = v.copy(this.path_direction);
     path.multiplyScalar(Math.min(path_len, path_time * this.speed));
 
 		return path.add(this.path_a);

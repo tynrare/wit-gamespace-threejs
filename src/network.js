@@ -17,6 +17,7 @@ const MESSAGE_TYPE = {
 const MESSAGE_GAME_ACTION_TYPE = {
   POSITION: 0,
   POSITION_FORCED: 1,
+  GATHER: 2,
 };
 
 const NET_PACKET_SIZE = {
@@ -220,6 +221,16 @@ class Network {
     this.netlib.broadcast("unreliable", p.buffer);
   }
 
+  send_game_action_gather(id) {
+    const p = this.playerlocal.packet;
+    p.type = MESSAGE_TYPE.GAME;
+    p.stamp = this.playerlocal.stamp;
+    p.subtype = MESSAGE_GAME_ACTION_TYPE.GATHER;
+		p.tags[0] = id;
+
+		this.netlib.broadcast("reliable", p.buffer);
+	}
+
   /**
    * @param {MESSAGE_GAME_ACTION_TYPE} type .
    * @param {string?} [to] peer to send info to. Broadcasts if null
@@ -252,13 +263,14 @@ class Network {
     this.netlib.send("unreliable", to, p.buffer);
   }
 
-  send_entity_ask(id, to) {
+  send_entity_ask(id, index, to) {
     logger.log(`Asking #${to} for entity ${id}`);
 
     const p = this.playerlocal.packet;
     p.type = MESSAGE_TYPE.ASK_ENTITY;
     p.stamp = this.playerlocal.stamp;
     p.tags[0] = id;
+    p.tags[1] = index;
 
     this.netlib.send("unreliable", to, p.buffer);
   }
