@@ -88,7 +88,7 @@ class NetPacket {
   }
 }
 
-NetPacket.infos_length = {}
+NetPacket.infos_length = {};
 NetPacket.infos_length[NET_PACKET_SIZE.BASIC] = 8;
 NetPacket.infos_length[NET_PACKET_SIZE.LARGE] = 16;
 NetPacket.infos_length[NET_PACKET_SIZE.EXTRA_LARGE] = 64;
@@ -186,11 +186,7 @@ class Network {
           player.entities_count = p.tags[0];
           player.guids = p.tags[1];
           break;
-        case MESSAGE_TYPE.GAME:
-        case MESSAGE_TYPE.RESPONSE_ENTITIES:
-        case MESSAGE_TYPE.RESPONSE_ENTITY:
-        case MESSAGE_TYPE.ASK_ENTITY:
-        case MESSAGE_TYPE.ASK_ENTITIES: {
+        default: {
           const packet = new NetPacket(
             NetPacket.size_by_type(p.type),
             peer.latency.last,
@@ -245,10 +241,8 @@ class Network {
   }
 
   send_entities_ask(index, to) {
-		const infos_length = NetPacket.infos_length[NET_PACKET_SIZE.LARGE];
-    logger.log(
-      `Asking #${to} for entities list chunk ${index / infos_length}`,
-    );
+    const infos_length = NetPacket.infos_length[NET_PACKET_SIZE.LARGE];
+    logger.log(`Asking #${to} for entities list chunk ${index / infos_length}`);
 
     const p = this.playerlocal.packet;
     p.type = MESSAGE_TYPE.ASK_ENTITIES;
@@ -259,9 +253,7 @@ class Network {
   }
 
   send_entity_ask(id, to) {
-    logger.log(
-      `Asking #${to} for entity ${id}`,
-    );
+    logger.log(`Asking #${to} for entity ${id}`);
 
     const p = this.playerlocal.packet;
     p.type = MESSAGE_TYPE.ASK_ENTITY;
@@ -271,16 +263,15 @@ class Network {
     this.netlib.send("unreliable", to, p.buffer);
   }
 
-  send_entity_response(pos, type, id, to) {
-    logger.log(
-      `Responsing to #${to} with entity ${id}`,
-    );
+  send_entity_response(pos, type, id, index, to) {
+    logger.log(`Responsing to #${to} with entity ${id}`);
 
     const p = this.playerlocal.packet;
     p.type = MESSAGE_TYPE.RESPONSE_ENTITY;
     p.stamp = this.playerlocal.stamp;
+		p.subtype = type;
     p.tags[0] = id;
-    p.tags[1] = type;
+    p.tags[1] = index;
     p.pos[0] = pos.x;
     p.pos[1] = pos.y;
     p.pos[2] = pos.z;
@@ -299,12 +290,8 @@ class Network {
     p.stamp = this.playerlocal.stamp;
     p.tags[0] = index;
     let count = 0;
-		const infos_length = NetPacket.infos_length[NET_PACKET_SIZE.LARGE];
-    for (
-      ;
-      count < infos_length && index + count < entities.length;
-      count++
-    ) {
+    const infos_length = NetPacket.infos_length[NET_PACKET_SIZE.LARGE];
+    for (; count < infos_length && index + count < entities.length; count++) {
       p.info[count] = entities[index + count];
     }
     p.tags[1] = count;
@@ -418,5 +405,11 @@ class Network {
   }
 }
 
-export { MESSAGE_TYPE, MESSAGE_GAME_ACTION_TYPE, NET_PACKET_SIZE, Network, NetPacket };
+export {
+  MESSAGE_TYPE,
+  MESSAGE_GAME_ACTION_TYPE,
+  NET_PACKET_SIZE,
+  Network,
+  NetPacket,
+};
 export default Network;

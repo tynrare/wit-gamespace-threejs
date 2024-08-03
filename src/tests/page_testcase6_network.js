@@ -273,7 +273,6 @@ class EntityTestcase6Network {
   }
 
   run() {
-
     return this;
   }
 
@@ -287,10 +286,10 @@ class EntityTestcase6Network {
     this.pawn.step(dt);
     this.entdraw.step(dt);
 
-		// fixin threejs cloned textures bug
-		if (this.entdraw.spritesheet.texture.image && !this.entdraw.sprite.parent) {
-			App.instance.render.scene.add(this.entdraw.sprite);
-		}
+    // fixin threejs cloned textures bug
+    if (this.entdraw.spritesheet.texture.image && !this.entdraw.sprite.parent) {
+      App.instance.render.scene.add(this.entdraw.sprite);
+    }
   }
 
   dispose() {
@@ -370,14 +369,14 @@ class LevelTestcase6Network {
     }
   }
 
-  build_entity_prop(pos, id, type) {
+  build_entity_prop(pos, id, type, index = this.entities_count) {
     logger.log(
       `Building entity #${id} at ${pos.x.toFixed(2)},${pos.z.toFixed(2)}, type ${type}`,
     );
     const spritesheet = new CharacterSpritesheetTestcase6Network();
     spritesheet.set_type(type, this.seed + this.seed_static + id).load();
 
-    const entity = this.create_entity(spritesheet, id);
+    const entity = this.create_entity(spritesheet, id, index);
     entity.teleport(pos);
 
     return entity;
@@ -465,7 +464,7 @@ class PageTestcase6Network extends PageBase {
     this.input_goal_dbg_c = null;
 
     this.config = {
-      routine_dt: 100,
+      routine_dt: 700,
     };
 
     this.routine_elapsed = 0;
@@ -480,15 +479,22 @@ class PageTestcase6Network extends PageBase {
     }
   }
 
+  pick(x, z) {
+    const pos = cache.vec3.v0.set(x, 0, z);
+  }
+
   /**
    * @param {InputAction} action .
    * @param {boolean} start .
    */
   input_analog(x, z, action) {
     if (action === InputAction.action_a) {
+      this.pick(x, z);
       this.set_goal(x, z);
-    } else if (action === InputAction.action_c) {
+    } else if (action === InputAction.action_b) {
       // click-hold
+    } else if (action === InputAction.action_c) {
+      // pointer-move
     } else if (action === InputAction.action_d) {
       // click-hold delta
     }
@@ -498,8 +504,8 @@ class PageTestcase6Network extends PageBase {
     this.input_goal.set(x, 0, z);
     if (this.pawn_local) {
       this.pawn_local.set_goal(this.input_goal);
-      this.input_goal_dbg_a.position.copy(this.pawn_local.path_a);
-      this.input_goal_dbg_b.position.copy(this.pawn_local.path_b);
+      this.input_goal_dbg_a?.position.copy(this.pawn_local.path_a);
+      this.input_goal_dbg_b?.position.copy(this.pawn_local.path_b);
     }
 
     this.network.send_game_action_pos(
@@ -511,14 +517,13 @@ class PageTestcase6Network extends PageBase {
   }
 
   /**
-   * @virtual
    * @param {number} dt .
    */
   step(dt) {
     this.controls.update();
 
     if (this.pawn_local) {
-      this.input_goal_dbg_c.position.copy(this.pawn_local.get_pos());
+      this.input_goal_dbg_c?.position.copy(this.pawn_local.get_pos());
     }
 
     this.level.step(dt);
@@ -526,6 +531,7 @@ class PageTestcase6Network extends PageBase {
     this.routine_elapsed += dt;
     if (this.routine_elapsed > this.config.routine_dt) {
       this.routine_elapsed -= this.config.routine_dt;
+			this.process_network_entities_info();
     }
 
     this.precess_network_queries();
@@ -554,7 +560,7 @@ class PageTestcase6Network extends PageBase {
             const entity = this.level.entities[id];
             const pos = entity.pawn.get_pos();
             const type = entity.entdraw.spritesheet.type;
-            this.network.send_entity_response(pos, type, id, player.id);
+            this.network.send_entity_response(pos, type, id, entity.index, player.id);
             break;
           }
           case MESSAGE_TYPE.RESPONSE_ENTITIES:
@@ -569,7 +575,9 @@ class PageTestcase6Network extends PageBase {
             if (!this.level.entities[id]) {
               const pos = cache.vec3.v0;
               pos.set(packet.pos[0], packet.pos[1], packet.pos[2]);
-              this.level.build_entity_prop(pos, id, packet.tags[1]);
+							const index = packet.tags[1];
+							const type = packet.subtype;
+              this.level.build_entity_prop(pos, id, type, index);
             }
             break;
           }
@@ -631,14 +639,16 @@ class PageTestcase6Network extends PageBase {
     );
     this.inputs.run();
 
-    this.input_goal_dbg_a = render.utils.spawn_icosphere0(0xff0000, 0.04);
-    this.input_goal_dbg_b = render.utils.spawn_icosphere0(0x00ff00, 0.04);
-    this.input_goal_dbg_c = render.utils.spawn_icosphere0(0x0000ff, 0.04);
-    scene.add(
-      this.input_goal_dbg_a,
-      this.input_goal_dbg_b,
-      this.input_goal_dbg_c,
-    );
+    if (App.instance.DEBUG) {
+      this.input_goal_dbg_a = render.utils.spawn_icosphere0(0xff0000, 0.04);
+      this.input_goal_dbg_b = render.utils.spawn_icosphere0(0x00ff00, 0.04);
+      this.input_goal_dbg_c = render.utils.spawn_icosphere0(0x0000ff, 0.04);
+      scene.add(
+        this.input_goal_dbg_a,
+        this.input_goal_dbg_b,
+        this.input_goal_dbg_c,
+      );
+    }
 
     this.level = new LevelTestcase6Network();
 
@@ -648,15 +658,19 @@ class PageTestcase6Network extends PageBase {
   }
 
   routine() {
-    let msg = "<d>Network:</d>";
-    for (const k in this.network.players) {
-      const stamp = this.network.playerlocal.stamp;
-      const p = this.network.players[k];
-      const stampdelta = p.stamp - stamp;
-      const stampdelta_s = `${stampdelta >= 0 ? "+" : "-"}${Math.abs(stampdelta)}`;
-      msg += `<d>${stampdelta_s} ${p.tostring()}</d>`;
+    if (App.instance.DEBUG) {
+      let msg = "<d>Network:</d>";
+      for (const k in this.network.players) {
+        const stamp = this.network.playerlocal.stamp;
+        const p = this.network.players[k];
+        const stampdelta = p.stamp - stamp;
+        const stampdelta_s = `${stampdelta >= 0 ? "+" : "-"}${Math.abs(stampdelta)}`;
+        msg += `<d>${stampdelta_s} ${p.tostring()}</d>`;
+      }
+      Stats.instance.print(msg);
+    } else {
+      Stats.instance.print("");
     }
-    Stats.instance.print(msg);
 
     if (!this.lobby_loaded && this.network.netlib?.currentLobby) {
       this.lobby_loaded = true;
@@ -673,12 +687,10 @@ class PageTestcase6Network extends PageBase {
 
     this.process_network_players();
     this.precess_network_queries();
-		this.process_network_entities();
+    this.process_network_entities_chunks();
   }
 
-  process_network_entities() {
-    // sync entities
-    this._chunks_asked = this._chunks_asked ?? 0;
+  process_network_entities_info() {
     this._entities_asked = this._entities_asked ?? 0;
     for (const k in this.network.players) {
       const p = this.network.players[k];
@@ -688,6 +700,28 @@ class PageTestcase6Network extends PageBase {
 
       if (p.guids > this.level.guids) {
         this.level.guids = p.guids;
+      }
+
+      if (this.level.aentities.length > this.level.entities_count) {
+        for (let i = 0; i < 10; i++) {
+          const id = this.level.aentities[this._entities_asked];
+          if (id && !this.level.entities[id]) {
+            this.network.send_entity_ask(id, p.id);
+          }
+          this._entities_asked =
+            (this._entities_asked + 1) % this.level.aentities.length;
+        }
+      }
+    }
+  }
+
+  process_network_entities_chunks() {
+    // sync entities
+    this._chunks_asked = this._chunks_asked ?? 0;
+    for (const k in this.network.players) {
+      const p = this.network.players[k];
+      if (p.local) {
+        continue;
       }
 
       if (p.entities_count > this.level.aentities.length) {
@@ -702,17 +736,6 @@ class PageTestcase6Network extends PageBase {
           this._chunks_asked += 1;
         } else {
           this._chunks_asked = 0;
-        }
-      }
-
-      if (this.level.aentities.length > this.level.entities_count) {
-        for (let i = 0; i < 10; i++) {
-          const id = this.level.aentities[this._entities_asked];
-          if (id && !this.level.entities[id]) {
-            this.network.send_entity_ask(id, p.id);
-          }
-          this._entities_asked =
-            (this._entities_asked + 1) % this.level.aentities.length;
         }
       }
     }
