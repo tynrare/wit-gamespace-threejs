@@ -22,7 +22,7 @@ class LightsA {
   /**
    * @param {Render} render .
    */
-  run(render) {
+  run(render, csm = false) {
     const scene = render.scene;
     const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
@@ -39,7 +39,7 @@ class LightsA {
 		this.enable(render.config.lights);
 
     if (render.config.shadows) {
-      if (render.config.cascaded_shadow_maps) {
+      if (csm || render.config.cascaded_shadow_maps) {
         this._run_csm(render.camera, scene);
       } else {
         directional.castShadow = true;

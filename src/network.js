@@ -8,6 +8,10 @@ const MESSAGE_TYPE = {
   GREET: 0,
   SYNC: 1,
   GAME: 2,
+  ASK_ENTITIES: 3,
+  RESPONSE_ENTITIES: 4,
+  ASK_ENTITY: 5,
+  RESPONSE_ENTITY: 6,
 };
 
 const MESSAGE_GAME_ACTION_TYPE = {
@@ -15,16 +19,32 @@ const MESSAGE_GAME_ACTION_TYPE = {
   POSITION_FORCED: 1,
 };
 
+const NET_PACKET_SIZE = {
+  BASIC: 0,
+  LARGE: 1,
+  EXTRA_LARGE: 2,
+};
+
 class NetPacket {
-  constructor(latency = 0) {
+  /**
+   * @param {NET_PACKET_SIZE) size .
+   */
+  constructor(size = NET_PACKET_SIZE.BASIC, latency = 0) {
     this.latency = 0;
 
-    const buffer = new ArrayBuffer(16);
+    let infos_length = NetPacket.infos_length[size];
+
+    const buffer = new ArrayBuffer(8 + infos_length * 2);
     this.buffer = buffer;
     this._vtype = new Uint8Array(buffer, 0, 1);
     this._vsubtype = new Uint8Array(buffer, 1, 1);
     this._vstamp = new Uint16Array(buffer, 2, 1);
-    this.pos = new Float32Array(buffer, 4, 3);
+    this.tags = new Uint16Array(buffer, 4, 2);
+
+    // pos and info shares same memory block.
+    this.pos = new Float32Array(buffer, 8, infos_length / 2);
+    this.info = new Uint16Array(buffer, 8, infos_length);
+
     this._len = new Uint8Array(buffer);
   }
 
@@ -57,7 +77,21 @@ class NetPacket {
 
     return this;
   }
+
+  static size_by_type(type) {
+    switch (type) {
+      case MESSAGE_TYPE.RESPONSE_ENTITIES:
+        return NET_PACKET_SIZE.LARGE;
+      default:
+        return NET_PACKET_SIZE.BASIC;
+    }
+  }
 }
+
+NetPacket.infos_length = {}
+NetPacket.infos_length[NET_PACKET_SIZE.BASIC] = 8;
+NetPacket.infos_length[NET_PACKET_SIZE.LARGE] = 16;
+NetPacket.infos_length[NET_PACKET_SIZE.EXTRA_LARGE] = 64;
 
 class NetPlayer {
   /**
@@ -68,10 +102,16 @@ class NetPlayer {
     this.name = name ?? fakenames[Math.floor(Math.random() * fakenames.length)];
     this.stamp = 0;
     this.id = id ?? "";
-    this.local = local;
     this.alatency = 0;
 
+    this.creator = false;
+    this.local = local;
+
+    this.entities_count = 0;
+    this.guids = 0;
+
     this.packet = new NetPacket();
+    this.packet_large = new NetPacket(NET_PACKET_SIZE.LARGE);
     /** @type {Array<NetPacket>} */
     this.query = [];
   }
@@ -81,7 +121,8 @@ class NetPlayer {
     const title = this.local ? "(  You  )" : "(" + latency + "ms)";
     const id = this.id.substr(-5);
     const stamp = this.stamp.toString().padStart(4, "0");
-    return `${stamp} | ${title} ${this.name} #${id}`;
+    const ec = this.entities_count.toString().padStart(4, "0");
+    return `${stamp} | 📦${ec}, #${this.guids} |  ${title} ${this.name} #${id}`;
   }
 }
 
@@ -134,7 +175,7 @@ class Network {
           break;
       }
     } else if (player) {
-      const p = player.packet;
+      const p = player.packet_large;
       p.copy(data);
 
       player.alatency = peer.latency.average;
@@ -142,10 +183,22 @@ class Network {
       switch (p.type) {
         case MESSAGE_TYPE.SYNC:
           player.stamp = p.stamp;
+          player.entities_count = p.tags[0];
+          player.guids = p.tags[1];
           break;
         case MESSAGE_TYPE.GAME:
-          player.query.push(new NetPacket(peer.latency.last).copy(data));
+        case MESSAGE_TYPE.RESPONSE_ENTITIES:
+        case MESSAGE_TYPE.RESPONSE_ENTITY:
+        case MESSAGE_TYPE.ASK_ENTITY:
+        case MESSAGE_TYPE.ASK_ENTITIES: {
+          const packet = new NetPacket(
+            NetPacket.size_by_type(p.type),
+            peer.latency.last,
+          );
+          packet.copy(data);
+          player.query.push(packet);
           break;
+        }
       }
     }
   }
@@ -166,13 +219,16 @@ class Network {
     const p = this.playerlocal.packet;
     p.type = MESSAGE_TYPE.SYNC;
     p.stamp = this.playerlocal.stamp;
+    p.tags[0] = this.playerlocal.entities_count;
+    p.tags[1] = this.playerlocal.guids;
     this.netlib.broadcast("unreliable", p.buffer);
   }
 
   /**
    * @param {MESSAGE_GAME_ACTION_TYPE} type .
+   * @param {string?} [to] peer to send info to. Broadcasts if null
    */
-  send_game_action_pos(type, x, y, z) {
+  send_game_action_pos(type, x, y, z, to) {
     const p = this.playerlocal.packet;
     p.type = MESSAGE_TYPE.GAME;
     p.stamp = this.playerlocal.stamp;
@@ -181,7 +237,83 @@ class Network {
     p.pos[1] = y;
     p.pos[2] = z;
 
-    this.netlib.broadcast("reliable", p.buffer);
+    if (to) {
+      this.netlib.send("reliable", to, p.buffer);
+    } else {
+      this.netlib.broadcast("reliable", p.buffer);
+    }
+  }
+
+  send_entities_ask(index, to) {
+		const infos_length = NetPacket.infos_length[NET_PACKET_SIZE.LARGE];
+    logger.log(
+      `Asking #${to} for entities list chunk ${index / infos_length}`,
+    );
+
+    const p = this.playerlocal.packet;
+    p.type = MESSAGE_TYPE.ASK_ENTITIES;
+    p.stamp = this.playerlocal.stamp;
+    p.tags[0] = index;
+
+    this.netlib.send("unreliable", to, p.buffer);
+  }
+
+  send_entity_ask(id, to) {
+    logger.log(
+      `Asking #${to} for entity ${id}`,
+    );
+
+    const p = this.playerlocal.packet;
+    p.type = MESSAGE_TYPE.ASK_ENTITY;
+    p.stamp = this.playerlocal.stamp;
+    p.tags[0] = id;
+
+    this.netlib.send("unreliable", to, p.buffer);
+  }
+
+  send_entity_response(pos, type, id, to) {
+    logger.log(
+      `Responsing to #${to} with entity ${id}`,
+    );
+
+    const p = this.playerlocal.packet;
+    p.type = MESSAGE_TYPE.RESPONSE_ENTITY;
+    p.stamp = this.playerlocal.stamp;
+    p.tags[0] = id;
+    p.tags[1] = type;
+    p.pos[0] = pos.x;
+    p.pos[1] = pos.y;
+    p.pos[2] = pos.z;
+
+    this.netlib.send("unreliable", to, p.buffer);
+  }
+
+  /**
+   * @param {number} index .
+   * @param {Array<number>} entities .
+   * @param {string} to .
+   */
+  send_entities_response(index, entities, to) {
+    const p = this.playerlocal.packet_large;
+    p.type = MESSAGE_TYPE.RESPONSE_ENTITIES;
+    p.stamp = this.playerlocal.stamp;
+    p.tags[0] = index;
+    let count = 0;
+		const infos_length = NetPacket.infos_length[NET_PACKET_SIZE.LARGE];
+    for (
+      ;
+      count < infos_length && index + count < entities.length;
+      count++
+    ) {
+      p.info[count] = entities[index + count];
+    }
+    p.tags[1] = count;
+
+    logger.log(
+      `Responsing to #${to} entities list chunk ${index} with ${count} ids`,
+    );
+
+    this.netlib.send("unreliable", to, p.buffer);
   }
 
   /**
@@ -251,10 +383,14 @@ class Network {
         );
         this._on_disconnected(peer.id);
       });
-      this.netlib.once("lobby", (code) => {
+      this.netlib.on("lobby", (code, lobby) => {
         this.playerlocal.id = this.netlib.id;
         this.players[this.playerlocal.id] = this.playerlocal;
         this.connected = true;
+
+        if (lobby.playerCount == 1 && lobby.leader == this.netlib.id) {
+          this.playerlocal.creator = true;
+        }
       });
     });
 
@@ -282,5 +418,5 @@ class Network {
   }
 }
 
-export { MESSAGE_GAME_ACTION_TYPE, Network };
+export { MESSAGE_TYPE, MESSAGE_GAME_ACTION_TYPE, NET_PACKET_SIZE, Network, NetPacket };
 export default Network;
