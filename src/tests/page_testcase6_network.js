@@ -672,6 +672,7 @@ class PageTestcase6Network extends PageBase {
     }
 
     this.process_network_players();
+    this.precess_network_queries();
 		this.process_network_entities();
   }
 
