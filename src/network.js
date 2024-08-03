@@ -388,7 +388,7 @@ class Network {
         this.players[this.playerlocal.id] = this.playerlocal;
         this.connected = true;
 
-        if (lobby.playerCount == 1 && lobby.leader == this.netlib.id) {
+        if (lobby.leader == this.netlib.id) {
           this.playerlocal.creator = true;
         }
       });
