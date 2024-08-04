@@ -398,10 +398,10 @@ class Network {
           continue;
         }
 
-				this.pool.guids = Math.max(this.pool.guids, player.guids);
+        this.pool.guids = Math.max(this.pool.guids, player.guids);
 
         this._entities_sync_interation = this._entities_sync_interation ?? 0;
-        this._send_entity_ask(player, this._entities_sync_interation);
+        //this._send_entity_ask(player, this._entities_sync_interation);
         requests += 1;
         this._entities_sync_interation =
           (this._entities_sync_interation + 1) % max_entities_count;
@@ -410,6 +410,35 @@ class Network {
     }
 
     this._send_sync();
+  }
+
+  has_blames(player, from = null) {
+    let blames = 0;
+
+    if (
+      this.netlib.currentLeader == player.id &&
+      this.playerlocal.neighbors.length < 1
+    ) {
+      return false;
+    }
+
+		if (from) {
+      const selfindex = from.neighbors.indexOf(player.id);
+      const blamed = from.blames[selfindex];
+			return blamed;
+		}
+
+    for (const i in player.neighbors) {
+      const id = player.neighbors[i];
+      const other_player = this.players[id];
+      const selfindex = other_player?.neighbors.indexOf(player.id);
+      const blamed = other_player?.blames[selfindex];
+      if (blamed) {
+        blames += 1;
+      }
+    }
+
+    return blames > player.neighbors.length * 0.5;
   }
 
   /**

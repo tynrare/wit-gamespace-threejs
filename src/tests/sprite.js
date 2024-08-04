@@ -321,7 +321,6 @@ class EntitySprite {
   }
 
   dispose() {
-		this.entity.dispose();
     this.draw.sprite.removeFromParent();
     this.draw = null;
     this.pawn = null;

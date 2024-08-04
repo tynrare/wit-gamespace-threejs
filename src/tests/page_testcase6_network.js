@@ -93,23 +93,23 @@ class LevelTestcase6Network {
     }
   }
 
-	/**
-	 * @param {Entity} entity_data .
-	 */
-	add_entity(entity_data) {
+  /**
+   * @param {Entity} entity_data .
+   */
+  add_entity(entity_data) {
     const entity = new EntitySprite(entity_data);
     entity.init().run();
     this.entities[entity.id] = entity;
 
-		return entity;
-	}
+    return entity;
+  }
 
   make_entity(pos, type) {
-		const e = this._pool.allocate();
+    const e = this._pool.allocate();
     const seed = this.seed + this.seed_static + e.id;
-		e.type = type;
-		e.seed = seed;
-		const entity = this.add_entity(e);
+    e.type = type;
+    e.seed = seed;
+    const entity = this.add_entity(e);
     entity.teleport(pos);
 
     logger.log(
@@ -119,10 +119,13 @@ class LevelTestcase6Network {
     return entity;
   }
 
-  remove_entity(id) {
+  /**
+   * Only removes entity from view, not data
+   */
+  dispose_entity(id) {
     const entity = this.entities[id];
     if (!entity) {
-      logger.warn(`Attempted to remove entity ${id} which does not exist`);
+      logger.warn(`Attempted to dispose entity ${id} which does not exist`);
       return;
     }
     delete this.entities[id];
@@ -158,7 +161,7 @@ class LevelTestcase6Network {
 
   stop() {
     for (const k in this.entities) {
-      this.remove_entity(k);
+      this.dispose_entity(k);
     }
   }
 }
@@ -334,19 +337,25 @@ class PageTestcase6Network extends PageBase {
     if (!this.network.get_blame_mask(player)) {
       pics += "👑";
     }
+
     if (!player.local) {
-      const selfindex = player.neighbors.indexOf(this.network.playerlocal.id);
-      const blamed = player.blames[selfindex];
+			/*
       if (blamed) {
-        pics += "😡"; // this player has desync - blamed by other player
+        pics += ""; // player blames this client wich has desync
       }
-      const pindex = this.network.playerlocal.neighbors.indexOf(player.id);
-      const blames = this.network.playerlocal.blames[pindex];
-      if (blames) {
-        pics += "😓"; // other player - has desync blamed by this client
-      }
-    } else {
+			*/
     }
+
+		// other client blames this client
+    if (this.network.has_blames(this.network.playerlocal, player)) {
+      pics += "😡";
+    }
+
+		// client blamed by someone
+    if (this.network.has_blames(player)) {
+      pics += "😓";
+    }
+
     return pics.padStart(6, "🟢");
   }
 
@@ -376,15 +385,23 @@ class PageTestcase6Network extends PageBase {
       );
     }
 
-		// add entities
-		for (let k in this.network.pool.entities) {
-			const e = this.network.pool.entities[k]; 
-			if (!this.level.entities[k]) {
-				const entity = this.level.add_entity(e);
-				const p = entity.pawn.get_pos(cache.vec3.v0);
-				entity.teleport(p);
-			}
-		}
+    // remove entities
+    for (const k in this.level.entities) {
+      const entity = this.level.entities[k];
+      if (!this.network.pool.entities[k]) {
+        this.level.dispose_entity(k);
+      }
+    }
+
+    // add entities
+    for (const k in this.network.pool.entities) {
+      const e = this.network.pool.entities[k];
+      if (!this.level.entities[k]) {
+        const entity = this.level.add_entity(e);
+        const p = entity.pawn.get_pos(cache.vec3.v0);
+        entity.teleport(p);
+      }
+    }
 
     //this.process_network_players();
   }
@@ -441,7 +458,7 @@ class PageTestcase6Network extends PageBase {
       this.pawn_local = null;
     }
     delete this.pawns[id];
-    this.level.remove_entity(id);
+    this.level.dispose_entity(id);
   }
 
   stop() {
