@@ -1,7 +1,7 @@
 import { Peer, Network as Netlib } from "@poki/netlib";
 import logger from "./logger.js";
 import Loop from "./loop.js";
-import { Pool } from "./entity.js";
+import { Pool, Entity } from "./entity.js";
 
 const fakenames = ["Bob", "Glob", "Dog", "Borg", "Dong", "Clomp"];
 
@@ -10,10 +10,12 @@ const MESSAGE_TYPE = {
   SYNC: 1,
   NEIGHBORS: 2,
   GAME: 3,
-  ASK_ENTITIES: 4,
-  RESPONSE_ENTITIES: 5,
-  ASK_ENTITY: 6,
-  RESPONSE_ENTITY: 7,
+  ENTITY: 4,
+};
+
+const MESSAGE_SUBTYPE = {
+  ASK: 0,
+  RESPONSE: 1,
 };
 
 const MESSAGE_GAME_ACTION_TYPE = {
@@ -26,6 +28,7 @@ const NET_PACKET_SIZE = {
   BASIC: 0,
   LARGE: 1,
   EXTRA_LARGE: 2,
+  ENTITY: 3,
 };
 
 class NetPacket {
@@ -90,10 +93,13 @@ class NetPacket {
     return this;
   }
 
-  static size_by_type(type) {
+  static size_by_type(type, subtype) {
     switch (type) {
-      case MESSAGE_TYPE.RESPONSE_ENTITIES:
-        return NET_PACKET_SIZE.LARGE;
+      case MESSAGE_TYPE.ENTITY:
+        if (subtype == MESSAGE_SUBTYPE.RESPONSE) {
+          return NET_PACKET_SIZE.ENTITY;
+        }
+      // no-break
       default:
         return NET_PACKET_SIZE.BASIC;
     }
@@ -103,7 +109,8 @@ class NetPacket {
 NetPacket.infos_length = {};
 NetPacket.infos_length[NET_PACKET_SIZE.BASIC] = 8;
 NetPacket.infos_length[NET_PACKET_SIZE.LARGE] = 16;
-NetPacket.infos_length[NET_PACKET_SIZE.EXTRA_LARGE] = 64;
+NetPacket.infos_length[NET_PACKET_SIZE.EXTRA_LARGE] = 128;
+NetPacket.infos_length[NET_PACKET_SIZE.ENTITY] = Entity.size();
 
 class NetPlayer {
   /**
@@ -127,7 +134,8 @@ class NetPlayer {
     this.blames = [];
 
     this.packet = new NetPacket();
-    this.packet_large = new NetPacket(NET_PACKET_SIZE.LARGE);
+    this.packet_large = new NetPacket(NET_PACKET_SIZE.EXTRA_LARGE);
+    this.packet_entity = new NetPacket(NET_PACKET_SIZE.ENTITY);
     /** @type {Array<NetPacket>} */
     this.query = [];
   }
@@ -183,88 +191,83 @@ class Network {
       );
 
       const args = data.split(",");
+      const type = parseInt(args[1]);
 
-      switch (parseInt(args[1])) {
-        case MESSAGE_TYPE.GREET:
-          player = this.players[peer.id] = new NetPlayer(
-            false,
-            args[2],
-            peer.id,
-          );
-          break;
-        case MESSAGE_TYPE.NEIGHBORS:
-          player.neighbors.length = 0;
-          const newneighbors = args[2].split(";");
-          for (const i in newneighbors) {
-            const n = newneighbors[i];
-            if (!n.length) {
-              continue;
-            }
-            player.neighbors.push(n);
-          }
-          break;
+      if (type === MESSAGE_TYPE.GREET) {
+        return this._receive_greet(peer, args[2]);
       }
-    } else if (player) {
-      const p = player.packet_large;
-      p.copy(data);
 
-      player.alatency = peer.latency.average;
+      if (!player) {
+        return;
+      }
 
-      switch (p.type) {
-        case MESSAGE_TYPE.SYNC:
-          player.stamp = p.stamp;
-          player.entities_count = p.tags[0];
-          player.guids = p.tags[1];
-          player.sent = Math.max(p.index, player.sent);
-          for (let i in player.neighbors) {
-            player.blames[i] = p.info_short[i];
-          }
-          break;
-        default: {
-          const packet = new NetPacket(
-            NetPacket.size_by_type(p.type),
-            peer.latency.last,
-          );
-          packet.copy(data);
-          player.query.push(packet);
-          break;
+      switch (type) {
+        case MESSAGE_TYPE.NEIGHBORS:
+          return this._receive_neighbors(player, args[2]);
+      }
+    }
+    if (!player) {
+      return;
+    }
+
+    const p = player.packet_large;
+    p.copy(data);
+
+    player.alatency = peer.latency.average;
+
+    switch (p.type) {
+      case MESSAGE_TYPE.SYNC:
+        return this._receive_sync(player, p);
+      case MESSAGE_TYPE.ENTITY:
+        if (p.subtype == MESSAGE_SUBTYPE.ASK) {
+          return this._receive_entity_ask(player, p);
+        } else {
+          return this._receive_entity_response(player, p);
         }
+      default: {
+        const packet = new NetPacket(
+          NetPacket.size_by_type(p.type, p.subtype),
+          peer.latency.last,
+        );
+        packet.copy(data);
+        player.query.push(packet);
+        break;
       }
     }
   }
 
-
   _send_neighbors() {
     let neighbors = "";
     const peers = this.netlib.peers.keys();
-		this.playerlocal.neighbors.length = 0;
+    this.playerlocal.neighbors.length = 0;
     for (const k of peers) {
       neighbors += k + ";";
-			this.playerlocal.neighbors.push(k);
+      this.playerlocal.neighbors.push(k);
     }
     const msg = `s,${MESSAGE_TYPE.NEIGHBORS},${neighbors}`;
     this.netlib.broadcast("reliable", msg);
   }
 
-  _send_welcome(to) {
+  _receive_neighbors(player, args) {
+    player.neighbors.length = 0;
+    const newneighbors = args.split(";");
+    for (const i in newneighbors) {
+      const n = newneighbors[i];
+      if (!n.length) {
+        continue;
+      }
+      player.neighbors.push(n);
+    }
+  }
+
+  _send_greet(to) {
     let msg = `s,${MESSAGE_TYPE.GREET},${this.playerlocal.name}`;
     this.netlib.send("reliable", to, msg);
     this._send_neighbors();
   }
 
-  /**
-   * @param {string} to .
-   */
-  _on_connected(to) {
-    this._send_welcome(to);
-  }
-
-  /**
-   * @param {string} to .
-   */
-  _on_disconnected(to) {
-    delete this.players[to];
-    this._send_neighbors();
+  _receive_greet(peer, name) {
+    this.players[peer.id] = new NetPlayer(false, name, peer.id);
   }
 
   _send_sync() {
@@ -283,6 +286,74 @@ class Network {
     this.netlib.broadcast("unreliable", p.buffer);
   }
 
+  _receive_sync(player, packet) {
+    player.stamp = packet.stamp;
+    player.entities_count = packet.tags[0];
+    player.guids = packet.tags[1];
+    player.sent = Math.max(packet.index, player.sent);
+    for (let i in player.neighbors) {
+      const neighbor = this.players[player.neighbors[i]];
+      const blame = packet.info_short[i] * this.get_blame_mask(neighbor);
+      player.blames[i] = blame;
+    }
+  }
+
+  _send_entity_ask(player, index) {
+    const p = this.playerlocal.packet;
+
+    p.type = MESSAGE_TYPE.ENTITY;
+    p.subtype = MESSAGE_SUBTYPE.ASK;
+    p.stamp = this.playerlocal.stamp;
+    p.index = this.playerlocal.sent++;
+    p.tags[0] = index;
+
+    this.netlib.send("unreliable", player.id, p.buffer);
+  }
+
+  _receive_entity_ask(player, packet) {
+    const p = this.playerlocal.packet_entity;
+
+    p.type = MESSAGE_TYPE.ENTITY;
+    p.subtype = MESSAGE_SUBTYPE.RESPONSE;
+    p.index = packet.index;
+
+    const index = packet.tags[0];
+    const entity = this.pool.entities[this.pool.history[index]];
+    if (entity) {
+      p.tags[0] = 1;
+      p.info_short.set(entity._len);
+    } else {
+      p.tags[0] = 0;
+    }
+
+    this.netlib.send("unreliable", player.id, p.buffer);
+  }
+
+  /**
+   * @param {NetPacket} packet .
+   */
+  _receive_entity_response(player, packet) {
+    const refentity = new Entity(
+      null,
+      null,
+      this.pool,
+      packet.info.buffer,
+      packet.info.byteOffset,
+    );
+    if (this.pool.entities[refentity.id]) {
+      return;
+    }
+    const entity = new Entity(
+      refentity.id,
+      refentity.index,
+      this.pool,
+      this.pool.buffer,
+    );
+    entity.copy(refentity);
+    this.pool.add(entity);
+    this.pool.allocated += 1;
+  }
+
   routine(dt) {
     if (!this.connected) {
       return;
@@ -292,22 +363,70 @@ class Network {
     this.playerlocal.entities_count = this.pool.allocated;
     this.playerlocal.guids = this.pool.guids;
 
-		this.playerlocal.blames.length = this.playerlocal.neighbors.length;
+    let max_entities_count = 0;
+
+    // blame other clients
+    this.playerlocal.blames.length = this.playerlocal.neighbors.length;
     for (const i in this.playerlocal.neighbors) {
       const id = this.playerlocal.neighbors[i];
       const player = this.players[id];
       let blame = 0;
+
+      max_entities_count = Math.max(player.entities_count, max_entities_count);
+
       if (
-        this.playerlocal.entities_count != player.entities_count &&
-        this.playerlocal.guids < player.guids
+        !player ||
+        this.playerlocal.entities_count != player.entities_count ||
+        this.playerlocal.guids != player.guids
       ) {
-        blame = 1;
+        blame = 1 * this.get_blame_mask(player);
       }
 
-			this.playerlocal.blames[i] = blame;
+      this.playerlocal.blames[i] = blame;
+    }
+
+    // consider other clients blames
+    let norequests = false;
+    for (let requests = 0; !norequests && requests < 16; requests++) {
+      norequests = true;
+      for (const i in this.playerlocal.neighbors) {
+        const id = this.playerlocal.neighbors[i];
+        const player = this.players[id];
+        const selfindex = player.neighbors.indexOf(this.playerlocal.id);
+        const blamed = player.blames[selfindex];
+        if (!blamed) {
+          continue;
+        }
+
+				this.pool.guids = Math.max(this.pool.guids, player.guids);
+
+        this._entities_sync_interation = this._entities_sync_interation ?? 0;
+        this._send_entity_ask(player, this._entities_sync_interation);
+        requests += 1;
+        this._entities_sync_interation =
+          (this._entities_sync_interation + 1) % max_entities_count;
+        norequests = false;
+      }
     }
 
     this._send_sync();
+  }
+
+  /**
+   * Blame sets if client has desync.
+   * Clients blamed by most players has no athority and synced forcefully.
+   * Can't blame leader if there's only two players. In this case leader has authority.
+   */
+  get_blame_mask(player) {
+    if (!player || this.playerlocal.neighbors.length > 2) {
+      return 1;
+    }
+
+    if (this.netlib.currentLeader == player.id) {
+      return 0;
+    }
+
+    return 1;
   }
 
   init() {
@@ -327,6 +446,20 @@ class Network {
     return this;
   }
 
+  /**
+   * @param {string} to .
+   */
+  _on_connected(to) {
+    this._send_greet(to);
+  }
+
+  /**
+   * @param {string} to .
+   */
+  _on_disconnected(to) {
+    delete this.players[to];
+    this._send_neighbors();
+  }
 
   run() {
     this.netlib.on("signalingerror", logger.error.bind(logger));

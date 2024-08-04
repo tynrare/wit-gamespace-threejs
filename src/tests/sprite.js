@@ -276,11 +276,11 @@ class EntitySprite {
    * @param {ENTITY_SPRITESHEET_TYPE} type .
    * @param {string} seed .
    */
-  init(type, seed) {
+  init() {
     const spritesheet = new SpritesheetAnimationSource();
-    spritesheet.set_type(type, seed).load();
+    spritesheet.set_type(this.entity.type, this.entity.seed).load();
 
-    switch (type) {
+    switch (this.entity.type) {
       case ENTITY_SPRITESHEET_TYPE.CHARACTER:
         break;
       case ENTITY_SPRITESHEET_TYPE.PROP:
@@ -291,8 +291,6 @@ class EntitySprite {
     }
 
     this.entity.init();
-    this.entity.type = type;
-    this.entity.seed = seed;
 
     this.pawn = new PawnMap(this.entity);
     const draw = new SpriteAnimated(spritesheet);

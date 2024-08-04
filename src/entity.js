@@ -1,24 +1,34 @@
+import logger from "./logger.js";
+
 class Entity {
   /**
    * @param {Pool} pool .
    * @param {ArrayBuffer} buffer .
    */
-  constructor(id, index, pool, buffer) {
+  constructor(
+    id = null,
+    index = null,
+    pool,
+    buffer,
+    offset = index * Entity.size(),
+  ) {
     this._pool = pool;
     this._buffer = buffer;
 
-    const shift = index * Entity.size();
+    this._vpositions = new Float32Array(buffer, offset, 8);
+    this._vstamps = new Uint32Array(buffer, offset + 20, 2);
+    this._vflags = new Uint16Array(buffer, offset + 28, 1);
+    this._vstats = new Uint16Array(buffer, offset + 30, 5);
+    this._vtags = new Uint8Array(buffer, offset + 40, 4);
 
-    this._vpositions = new Float32Array(buffer, shift, 8);
-    this._vstamps = new Uint32Array(buffer, shift + 20, 2);
-    this._vflags = new Uint16Array(buffer, shift + 28, 1);
-    this._vstats = new Uint16Array(buffer, shift + 30, 5);
-    this._vtags = new Uint8Array(buffer, shift + 40, 4);
+    this._len = new Uint8Array(buffer, offset, Entity.size());
 
-    this._len = new Uint8Array(buffer, shift, Entity.size());
-
-    this.id = id;
-    this.index = index;
+		if (index !== null) {
+			this.index = index;
+		}
+    if (id !== null) {
+      this.id = id;
+    }
   }
 
   init() {
@@ -30,13 +40,28 @@ class Entity {
   dispose() {
     this.disposed = true;
     delete this._pool.entities[this.id];
-    this._pool.disposed.push(this.index);
     this._pool.allocated -= 1;
+    const index = this.index;
+
+    this._pool.history.splice(this._pool.history.indexOf(this.id), 1);
+
+    // move last entity into disposed position
+    if (this._pool.allocated > 0 && this._pool.allocated != index) {
+      const last = new Entity(
+        null,
+        this._pool.allocated,
+        this._pool,
+        this._buffer,
+      );
+      this.copy(last);
+      this.index = index;
+      last.disposed = true;
+    }
   }
 
-	/**
-	 * @returns {number}
-	 */
+  /**
+   * @returns {number}
+   */
   get id() {
     return this._vstats[0];
   }
@@ -45,9 +70,9 @@ class Entity {
     return (this._vstats[0] = v);
   }
 
-	/**
-	 * @returns {number}
-	 */
+  /**
+   * @returns {number}
+   */
   get index() {
     return this._vstats[1];
   }
@@ -56,9 +81,9 @@ class Entity {
     return (this._vstats[1] = v);
   }
 
-	/**
-	 * @returns {number}
-	 */
+  /**
+   * @returns {number}
+   */
   get type() {
     return this._vstats[2];
   }
@@ -67,9 +92,9 @@ class Entity {
     return (this._vstats[2] = v);
   }
 
-	/**
-	 * @returns {number}
-	 */
+  /**
+   * @returns {number}
+   */
   get seed() {
     return this._vstats[3];
   }
@@ -78,9 +103,9 @@ class Entity {
     return (this._vstats[3] = v);
   }
 
-	/**
-	 * @returns {number}
-	 */
+  /**
+   * @returns {number}
+   */
   get timestamp() {
     return this._vstamps[0];
   }
@@ -89,9 +114,9 @@ class Entity {
     return (this._vstamps[0] = v);
   }
 
-	/**
-	 * @returns {Float32Array} length 4
-	 */
+  /**
+   * @returns {Float32Array} length 4
+   */
   get positions() {
     return this._vpositions;
   }
@@ -166,14 +191,7 @@ class Entity {
    * @param {Entity} entity .
    */
   copy(entity) {
-    return this.set(entity.index, entity._buffer);
-  }
-
-  set(index, buffer) {
-    const size = Entity.size();
-    this._len.set(new Uint8Array(buffer, index * size, size));
-
-    return this;
+		this._len.set(entity._len);
   }
 
   /**
@@ -189,14 +207,13 @@ class Pool {
     /** @type {ArrayBuffer} */
     this.buffer = null;
 
-    this.chunk_size = 100;
+    this.chunk_size = 256;
 
     this.guids = 0;
 
-    this.last = 0;
-    this.disposed = [];
     /** @type {Array<Entity>} */
     this.entities = {};
+    this.history = [];
 
     this.allocated = 0;
   }
@@ -206,26 +223,34 @@ class Pool {
     return this;
   }
   allocate() {
+    if (this.allocated >= this.chunk_size) {
+      logger.error("Pool out of bounds! Can't create another entity");
+      return null;
+    }
+
     const id = this.guids++;
-    const index = this.disposed.pop() ?? this.last++;
+    const index = this.allocated++;
     const entity = new Entity(id, index, this, this.buffer);
-    entity.allocated = true;
-    this.entities[id] = entity;
-    this.allocated += 1;
+    this.add(entity);
 
     return entity;
+  }
+  add(entity) {
+    entity.allocated = true;
+    this.entities[entity.id] = entity;
+    this.history.push(entity.id);
   }
   free(id) {
     const entity = this.entities[id];
     entity.dispose();
   }
-	dispose() {
-		for(const k in this.entities) {
-			this.free(k);
-		}
+  dispose() {
+    for (const k in this.entities) {
+      this.free(k);
+    }
 
-		this.buffer = null;
-	}
+    this.buffer = null;
+  }
 }
 
 export { Pool, Entity };

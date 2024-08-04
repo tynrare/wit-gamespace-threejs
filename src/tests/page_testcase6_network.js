@@ -93,19 +93,28 @@ class LevelTestcase6Network {
     }
   }
 
-  make_entity(pos, type) {
-    const entity = new EntitySprite(this._pool.allocate());
-    const seed = this.seed + this.seed_static + entity.id;
-		entity.init(type, seed)
-			.run();
+	/**
+	 * @param {Entity} entity_data .
+	 */
+	add_entity(entity_data) {
+    const entity = new EntitySprite(entity_data);
+    entity.init().run();
+    this.entities[entity.id] = entity;
 
-		entity.teleport(pos);
+		return entity;
+	}
+
+  make_entity(pos, type) {
+		const e = this._pool.allocate();
+    const seed = this.seed + this.seed_static + e.id;
+		e.type = type;
+		e.seed = seed;
+		const entity = this.add_entity(e);
+    entity.teleport(pos);
 
     logger.log(
       `Created entity #${entity.id} at ${pos.x.toFixed(2)},${pos.z.toFixed(2)}, type ${type}`,
     );
-
-    this.entities[entity.id] = entity;
 
     return entity;
   }
@@ -320,6 +329,27 @@ class PageTestcase6Network extends PageBase {
     this.level = new LevelTestcase6Network(this.network.pool);
   }
 
+  make_player_stats_pics(player) {
+    let pics = "";
+    if (!this.network.get_blame_mask(player)) {
+      pics += "👑";
+    }
+    if (!player.local) {
+      const selfindex = player.neighbors.indexOf(this.network.playerlocal.id);
+      const blamed = player.blames[selfindex];
+      if (blamed) {
+        pics += "😡"; // this player has desync - blamed by other player
+      }
+      const pindex = this.network.playerlocal.neighbors.indexOf(player.id);
+      const blames = this.network.playerlocal.blames[pindex];
+      if (blames) {
+        pics += "😓"; // other player - has desync blamed by this client
+      }
+    } else {
+    }
+    return pics.padStart(6, "🟢");
+  }
+
   routine() {
     if (App.instance.DEBUG) {
       let msg = "<d>Network:</d>";
@@ -327,23 +357,9 @@ class PageTestcase6Network extends PageBase {
         const stamp = this.network.playerlocal.stamp;
         const p = this.network.players[k];
         const stampdelta = p.stamp - stamp;
-        const stampdelta_s = `${stampdelta >= 0 ? "+" : "-"}${Math.abs(stampdelta)}`;
-
-				let pics = "";
-				if (!p.local) {
-					const selfindex = p.neighbors.indexOf(this.network.playerlocal.id);
-					const blamed = p.blames[selfindex];
-					if (blamed) {
-						pics += "😓";;
-					}
-					const pindex = this.network.playerlocal.neighbors.indexOf(p.id);
-					const blames = this.network.playerlocal.blames[pindex];
-					if (blames) {
-						pics += "😡";
-					}
-				} else {
-				}
-				pics = pics.padStart(6, "🟢");
+        const stampdelta_sa = Math.abs(stampdelta).toString().padStart(4, "0");
+        const stampdelta_s = `${stampdelta >= 0 ? "+" : "-"}${stampdelta_sa}`;
+        const pics = this.make_player_stats_pics(p);
 
         msg += `<d>${pics} | ${stampdelta_s} ${p.tostring()}</d>`;
       }
@@ -359,6 +375,16 @@ class PageTestcase6Network extends PageBase {
         this.network.netlib.currentLobby,
       );
     }
+
+		// add entities
+		for (let k in this.network.pool.entities) {
+			const e = this.network.pool.entities[k]; 
+			if (!this.level.entities[k]) {
+				const entity = this.level.add_entity(e);
+				const p = entity.pawn.get_pos(cache.vec3.v0);
+				entity.teleport(p);
+			}
+		}
 
     //this.process_network_players();
   }
