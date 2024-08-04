@@ -1,78 +1,92 @@
 import * as THREE from "three";
 import { cache } from "../math.js";
+import { Entity } from "../entity.js";
 
 class PawnMap {
-  constructor(id, movable = true) {
-		this.id = id;
-		this.movable = movable;
-    this.path_a = new THREE.Vector3(0, 0, 1e-5);
+  /**
+   * @param {Entity} entity .
+   */
+  constructor(entity) {
+    this.entity = entity;
+
     this.elapsed = 0;
 
-		if (!movable) {
-			return;
-		}
-
     this.path_timestamp = 0;
-    this.path_b = new THREE.Vector3();
-		this.path_len = 0;
-		this.path_direction = new THREE.Vector3();
+    this.path_len = 0;
+    this.path_direction = new THREE.Vector3();
     this.speed = 1;
+  }
+
+  init() {
+		this.teleport(cache.vec3.v0.set(0, 0, 0));
+	}
+
+  get_path_a(pos = cache.vec3.v0) {
+    pos.x = this.entity.positions[0];
+    pos.y = this.entity.positions[1];
+    pos.z = this.entity.positions[2];
+
+		return pos;
+  }
+
+  set_path_a(pos) {
+    this.entity.positions[0] = pos.x;
+    this.entity.positions[1] = pos.y;
+    this.entity.positions[2] = pos.z;
+  }
+
+  get_path_b(pos = cache.vec3.v0) {
+    pos.x = this.entity.positions[3];
+    pos.y = this.entity.positions[4];
+    pos.z = this.entity.positions[5];
+
+		return pos;
+  }
+
+  set_path_b(pos) {
+    this.entity.positions[3] = pos.x;
+    this.entity.positions[4] = pos.y;
+    this.entity.positions[5] = pos.z;
+  }
+
+  get_pos(v = cache.vec3.v0) {
+    const path_time = (Date.now() - this.path_timestamp) * 1e-3;
+    const path_len = this.path_len;
+    const path = v.copy(this.path_direction);
+    path.multiplyScalar(Math.min(path_len, path_time * this.speed));
+
+    return path.add(this.get_path_a(cache.vec3.v1));
   }
 
   step(dt) {
     this.elapsed += dt;
   }
 
-  get_pos(v = cache.vec3.v0) {
-		if (!this.movable) {
-			return v.copy(this.path_a);
-		}
-
+  get moving() {
     const path_time = (Date.now() - this.path_timestamp) * 1e-3;
     const path_len = this.path_len;
-    const path = v.copy(this.path_direction);
-    path.multiplyScalar(Math.min(path_len, path_time * this.speed));
 
-		return path.add(this.path_a);
+    return path_len > path_time * this.speed;
   }
-
-	get moving() {
-		if (!this.movable) {
-			return false;
-		}
-
-    const path_time = (Date.now() - this.path_timestamp) * 1e-3;
-    const path_len = this.path_len;
-
-		return path_len > path_time * this.speed;
-	}
 
   set_goal(pos) {
-		if (!this.movable) {
-			this.path_a.copy(pos);
-			return;
-		}
-
-		const pb = cache.vec3.v1.copy(pos);
-		const pa = cache.vec3.v2.copy(this.get_pos());
-    this.path_a.copy(pa);
-    this.path_b.copy(pb);
+    const pb = cache.vec3.v1.copy(pos);
+    const pa = cache.vec3.v2.copy(this.get_pos());
+    this.set_path_a(pa);
+    this.set_path_b(pb);
     this.path_timestamp = Date.now();
 
-    const path = cache.vec3.v0.copy(this.path_b).sub(this.path_a);
+    const path = this.get_path_b(cache.vec3.v0).sub(
+      this.get_path_a(cache.vec3.v1),
+    );
     this.path_len = path.length();
-		this.path_direction.copy(path.normalize());
+    this.path_direction.copy(path.normalize());
   }
 
-	teleport(pos) {
-		if (!this.movable) {
-			this.path_a.copy(pos);
-			return;
-		}
-
-    this.path_a.copy(pos);
-    this.path_b.copy(pos);
-	}
+  teleport(pos) {
+    this.set_path_a(pos);
+    this.set_path_b(pos);
+  }
 }
 
 export default PawnMap;
