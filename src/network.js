@@ -173,6 +173,7 @@ class Network {
 
     /** @type {Object<string, NetPlayer>} */
     this.players = {};
+    this.players_count = 0;
 
     this.connected = false;
   }
@@ -372,7 +373,10 @@ class Network {
       const player = this.players[id];
       let blame = 0;
 
-      max_entities_count = Math.max(player.entities_count, max_entities_count);
+      max_entities_count = Math.max(
+        player?.entities_count ?? 0,
+        max_entities_count,
+      );
 
       if (
         !player ||
@@ -386,48 +390,63 @@ class Network {
     }
 
     // consider other clients blames
-    let norequests = false;
-    for (let requests = 0; !norequests && requests < 16; requests++) {
-      norequests = true;
-      for (const i in this.playerlocal.neighbors) {
-        const id = this.playerlocal.neighbors[i];
-        const player = this.players[id];
-        const selfindex = player.neighbors.indexOf(this.playerlocal.id);
-        const blamed = player.blames[selfindex];
-        if (!blamed) {
-          continue;
-        }
+    for (const i in this.playerlocal.neighbors) {
+      const id = this.playerlocal.neighbors[i];
+      const player = this.players[id];
+      const selfindex = player?.neighbors.indexOf(this.playerlocal.id);
+      const blamed = player?.blames[selfindex];
+      if (!blamed) {
+        continue;
+      }
 
-        this.pool.guids = Math.max(this.pool.guids, player.guids);
+      this.pool.guids = Math.max(this.pool.guids, player.guids);
 
+      for (let requests = 0; requests < 16; requests++) {
         this._entities_sync_interation = this._entities_sync_interation ?? 0;
-        //this._send_entity_ask(player, this._entities_sync_interation);
-        requests += 1;
+        this._send_entity_ask(player, this._entities_sync_interation);
         this._entities_sync_interation =
           (this._entities_sync_interation + 1) % max_entities_count;
-        norequests = false;
       }
     }
 
     this._send_sync();
   }
 
-  has_blames(player, from = null) {
-    let blames = 0;
+  /**
+   * More than half players blame each other.
+   *
+   */
+  has_blamelock() {
+    let blamed = 0;
+    const half_player_count = this.players_count * 0.5;
+    for (const k in this.players) {
+      const blames = this.count_blames(this.players[k]);
+      if (blames > half_player_count) {
+        blamed += 1;
+      }
+    }
 
-    if (
-      this.netlib.currentLeader == player.id &&
-      this.playerlocal.neighbors.length < 1
-    ) {
+    return blamed > half_player_count;
+  }
+
+  has_blames(player, from = null) {
+    if (!this.get_blame_mask(player)) {
       return false;
     }
 
-		if (from) {
+    if (from) {
       const selfindex = from.neighbors.indexOf(player.id);
       const blamed = from.blames[selfindex];
-			return blamed;
-		}
+      return blamed;
+    }
 
+    const blames = this.count_blames(player);
+
+    return blames > player.neighbors.length * 0.5;
+  }
+
+  count_blames(player) {
+    let blames = 0;
     for (const i in player.neighbors) {
       const id = player.neighbors[i];
       const other_player = this.players[id];
@@ -438,7 +457,7 @@ class Network {
       }
     }
 
-    return blames > player.neighbors.length * 0.5;
+    return blames;
   }
 
   /**
@@ -447,10 +466,22 @@ class Network {
    * Can't blame leader if there's only two players. In this case leader has authority.
    */
   get_blame_mask(player) {
-    if (!player || this.playerlocal.neighbors.length > 2) {
+    // greetings wasn't recieved yet
+    if (!player) {
       return 1;
     }
 
+    // leader has athority in blamelock
+    if (this.has_blamelock() && this.netlib.currentLeader == player.id) {
+      return 0;
+    }
+
+    // leader has no athority with more than 2 players in game
+    if (this.playerlocal.neighbors.length > 1) {
+      return 1;
+    }
+
+    // leader has athority when only two clients connected
     if (this.netlib.currentLeader == player.id) {
       return 0;
     }
@@ -480,6 +511,7 @@ class Network {
    */
   _on_connected(to) {
     this._send_greet(to);
+    this.players_count += 1;
   }
 
   /**
@@ -488,6 +520,7 @@ class Network {
   _on_disconnected(to) {
     delete this.players[to];
     this._send_neighbors();
+    this.players_count -= 1;
   }
 
   run() {
@@ -530,6 +563,7 @@ class Network {
         this.playerlocal.id = this.netlib.id;
         this.players[this.playerlocal.id] = this.playerlocal;
         this.connected = true;
+        this.players_count += 1;
 
         if (lobby.leader == this.netlib.id) {
           this.playerlocal.creator = true;

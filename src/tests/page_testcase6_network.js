@@ -334,16 +334,10 @@ class PageTestcase6Network extends PageBase {
 
   make_player_stats_pics(player) {
     let pics = "";
+
+		// mask ZERO if player has leadership and there's only two players
     if (!this.network.get_blame_mask(player)) {
       pics += "👑";
-    }
-
-    if (!player.local) {
-			/*
-      if (blamed) {
-        pics += ""; // player blames this client wich has desync
-      }
-			*/
     }
 
 		// other client blames this client
