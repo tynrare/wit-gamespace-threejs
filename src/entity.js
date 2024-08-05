@@ -15,13 +15,20 @@ class Entity {
     this._pool = pool;
     this._buffer = buffer;
 
-    this._vpositions = new Float32Array(buffer, offset, 6);
-    this._vstamps = new Uint32Array(buffer, offset + 24, 2);
-    this._vflags = new Uint16Array(buffer, offset + 32, 1);
-    this._vstats = new Uint16Array(buffer, offset + 34, 5);
-    this._vtags = new Uint8Array(buffer, offset + 44, 4);
+		/** @type {Float32Array} */
+    this._vpositions = null;
+		/** @type {Uint32Array} */
+    this._vstamps = null;
+		/** @type {Uint16Array} */
+    this._vflags = null;
+		/** @type {Uint16Array} */
+    this._vstats = null;
+		/** @type {Uint8Array} */
+    this._vtags = null;
+		/** @type {Uint8Array} */
+    this._len = null;
 
-    this._len = new Uint8Array(buffer, offset, Entity.size());
+		this._bind_buffer(offset, buffer);
 
 		if (index !== null) {
 			this.index = index;
@@ -37,6 +44,16 @@ class Entity {
     this.disposed = false;
   }
 
+	_bind_buffer(offset, buffer) {
+    this._vpositions = new Float32Array(buffer, offset, 6);
+    this._vstamps = new Uint32Array(buffer, offset + 24, 2);
+    this._vflags = new Uint16Array(buffer, offset + 32, 1);
+    this._vstats = new Uint16Array(buffer, offset + 34, 5);
+    this._vtags = new Uint8Array(buffer, offset + 44, 4);
+
+    this._len = new Uint8Array(buffer, offset, Entity.size());
+	}
+
   dispose() {
     this.disposed = true;
     delete this._pool.entities[this.id];
@@ -47,15 +64,21 @@ class Entity {
 
     // move last entity into disposed position
     if (this._pool.allocated > 0 && this._pool.allocated != index) {
+			// access last entity in memory
       const last = new Entity(
         null,
         this._pool.allocated,
         this._pool,
         this._buffer,
       );
+			// copy that memory into current chunk
       this.copy(last);
+			// set flags
       this.index = index;
       last.disposed = true;
+			// rebind rechunked entity into current chunk
+			const lentity = this._pool.entities[last.id];
+			lentity._bind_buffer(index * Entity.size(), this._buffer);
     }
   }
 
@@ -262,6 +285,7 @@ class Pool {
   }
   add(entity) {
     entity.allocated = true;
+		entity.init();
     this.entities[entity.id] = entity;
     this.history.push(entity.id);
   }
