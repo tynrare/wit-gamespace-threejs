@@ -122,6 +122,8 @@ class NetPlayer {
     this.stamp = 0;
     this.sent = 0;
     this.id = id ?? "";
+		this.pawn = -1;
+
     this.alatency = 0;
 
     this.creator = false;
@@ -171,8 +173,15 @@ class Network {
     /** @type {NetPlayer} */
     this.playerlocal = null;
 
+
+		// players and pawns is same objects
+		// players tagged by peer id
+		// pawns tagged by entity id
     /** @type {Object<string, NetPlayer>} */
     this.players = {};
+    /** @type {Object<string, NetPlayer>} */
+    this.pawns = {};
+
     this.players_count = 0;
 
     this.connected = false;
@@ -268,7 +277,9 @@ class Network {
   }
 
   _receive_greet(peer, name) {
-    this.players[peer.id] = new NetPlayer(false, name, peer.id);
+    const player = this.players[peer.id] = new NetPlayer(false, name, peer.id);
+
+		return player;
   }
 
   _send_sync() {
@@ -297,6 +308,18 @@ class Network {
       const blame = packet.info_short[i] * this.get_blame_mask(neighbor);
       player.blames[i] = blame;
     }
+
+		/*
+		if (!this.has_blamed(this.playerlocal) && player.pawn < 0) {
+			const entity = this.pool.allocate();
+			player.pawn = entity.id;
+			entity.owner = player.pawn;
+			this.pawns[player.pawn] = player;
+			console.log(this.pawns);
+
+			//this._send_greet_response(player);
+		}
+		*/
   }
 
   _send_entity_ask(player, index) {
@@ -320,6 +343,7 @@ class Network {
 
     const index = packet.tags[0];
     const entity = this.pool.entities[this.pool.history[index]];
+
     if (entity) {
       p.tags[0] = 1;
       p.info_short.set(entity._len);
@@ -393,8 +417,7 @@ class Network {
     for (const i in this.playerlocal.neighbors) {
       const id = this.playerlocal.neighbors[i];
       const player = this.players[id];
-      const selfindex = player?.neighbors.indexOf(this.playerlocal.id);
-      const blamed = player?.blames[selfindex];
+      const blamed = this.has_blamed(this.playerlocal, player);
       if (!blamed) {
         continue;
       }
@@ -420,32 +443,37 @@ class Network {
     let blamed = 0;
     const half_player_count = this.players_count * 0.5;
     for (const k in this.players) {
-      const blames = this.count_blames(this.players[k]);
-      if (blames > half_player_count) {
+      const blames = this.count_blamed(this.players[k]);
+      if (blames >= half_player_count) {
         blamed += 1;
       }
     }
 
-    return blamed > half_player_count;
+    return blamed >= half_player_count;
   }
 
-  has_blames(player, from = null) {
+  has_blamed(player, by = null) {
+		// not initialized
+		if (this.netlib.currentLeader != player.id && player.neighbors.length < 1) {
+			return true;
+		}
+
     if (!this.get_blame_mask(player)) {
       return false;
     }
 
-    if (from) {
-      const selfindex = from.neighbors.indexOf(player.id);
-      const blamed = from.blames[selfindex];
+    if (by) {
+      const selfindex = by.neighbors.indexOf(player.id);
+      const blamed = by.blames[selfindex];
       return blamed;
     }
 
-    const blames = this.count_blames(player);
+    const blames = this.count_blamed(player);
 
     return blames > player.neighbors.length * 0.5;
   }
 
-  count_blames(player) {
+  count_blamed(player) {
     let blames = 0;
     for (const i in player.neighbors) {
       const id = player.neighbors[i];
@@ -480,8 +508,6 @@ class Network {
     if (this.playerlocal.neighbors.length > 1) {
       return 1;
     }
-
-    // leader has athority when only two clients connected
     if (this.netlib.currentLeader == player.id) {
       return 0;
     }
@@ -515,10 +541,12 @@ class Network {
   }
 
   /**
-   * @param {string} to .
+   * @param {string} id .
    */
-  _on_disconnected(to) {
-    delete this.players[to];
+  _on_disconnected(id) {
+		const player = this.players[id];
+    delete this.players[id];
+    delete this.pawns[player.pawn];
     this._send_neighbors();
     this.players_count -= 1;
   }
@@ -561,12 +589,12 @@ class Network {
       });
       this.netlib.on("lobby", (code, lobby) => {
         this.playerlocal.id = this.netlib.id;
-        this.players[this.playerlocal.id] = this.playerlocal;
+        const player = this.players[this.playerlocal.id] = this.playerlocal;
         this.connected = true;
         this.players_count += 1;
 
         if (lobby.leader == this.netlib.id) {
-          this.playerlocal.creator = true;
+          player.creator = true;
         }
       });
     });

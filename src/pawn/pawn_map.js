@@ -49,6 +49,9 @@ class PawnMap {
     this.entity.positions[5] = pos.z;
   }
 
+	/**
+	 * cache v0 v1 in use
+	 */
   get_pos(v = cache.vec3.v0) {
     const path_time = (Date.now() - this.path_timestamp) * 1e-3;
     const path_len = this.path_len;
@@ -69,9 +72,12 @@ class PawnMap {
     return path_len > path_time * this.speed;
   }
 
+	/**
+	 * cache v0 v1 v2 v3 in use
+	 */
   set_goal(pos) {
-    const pb = cache.vec3.v1.copy(pos);
-    const pa = cache.vec3.v2.copy(this.get_pos());
+    const pb = cache.vec3.v2.copy(pos);
+    const pa = this.get_pos(cache.vec3.v3);
     this.set_path_a(pa);
     this.set_path_b(pb);
     this.path_timestamp = Date.now();

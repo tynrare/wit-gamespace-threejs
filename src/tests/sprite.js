@@ -282,6 +282,7 @@ class EntitySprite {
 
     switch (this.entity.type) {
       case ENTITY_SPRITESHEET_TYPE.CHARACTER:
+        this.pickable = false;
         break;
       case ENTITY_SPRITESHEET_TYPE.PROP:
         break;

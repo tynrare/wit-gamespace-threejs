@@ -106,6 +106,17 @@ class Entity {
   /**
    * @returns {number}
    */
+  get owner() {
+    return this._vstats[4];
+  }
+
+  set owner(v) {
+    return (this._vstats[4] = v);
+  }
+
+  /**
+   * @returns {number}
+   */
   get timestamp() {
     return this._vstamps[0];
   }

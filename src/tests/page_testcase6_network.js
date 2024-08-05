@@ -58,7 +58,7 @@ class LevelTestcase6Network {
 
     if (create) {
       logger.log("New world! Generating...");
-      this._generate_world();
+      //this._generate_world();
     }
   }
 
@@ -233,6 +233,7 @@ class PageTestcase6Network extends PageBase {
       this.entity_picked = null;
       const picked = this.level.pick(x, 0, z);
       const goal = cache.vec3.v0.set(x, 0, z);
+      /*
       if (picked) {
         const picked_pos = picked.pawn.get_pos(cache.vec3.v1);
         const dir = cache.vec3.v2.copy(this.pawn_local.get_pos(cache.vec3.v3));
@@ -242,6 +243,7 @@ class PageTestcase6Network extends PageBase {
 
         this.entity_picked = picked.id;
       }
+			*/
       this.set_goal(goal.x, goal.z);
     } else if (action === InputAction.action_b) {
       // click-hold
@@ -256,16 +258,18 @@ class PageTestcase6Network extends PageBase {
     this.input_goal.set(x, 0, z);
     if (this.pawn_local) {
       this.pawn_local.set_goal(this.input_goal);
-      this.input_goal_dbg_a?.position.copy(this.pawn_local.path_a);
-      this.input_goal_dbg_b?.position.copy(this.pawn_local.path_b);
+      this.input_goal_dbg_a?.position.copy(this.pawn_local.get_path_a());
+      this.input_goal_dbg_b?.position.copy(this.pawn_local.get_path_b());
     }
 
+    /*
     this.network.send_game_action_pos(
       MESSAGE_GAME_ACTION_TYPE.POSITION,
       x,
       0,
       z,
     );
+		*/
   }
 
   /**
@@ -335,18 +339,18 @@ class PageTestcase6Network extends PageBase {
   make_player_stats_pics(player) {
     let pics = "";
 
-		// mask ZERO if player has leadership and there's only two players
+    // mask ZERO if player has leadership and there's only two players
     if (!this.network.get_blame_mask(player)) {
       pics += "👑";
     }
 
-		// other client blames this client
-    if (this.network.has_blames(this.network.playerlocal, player)) {
+    // other client blames this client
+    if (this.network.has_blamed(this.network.playerlocal, player)) {
       pics += "😡";
     }
 
-		// client blamed by someone
-    if (this.network.has_blames(player)) {
+    // client blamed by someone
+    if (this.network.has_blamed(player)) {
       pics += "😓";
     }
 
@@ -391,57 +395,38 @@ class PageTestcase6Network extends PageBase {
     for (const k in this.network.pool.entities) {
       const e = this.network.pool.entities[k];
       if (!this.level.entities[k]) {
-        const entity = this.level.add_entity(e);
-        const p = entity.pawn.get_pos(cache.vec3.v0);
-        entity.teleport(p);
+        if (this.network.pawns[k]) {
+          this.create_pawn(e);
+        } else if (e.initialized) {
+          const entity = this.level.add_entity(e);
+          const p = entity.pawn.get_pos(cache.vec3.v0);
+          entity.teleport(p);
+        }
       }
     }
 
     //this.process_network_players();
   }
 
-  process_network_players() {
-    // disoneccted players
-    for (const k in this.pawns) {
-      if (!this.network.players[k]) {
-        this.remove_pawn(k);
-      }
-    }
-
-    // connected players
-    for (const k in this.network.players) {
-      const p = this.network.players[k];
-      if (!this.pawns[k]) {
-        const entity = this.create_pawn(k, p.local);
-
-        const draw = entity.draw;
-
-        const pawnpos = this.pawn_local.get_pos();
-        const pawnpos_b = this.pawn_local.path_b;
-        this.network.send_game_action_pos(
-          MESSAGE_GAME_ACTION_TYPE.POSITION,
-          pawnpos.x,
-          pawnpos.y,
-          pawnpos.z,
-          p.id,
-        );
-      }
-    }
-  }
-
-  create_pawn(id, local) {
-    // pawns is LOCAL entity. It doesn't listed in sync list
-    // It should be.
-    const entity = this.level.make_entity(
-      cache.vec3.v0.set(0, 0, 0),
-      ENTITY_SPRITESHEET_TYPE.CHARACTER,
+  /**
+   * @param {Entity} entity .
+   */
+  create_pawn(entity) {
+    entity.type = ENTITY_SPRITESHEET_TYPE.CHARACTER;
+    const rand = alea(
+      "" +
+        this.seed +
+        this.seed_static +
+        entity.id +
+        this.network.pawns[entity.id].id,
     );
-    const pawn = entity.pawn;
-    entity.pickable = false;
+    entity.seed = rand.range(0x1000);
 
-    this.pawns[id] = pawn;
-    if (local) {
-      this.pawn_local = pawn;
+    const entity_sprite = this.level.add_entity(entity);
+
+    this.pawns[entity.id] = entity_sprite.pawn;
+    if (this.network.playerlocal.pawn == entity.id) {
+      this.pawn_local = entity_sprite.pawn;
     }
 
     return entity;
