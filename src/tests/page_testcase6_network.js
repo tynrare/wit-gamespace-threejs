@@ -9,7 +9,7 @@ import { MapControls } from "three/addons/controls/MapControls.js";
 import { createFloorPlane } from "./utils.js";
 import {
   MESSAGE_TYPE,
-  MESSAGE_GAME_ACTION_TYPE,
+  MESSAGE_ENTITY_UPDATE_TYPE,
   Network,
   NetPacket,
   NET_PACKET_SIZE,
@@ -262,14 +262,10 @@ class PageTestcase6Network extends PageBase {
       this.input_goal_dbg_b?.position.copy(this.pawn_local.get_path_b());
     }
 
-    /*
-    this.network.send_game_action_pos(
-      MESSAGE_GAME_ACTION_TYPE.POSITION,
-      x,
-      0,
-      z,
+    this.network.send_entity_update(
+      this.pawn_local.entity,
+      MESSAGE_ENTITY_UPDATE_TYPE.POSITION,
     );
-		*/
   }
 
   /**
@@ -387,7 +383,11 @@ class PageTestcase6Network extends PageBase {
     for (const k in this.level.entities) {
       const entity = this.level.entities[k];
       if (!this.network.pool.entities[k]) {
-        this.level.dispose_entity(k);
+        if (this.pawns[k]) {
+          this.remove_pawn(k);
+        } else {
+          this.level.dispose_entity(k);
+        }
       }
     }
 
@@ -399,7 +399,7 @@ class PageTestcase6Network extends PageBase {
           this.create_pawn(e);
         } else if (e.initialized) {
           const entity = this.level.add_entity(e);
-          const p = entity.pawn.get_pos(cache.vec3.v0);
+          const p = entity.pawn.get_path_b(cache.vec3.v0);
           entity.teleport(p);
         }
       }
@@ -433,7 +433,7 @@ class PageTestcase6Network extends PageBase {
   }
 
   remove_pawn(id) {
-    if (this.pawn_local.id == id) {
+    if (this.pawn_local?.id == id) {
       this.pawn_local = null;
     }
     delete this.pawns[id];

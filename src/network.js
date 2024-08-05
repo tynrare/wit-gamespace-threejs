@@ -11,6 +11,8 @@ const MESSAGE_TYPE = {
   NEIGHBORS: 2,
   GAME: 3,
   ENTITY: 4,
+  ENTITY_UPDATE: 5,
+	PAWN_ASSIGN: 6
 };
 
 const MESSAGE_SUBTYPE = {
@@ -19,9 +21,11 @@ const MESSAGE_SUBTYPE = {
 };
 
 const MESSAGE_GAME_ACTION_TYPE = {
+  GATHER: 1,
+};
+
+const MESSAGE_ENTITY_UPDATE_TYPE = {
   POSITION: 0,
-  POSITION_FORCED: 1,
-  GATHER: 2,
 };
 
 const NET_PACKET_SIZE = {
@@ -95,6 +99,8 @@ class NetPacket {
 
   static size_by_type(type, subtype) {
     switch (type) {
+      case MESSAGE_TYPE.ENTITY_UPDATE:
+        return NET_PACKET_SIZE.ENTITY;
       case MESSAGE_TYPE.ENTITY:
         if (subtype == MESSAGE_SUBTYPE.RESPONSE) {
           return NET_PACKET_SIZE.ENTITY;
@@ -122,7 +128,7 @@ class NetPlayer {
     this.stamp = 0;
     this.sent = 0;
     this.id = id ?? "";
-		this.pawn = -1;
+    this.pawn = 0;
 
     this.alatency = 0;
 
@@ -173,10 +179,9 @@ class Network {
     /** @type {NetPlayer} */
     this.playerlocal = null;
 
-
-		// players and pawns is same objects
-		// players tagged by peer id
-		// pawns tagged by entity id
+    // players and pawns is same objects
+    // players tagged by peer id
+    // pawns tagged by entity id
     /** @type {Object<string, NetPlayer>} */
     this.players = {};
     /** @type {Object<string, NetPlayer>} */
@@ -234,6 +239,10 @@ class Network {
         } else {
           return this._receive_entity_response(player, p);
         }
+      case MESSAGE_TYPE.ENTITY_UPDATE:
+        return this._receive_entity_update(player, p);
+      case MESSAGE_TYPE.PAWN_ASSIGN:
+				return this._receive_pawn_assign(player, p);
       default: {
         const packet = new NetPacket(
           NetPacket.size_by_type(p.type, p.subtype),
@@ -277,12 +286,21 @@ class Network {
   }
 
   _receive_greet(peer, name) {
-    const player = this.players[peer.id] = new NetPlayer(false, name, peer.id);
+    const player = (this.players[peer.id] = new NetPlayer(
+      false,
+      name,
+      peer.id,
+    ));
 
-		return player;
+    // update blames
+    this.routine(0);
+    // send sync forced
+    this._send_sync(true, peer.id);
+
+    return player;
   }
 
-  _send_sync() {
+  _send_sync(reliable = false, to = null) {
     const p = this.playerlocal.packet;
 
     p.type = MESSAGE_TYPE.SYNC;
@@ -290,18 +308,26 @@ class Network {
     p.index = this.playerlocal.sent++;
     p.tags[0] = this.playerlocal.entities_count;
     p.tags[1] = this.playerlocal.guids;
+    p.tags[2] = this.playerlocal.pawn;
 
     for (const i in this.playerlocal.blames) {
       p.info_short[i] = this.playerlocal.blames[i];
     }
 
-    this.netlib.broadcast("unreliable", p.buffer);
+    const channel = reliable ? "reliable" : "unreliable";
+    if (to) {
+      this.netlib.send(channel, to, p.buffer);
+    } else {
+      this.netlib.broadcast(channel, p.buffer);
+    }
   }
 
   _receive_sync(player, packet) {
     player.stamp = packet.stamp;
     player.entities_count = packet.tags[0];
     player.guids = packet.tags[1];
+
+
     player.sent = Math.max(packet.index, player.sent);
     for (let i in player.neighbors) {
       const neighbor = this.players[player.neighbors[i]];
@@ -309,18 +335,43 @@ class Network {
       player.blames[i] = blame;
     }
 
-		/*
-		if (!this.has_blamed(this.playerlocal) && player.pawn < 0) {
+		// case a: other client has pawn. Assigning info in local list
+		if (!player.pawn && packet.tags[2]) {
+			player.pawn = packet.tags[2];
+			this.pawns[player.pawn] = player;
+		}
+
+		// case b: other client has no pawn. 
+		// Creates new entity and sets owner
+		if (!this.has_blamed(this.playerlocal) && !player.pawn) {
 			const entity = this.pool.allocate();
 			player.pawn = entity.id;
 			entity.owner = player.pawn;
 			this.pawns[player.pawn] = player;
-			console.log(this.pawns);
 
-			//this._send_greet_response(player);
+			this._send_pawn_assign(player);
 		}
-		*/
   }
+
+	_send_pawn_assign(player) {
+    const p = this.playerlocal.packet;
+
+    p.type = MESSAGE_TYPE.PAWN_ASSIGN;
+    p.stamp = this.playerlocal.stamp;
+    p.index = this.playerlocal.sent++;
+    p.tags[0] = player.pawn;
+
+    this.netlib.send("reliable", player.id, p.buffer);
+	}
+
+	_receive_pawn_assign(player, packet) {
+		if (this.has_blamed(player) || this.playerlocal.pawn) {
+			return;
+		}
+
+		this.playerlocal.pawn = packet.tags[0];
+		this.pawns[this.playerlocal.pawn] = this.playerlocal;
+	}
 
   _send_entity_ask(player, index) {
     const p = this.playerlocal.packet;
@@ -379,6 +430,51 @@ class Network {
     this.pool.allocated += 1;
   }
 
+  /**
+   * @param {Entity} entity
+   * @param {MESSAGE_ENTITY_UPDATE_TYPE} type .
+   */
+  send_entity_update(entity, type) {
+    const p = this.playerlocal.packet_entity;
+
+    p.type = MESSAGE_TYPE.ENTITY_UPDATE;
+    p.subtype = type;
+    p.stamp = this.playerlocal.stamp;
+    p.index = this.playerlocal.sent++;
+    p.info_short.set(entity._len);
+
+    this.netlib.broadcast("reliable", p.buffer);
+  }
+
+  /**
+   * @param {NetPlayer} player .
+   * @param {NetPacket} packet .
+   */
+  _receive_entity_update(player, packet) {
+    const refentity = new Entity(
+      null,
+      null,
+      this.pool,
+      packet.info.buffer,
+      packet.info.byteOffset,
+    );
+    const entity = this.pool.entities[refentity.id];
+    if (!entity) {
+      return;
+    }
+
+    switch (packet.subtype) {
+      case MESSAGE_ENTITY_UPDATE_TYPE.POSITION:
+        // sets "position b" - entity movement goal
+        entity.positions[3] = refentity.positions[3];
+        entity.positions[4] = refentity.positions[4];
+        entity.positions[5] = refentity.positions[5];
+				entity.updated = true;
+        break;
+    }
+  }
+
+
   routine(dt) {
     if (!this.connected) {
       return;
@@ -417,6 +513,11 @@ class Network {
     for (const i in this.playerlocal.neighbors) {
       const id = this.playerlocal.neighbors[i];
       const player = this.players[id];
+
+			if (!player) {
+				continue;
+			}
+
       const blamed = this.has_blamed(this.playerlocal, player);
       if (!blamed) {
         continue;
@@ -453,10 +554,10 @@ class Network {
   }
 
   has_blamed(player, by = null) {
-		// not initialized
-		if (this.netlib.currentLeader != player.id && player.neighbors.length < 1) {
-			return true;
-		}
+    // not initialized
+    if (this.netlib.currentLeader != player.id && player.neighbors.length < 1) {
+      return true;
+    }
 
     if (!this.get_blame_mask(player)) {
       return false;
@@ -544,9 +645,12 @@ class Network {
    * @param {string} id .
    */
   _on_disconnected(id) {
-		const player = this.players[id];
+    const player = this.players[id];
     delete this.players[id];
-    delete this.pawns[player.pawn];
+		if (player.pawn) {
+			delete this.pawns[player.pawn];
+			this.pool.free(player.pawn);
+		}
     this._send_neighbors();
     this.players_count -= 1;
   }
@@ -588,18 +692,29 @@ class Network {
         this._on_disconnected(peer.id);
       });
       this.netlib.on("lobby", (code, lobby) => {
-        this.playerlocal.id = this.netlib.id;
-        const player = this.players[this.playerlocal.id] = this.playerlocal;
-        this.connected = true;
-        this.players_count += 1;
-
-        if (lobby.leader == this.netlib.id) {
-          player.creator = true;
-        }
+        this._on_lobby(code, lobby);
       });
     });
 
     return this;
+  }
+
+  _on_lobby(code, lobby) {
+    this.playerlocal.id = this.netlib.id;
+    const player = (this.players[this.playerlocal.id] = this.playerlocal);
+    this.connected = true;
+    this.players_count += 1;
+
+    if (lobby.leader != this.netlib.id) {
+      return;
+    }
+
+    player.creator = true;
+
+    const entity = this.pool.allocate();
+    player.pawn = entity.id;
+    entity.owner = player.pawn;
+    this.pawns[player.pawn] = player;
   }
 
   _create_lobby() {
@@ -627,6 +742,7 @@ class Network {
 export {
   MESSAGE_TYPE,
   MESSAGE_GAME_ACTION_TYPE,
+  MESSAGE_ENTITY_UPDATE_TYPE,
   NET_PACKET_SIZE,
   Network,
   NetPacket,

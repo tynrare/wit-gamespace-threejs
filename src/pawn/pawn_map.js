@@ -63,6 +63,12 @@ class PawnMap {
 
   step(dt) {
     this.elapsed += dt;
+
+		// entity positions was updated on background
+		if (this.entity.updated) {
+			this.entity.updated = false;
+			this.set_goal(this.get_path_b(cache.vec3.v0));
+		}
   }
 
   get moving() {

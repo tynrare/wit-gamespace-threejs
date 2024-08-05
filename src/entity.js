@@ -15,11 +15,11 @@ class Entity {
     this._pool = pool;
     this._buffer = buffer;
 
-    this._vpositions = new Float32Array(buffer, offset, 8);
-    this._vstamps = new Uint32Array(buffer, offset + 20, 2);
-    this._vflags = new Uint16Array(buffer, offset + 28, 1);
-    this._vstats = new Uint16Array(buffer, offset + 30, 5);
-    this._vtags = new Uint8Array(buffer, offset + 40, 4);
+    this._vpositions = new Float32Array(buffer, offset, 6);
+    this._vstamps = new Uint32Array(buffer, offset + 24, 2);
+    this._vflags = new Uint16Array(buffer, offset + 32, 1);
+    this._vstats = new Uint16Array(buffer, offset + 34, 5);
+    this._vtags = new Uint8Array(buffer, offset + 44, 4);
 
     this._len = new Uint8Array(buffer, offset, Entity.size());
 
@@ -133,17 +133,17 @@ class Entity {
   }
 
   /**
-   * @returns {boolean}
-   */
-  get allocated() {
-    return this.get_flag(0);
-  }
-
-  /**
    * @param {boolean} v .
    */
   set allocated(v) {
     this.set_flag(v, 0);
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get allocated() {
+    return Boolean(this.get_flag(0));
   }
 
   /**
@@ -157,7 +157,7 @@ class Entity {
    * @returns {boolean}
    */
   get initialized() {
-    return this.get_flag(1);
+    return Boolean(this.get_flag(1));
   }
 
   /**
@@ -171,7 +171,21 @@ class Entity {
    * @returns {boolean}
    */
   get disposed() {
-    return this.get_flag(2);
+    return Boolean(this.get_flag(2));
+  }
+
+  /**
+   * @param {boolean} v .
+   */
+  set updated(v) {
+    this.set_flag(v, 3);
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get updated() {
+    return Boolean(this.get_flag(3));
   }
 
   /**
@@ -209,7 +223,7 @@ class Entity {
    * size in bytes
    */
   static size() {
-    return 44;
+    return 48;
   }
 }
 
@@ -239,7 +253,7 @@ class Pool {
       return null;
     }
 
-    const id = this.guids++;
+    const id = ++this.guids;
     const index = this.allocated++;
     const entity = new Entity(id, index, this, this.buffer);
     this.add(entity);
@@ -253,6 +267,10 @@ class Pool {
   }
   free(id) {
     const entity = this.entities[id];
+		if (!entity) {
+			logger.warn(`pool.free error: no entity ${id} found`);
+			return;
+		}
     entity.dispose();
   }
   dispose() {
