@@ -282,7 +282,6 @@ class Network {
   _send_greet(to) {
     let msg = `s,${MESSAGE_TYPE.GREET},${this.playerlocal.name}`;
     this.netlib.send("reliable", to, msg);
-    this._send_neighbors();
   }
 
   _receive_greet(peer, name) {
@@ -291,6 +290,8 @@ class Network {
       name,
       peer.id,
     ));
+
+    this._send_neighbors();
 
     // update blames
     this.routine(0);
@@ -327,7 +328,6 @@ class Network {
     player.entities_count = packet.tags[0];
     player.guids = packet.tags[1];
 
-
     player.sent = Math.max(packet.index, player.sent);
     for (let i in player.neighbors) {
       const neighbor = this.players[player.neighbors[i]];
@@ -343,6 +343,7 @@ class Network {
 
 		// case b: other client has no pawn. 
 		// Creates new entity and sets owner
+		/*
 		if (!this.has_blamed(this.playerlocal) && !player.pawn) {
 			const entity = this.pool.allocate();
 			player.pawn = entity.id;
@@ -351,6 +352,7 @@ class Network {
 
 			this._send_pawn_assign(player);
 		}
+		*/
   }
 
 	_send_pawn_assign(player) {
