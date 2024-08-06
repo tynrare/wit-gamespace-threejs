@@ -343,7 +343,6 @@ class Network {
 
 		// case b: other client has no pawn. 
 		// Creates new entity and sets owner
-		/*
 		if (!this.has_blamed(this.playerlocal) && !player.pawn) {
 			const entity = this.pool.allocate();
 			player.pawn = entity.id;
@@ -352,7 +351,6 @@ class Network {
 
 			this._send_pawn_assign(player);
 		}
-		*/
   }
 
 	_send_pawn_assign(player) {

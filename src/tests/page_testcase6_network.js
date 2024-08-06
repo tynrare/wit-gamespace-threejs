@@ -58,7 +58,7 @@ class LevelTestcase6Network {
 
     if (create) {
       logger.log("New world! Generating...");
-      //this._generate_world();
+      this._generate_world();
     }
   }
 
