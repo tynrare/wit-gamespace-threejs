@@ -342,7 +342,7 @@ class PageSplashscreenBowling extends PageBase {
 
   /**
    * @param {number} x .
-   * @param {number} x .
+   * @param {number} y .
    * @param {string} tag .
    * @param {InputAction} type .
    */

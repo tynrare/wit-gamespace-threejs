@@ -278,7 +278,7 @@ class PageTestcase6Network extends PageBase {
       this.input_goal_dbg_c?.position.copy(this.pawn_local.get_pos());
     }
 
-    this.level?.step(dt);
+    this.level.step(dt);
   }
 
   run() {
@@ -327,18 +327,28 @@ class PageTestcase6Network extends PageBase {
 
     this.network = new Network("0cedcf29-999d-4d80-864a-a38caa98182e")
       .init()
-      .run(() => {
-        this.level = new LevelTestcase6Network(this.network.pool);
-        this.lobby_loaded = true;
-        this.level.run(
-          this.network.playerlocal.creator,
-          this.network.netlib.currentLobby,
-        );
-      });
+      .run();
+
+    this.level = new LevelTestcase6Network(this.network.pool);
   }
 
   make_player_stats_pics(player) {
     let pics = "";
+
+    // mask ZERO if player has leadership and there's only two players
+    if (!this.network.get_blame_mask(player)) {
+      pics += "👑";
+    }
+
+    // other client blames this client
+    if (this.network.has_blamed(this.network.playerlocal, player)) {
+      pics += "😡";
+    }
+
+    // client blamed by someone
+    if (this.network.has_blamed(player)) {
+      pics += "😓";
+    }
 
     return pics.padStart(6, "🟢");
   }
@@ -361,6 +371,14 @@ class PageTestcase6Network extends PageBase {
       Stats.instance.print("");
     }
 
+    if (!this.lobby_loaded && this.network.netlib?.currentLobby) {
+      this.lobby_loaded = true;
+      this.level.run(
+        this.network.playerlocal.creator,
+        this.network.netlib.currentLobby,
+      );
+    }
+
     // remove entities
     for (const k in this.level.entities) {
       const entity = this.level.entities[k];
@@ -377,7 +395,9 @@ class PageTestcase6Network extends PageBase {
     for (const k in this.network.pool.entities) {
       const e = this.network.pool.entities[k];
       if (!this.level.entities[k]) {
-        if (e.initialized) {
+        if (this.network.pawns[k]) {
+          this.create_pawn(e);
+        } else if (e.initialized) {
           const entity = this.level.add_entity(e);
           const p = entity.pawn.get_path_b(cache.vec3.v0);
           entity.teleport(p);

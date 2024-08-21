@@ -129,15 +129,17 @@ class NetPlayer {
     this.sent = 0;
     this.id = id ?? "";
     this.pawn = 0;
-		this.guids = 0;
-		this.entities_count = 0;
 
     this.alatency = 0;
 
     this.creator = false;
     this.local = local;
 
+    this.entities_count = 0;
+    this.guids = 0;
+
     this.neighbors = [];
+    this.blames = [];
 
     this.packet = new NetPacket();
     this.packet_large = new NetPacket(NET_PACKET_SIZE.EXTRA_LARGE);
@@ -177,9 +179,13 @@ class Network {
     /** @type {NetPlayer} */
     this.playerlocal = null;
 
+    // players and pawns is same objects
     // players tagged by peer id
+    // pawns tagged by entity id
     /** @type {Object<string, NetPlayer>} */
     this.players = {};
+    /** @type {Object<string, NetPlayer>} */
+    this.pawns = {};
 
     this.players_count = 0;
 
@@ -286,6 +292,9 @@ class Network {
     ));
 
     this._send_neighbors();
+
+    // update blames
+    this.routine(0);
     // send sync forced
     this._send_sync(true, peer.id);
 
@@ -298,9 +307,13 @@ class Network {
     p.type = MESSAGE_TYPE.SYNC;
     p.stamp = this.playerlocal.stamp;
     p.index = this.playerlocal.sent++;
-		p.tags[0] = this.playerlocal.guids;
-		p.tags[1] = this.playerlocal.entities_count;
-		p.tags[2] = this.playerlocal.pawn;
+    p.tags[0] = this.playerlocal.entities_count;
+    p.tags[1] = this.playerlocal.guids;
+    p.tags[2] = this.playerlocal.pawn;
+
+    for (const i in this.playerlocal.blames) {
+      p.info_short[i] = this.playerlocal.blames[i];
+    }
 
     const channel = reliable ? "reliable" : "unreliable";
     if (to) {
@@ -312,11 +325,53 @@ class Network {
 
   _receive_sync(player, packet) {
     player.stamp = packet.stamp;
+    player.entities_count = packet.tags[0];
+    player.guids = packet.tags[1];
+
     player.sent = Math.max(packet.index, player.sent);
-		player.guids = packet.tags[0];
-		player.entities_count = packet.tags[1];
-		player.pawn = packet.tags[2];
+    for (let i in player.neighbors) {
+      const neighbor = this.players[player.neighbors[i]];
+      const blame = packet.info_short[i] * this.get_blame_mask(neighbor);
+      player.blames[i] = blame;
+    }
+
+		// case a: other client has pawn. Assigning info in local list
+		if (!player.pawn && packet.tags[2]) {
+			player.pawn = packet.tags[2];
+			this.pawns[player.pawn] = player;
+		}
+
+		// case b: other client has no pawn. 
+		// Creates new entity and sets owner
+		if (!this.has_blamed(this.playerlocal) && !player.pawn) {
+			const entity = this.pool.allocate();
+			player.pawn = entity.id;
+			entity.owner = player.pawn;
+			this.pawns[player.pawn] = player;
+
+			this._send_pawn_assign(player);
+		}
   }
+
+	_send_pawn_assign(player) {
+    const p = this.playerlocal.packet;
+
+    p.type = MESSAGE_TYPE.PAWN_ASSIGN;
+    p.stamp = this.playerlocal.stamp;
+    p.index = this.playerlocal.sent++;
+    p.tags[0] = player.pawn;
+
+    this.netlib.send("reliable", player.id, p.buffer);
+	}
+
+	_receive_pawn_assign(player, packet) {
+		if (this.has_blamed(player) || this.playerlocal.pawn) {
+			return;
+		}
+
+		this.playerlocal.pawn = packet.tags[0];
+		this.pawns[this.playerlocal.pawn] = this.playerlocal;
+	}
 
   _send_entity_ask(player, index) {
     const p = this.playerlocal.packet;
@@ -429,7 +484,136 @@ class Network {
     this.playerlocal.entities_count = this.pool.allocated;
     this.playerlocal.guids = this.pool.guids;
 
+    let max_entities_count = 0;
+
+    // blame other clients
+    this.playerlocal.blames.length = this.playerlocal.neighbors.length;
+    for (const i in this.playerlocal.neighbors) {
+      const id = this.playerlocal.neighbors[i];
+      const player = this.players[id];
+      let blame = 0;
+
+      max_entities_count = Math.max(
+        player?.entities_count ?? 0,
+        max_entities_count,
+      );
+
+      if (
+        !player ||
+        this.playerlocal.entities_count != player.entities_count ||
+        this.playerlocal.guids != player.guids
+      ) {
+        blame = 1 * this.get_blame_mask(player);
+      }
+
+      this.playerlocal.blames[i] = blame;
+    }
+
+    // consider other clients blames
+    for (const i in this.playerlocal.neighbors) {
+      const id = this.playerlocal.neighbors[i];
+      const player = this.players[id];
+
+			if (!player) {
+				continue;
+			}
+
+      const blamed = this.has_blamed(this.playerlocal, player);
+      if (!blamed) {
+        continue;
+      }
+
+      this.pool.guids = Math.max(this.pool.guids, player.guids);
+
+      for (let requests = 0; requests < 16; requests++) {
+        this._entities_sync_interation = this._entities_sync_interation ?? 0;
+        this._send_entity_ask(player, this._entities_sync_interation);
+        this._entities_sync_interation =
+          (this._entities_sync_interation + 1) % max_entities_count;
+      }
+    }
+
     this._send_sync();
+  }
+
+  /**
+   * More than half players blame each other.
+   *
+   */
+  has_blamelock() {
+    let blamed = 0;
+    const half_player_count = this.players_count * 0.5;
+    for (const k in this.players) {
+      const blames = this.count_blamed(this.players[k]);
+      if (blames >= half_player_count) {
+        blamed += 1;
+      }
+    }
+
+    return blamed >= half_player_count;
+  }
+
+  has_blamed(player, by = null) {
+    // not initialized
+    if (this.netlib.currentLeader != player.id && player.neighbors.length < 1) {
+      return true;
+    }
+
+    if (!this.get_blame_mask(player)) {
+      return false;
+    }
+
+    if (by) {
+      const selfindex = by.neighbors.indexOf(player.id);
+      const blamed = by.blames[selfindex];
+      return blamed;
+    }
+
+    const blames = this.count_blamed(player);
+
+    return blames > player.neighbors.length * 0.5;
+  }
+
+  count_blamed(player) {
+    let blames = 0;
+    for (const i in player.neighbors) {
+      const id = player.neighbors[i];
+      const other_player = this.players[id];
+      const selfindex = other_player?.neighbors.indexOf(player.id);
+      const blamed = other_player?.blames[selfindex];
+      if (blamed) {
+        blames += 1;
+      }
+    }
+
+    return blames;
+  }
+
+  /**
+   * Blame sets if client has desync.
+   * Clients blamed by most players has no athority and synced forcefully.
+   * Can't blame leader if there's only two players. In this case leader has authority.
+   */
+  get_blame_mask(player) {
+    // greetings wasn't recieved yet
+    if (!player) {
+      return 1;
+    }
+
+    // leader has athority in blamelock
+    if (this.has_blamelock() && this.netlib.currentLeader == player.id) {
+      return 0;
+    }
+
+    // leader has no athority with more than 2 players in game
+    if (this.playerlocal.neighbors.length > 1) {
+      return 1;
+    }
+    if (this.netlib.currentLeader == player.id) {
+      return 0;
+    }
+
+    return 1;
   }
 
   init() {
@@ -463,11 +647,15 @@ class Network {
   _on_disconnected(id) {
     const player = this.players[id];
     delete this.players[id];
+		if (player.pawn) {
+			delete this.pawns[player.pawn];
+			this.pool.free(player.pawn);
+		}
     this._send_neighbors();
     this.players_count -= 1;
   }
 
-  run(callback) {
+  run() {
     this.netlib.on("signalingerror", logger.error.bind(logger));
     this.netlib.on("rtcerror", logger.error.bind(logger));
 
@@ -505,9 +693,6 @@ class Network {
       });
       this.netlib.on("lobby", (code, lobby) => {
         this._on_lobby(code, lobby);
-				if (callback) {
-					callback();
-				}
       });
     });
 
@@ -525,6 +710,11 @@ class Network {
     }
 
     player.creator = true;
+
+    const entity = this.pool.allocate();
+    player.pawn = entity.id;
+    entity.owner = player.pawn;
+    this.pawns[player.pawn] = player;
   }
 
   _create_lobby() {

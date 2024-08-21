@@ -68,6 +68,7 @@ function InputsDualstick(container, canvas, input, input_analog) {
       return joysticks[tag];
     }
 
+    /** @type {HTMLElement} */
     let joystick_root = container.querySelector("#" + id);
     /** @type {HTMLElement} */
     let joystick_el = joystick_root.querySelector(".screen_joystick");
@@ -80,6 +81,8 @@ function InputsDualstick(container, canvas, input, input_analog) {
 
     /** @type {JoystickEl} */
     const joystick = {
+			root: joystick_root,
+			always_visible: joystick_root.parentElement.classList.contains("always-visible"),
       element: joystick_el,
       pimp: joystick_pimp_el,
       deadzone: joystick_deadzone_el,
@@ -274,9 +277,14 @@ function InputsDualstick(container, canvas, input, input_analog) {
     joystick.touch_identifier = -1;
     joystick.dx = 0;
     joystick.dy = 0;
-    joystick.element.classList.remove("visible");
-    joystick.pimp.classList.remove("active");
-    joystick.pimp.classList.remove("visible");
+    joystick.element.classList.remove("visible", "active");
+    joystick.pimp.classList.remove("visible", "active");
+		if (joystick.always_visible) {
+			joystick.element.style.removeProperty("left");
+			joystick.element.style.removeProperty("top");
+			joystick.pimp.style.removeProperty("left");
+			joystick.pimp.style.removeProperty("top");
+		}
 
     if (input) {
       input(tag_to_action[joystick.tag], false);

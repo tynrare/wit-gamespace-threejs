@@ -12,18 +12,8 @@
 			label#mga_scoreboard.scoreboard-style-a ...
 			btn#mga_btn.btn-style-a SCOREUP
 	page#splashscreen_bowling
-		render.fill-abs
-		overlay#ssb_ui.fill-abs
-			container#hearts
-				pic.heart
-				pic.heart
-				pic.heart
-			container#score
-				label.score 111
-		overlay#ssb_menu.fill-abs
-			label#ssb_scoreboard.scoreboard-style-a ...
-			btn#ssb_play_btn.btn-style-a PLAY
-		overlay#ssb_joysticks.fill-abs: include ./pawn/joysticks.pug
+		include ./scenes/simple_session.pug
+		overlay.gp-inputs.fill-abs.always-visible.style-a: include ./pawn/joysticks.pug
 	page#blockbreaker.gamepage-a
 		render.fill-abs
 		overlay#blockbreaker_ui.gp-ui.fill-abs

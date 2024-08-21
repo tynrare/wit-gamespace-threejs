@@ -28,7 +28,6 @@ class AdTestcaseBowlingPawn {
 
     /** @type {oimo.dynamics.rigidbody.RigidBody} */
     this.pawn_body = null;
-
     /** @type {THREE.Mesh} */
     this.pawn_dbg_mesh = null;
 

@@ -81,8 +81,6 @@ class AdTestcaseBowling {
     /** @type {Physics} */
     this.physics = null;
 
-    /** @type {THREE.Object3D} */
-    this.playscene = null;
 
     /** @type {Environment1} */
     this.environment = null;
@@ -91,6 +89,8 @@ class AdTestcaseBowling {
       vec3_0: new Vector3(),
     };
 
+    /** @type {THREE.Object3D} */
+    this.playscene = null;
     /** @type {string} */
     this.scenename = null;
 
@@ -247,7 +247,6 @@ class AdTestcaseBowling {
 	}
 
   /**
-   *
    * @param {Vector3?} position .
    */
   create_pawn(position, pawnclass = AdTestcaseBowlingPawn, load = true) {

@@ -10,6 +10,7 @@ page#testsmenu
 			li: a(href="#testcase7") bowling 3
 			li: a(href="#testcase8") bowling 4: main
 			li: a(href="#testcase9") bowling 5
+			li: a(href="#splashscreen_bowling_d") bowling splashscreen v0
 			li: a(href="#testcase10") tank 0
 			li: a(href="#testcase11") vehicle
 			li: a(href="#testcase12") boulder
@@ -61,3 +62,16 @@ page#testcase14
 	render.fill-abs
 	overlay.gp-onscreen.fill-abs
 	overlay.gp-inputs.fill-abs
+page#splashscreen_bowling_d
+	render.fill-abs
+	overlay#ssb_ui.fill-abs
+		container#hearts
+			pic.heart
+			pic.heart
+			pic.heart
+		container#score
+			label.score 111
+	overlay#ssb_menu.fill-abs
+		label#ssb_scoreboard.scoreboard-style-a ...
+		btn#ssb_play_btn.btn-style-a PLAY
+	overlay#ssb_joysticks.fill-abs: include ../pawn/joysticks.pug

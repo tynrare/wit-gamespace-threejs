@@ -1,63 +1,129 @@
+.always-visible .screen_joystick_root {
+  .screen_joystick,
+  .screen_joystick_pimp {
+    opacity: 1;
+  }
+  &.sj_left {
+    .screen_joystick,
+    .screen_joystick_pimp {
+      left: 15vw;
+      top: 85vh;
+    }
+  }
+  &.sj_right {
+    .screen_joystick,
+    .screen_joystick_pimp {
+      left: 85vw;
+      top: 85vh;
+    }
+  }
+}
+
+.style-a .screen_joystick_root {
+  &.sj_left,
+  &.sj_right {
+    .screen_joystick_pimp {
+      border: solid #0004 2px;
+      box-shadow: inset 0px 2px 0px 0px #fffa;
+      &::after {
+        @pad: 20%;
+        content: "";
+        position: absolute;
+        background-size: contain;
+        width: calc(100% + @pad);
+        height: calc(100% + @pad);
+        //mix-blend-mode: plus-lighter;
+        //opacity: 0.7;
+        top: calc(@pad * -0.5);
+        left: calc(@pad * -0.5);
+      }
+    }
+    .screen_joystick_pimp.visible {
+      transform: translate(-50%, -50%) scale(1.2);
+
+      &::after {
+        transform: scale(1.5);
+      }
+    }
+  }
+  &.sj_left .screen_joystick_pimp {
+    background-color: #8ad5cb;
+    &::after {
+      background-image: url("../../assets/pic/pic-move.png");
+    }
+  }
+  &.sj_right .screen_joystick_pimp {
+    background-color: #f85b1d;
+    &::after {
+      background-image: url("../../assets/pic/pic-targeting.png");
+    }
+  }
+}
+
 .screen_joystick {
-	position: absolute;
-	width: min(15vw, 15vh);
-	height: min(15vw, 15vh);
-	border: 4px solid #fff0;
-	opacity: 0;
-	border-radius: 100%;
-	transform: translate(-50%, -50%);
-	transition-duration: 500ms;
-	transition-property: opacity, border;
-	user-select: none;
-	pointer-events: none;
-	box-shadow: 0px 0px 8px 0px #0005;
+  position: absolute;
+  width: min(15vw, 15vh);
+  height: min(15vw, 15vh);
+  border: 4px solid #fff0;
+  opacity: 0;
+  border-radius: 100%;
+  transform: translate(-50%, -50%);
+  transition-duration: 500ms;
+  transition-property: opacity, border;
+  user-select: none;
+  pointer-events: none;
+  box-shadow: 0px 0px 8px 0px #0005;
 
-	&.visible {
-		opacity: 1;
+  &.visible {
+    opacity: 1;
 
-		.screen_joystick_deadzone {
-			opacity: 1;
-		}
-	}
+    .screen_joystick_deadzone {
+      opacity: 1;
+    }
+  }
 
-	&.active {
-		border: 4px solid #fff;
+  &.active {
+    border: 4px solid #fff;
 
-		.screen_joystick_deadzone {
-			opacity: 0;
-		}
-	}
+    .screen_joystick_deadzone {
+      opacity: 0;
+    }
+  }
 
-	.screen_joystick_deadzone {
-		opacity: 0;
-		transition-duration: 500ms;
-		transition-property: opacity;
-		width: 40%;
-		height: 40%;
-		position: relative;
-		top: 50%;
-		left:50%;
-		transform: translate(-50%, -50%);
-		border-radius: 100%;
-		background-color: #fff4;
-		box-shadow: 0px 0px 8px 0px #0005;
-	}
+  .screen_joystick_deadzone {
+    opacity: 0;
+    transition-duration: 500ms;
+    transition-property: opacity;
+    width: 40%;
+    height: 40%;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 100%;
+    background-color: #fff4;
+    box-shadow: 0px 0px 8px 0px #0005;
+  }
 }
 
 .screen_joystick_pimp {
-	background-color: white;
-	border-radius: 100%;
-	position: absolute;
-	width: min(5vw, 5vh);
-	height: min(5vw, 5vh);
-	transform: translate(-50%, -50%);
-	transition-duration: 200ms;
-	transition-property: opacity;
-	user-select: none;
-	pointer-events: none;
-	opacity: 0;
+  background-color: white;
+  border-radius: 100%;
+  position: absolute;
+  width: min(7vw, 7vh);
+  height: min(7vw, 7vh);
+  transform: translate(-50%, -50%);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0;
 
-	&.visible {
-		opacity: 1;
-	}
+  &,
+  &::after {
+    transition-duration: 200ms;
+    transition-property: opacity, transform;
+  }
+
+  &.visible {
+    opacity: 1;
+  }
 }
