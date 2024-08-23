@@ -97,8 +97,8 @@ class CameraTopdown {
 		if (zoomout) {
 		  // hard to determinate stick aim direction with camera rotation
 			//this.rotation = Math.atan2(dir.x, dir.z);
-			this.distance = this.config.distance * 1.5;
-			this.height = this.config.height * 2.5;
+			this.distance = this.config.distance * 1.1;
+			this.height = this.config.height * 1.2;
 			return;
 		}
 

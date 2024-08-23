@@ -12,6 +12,11 @@ class PawnBehaviourBowlingA {
     /** @param {PawnBowlingA} */
     this._pawn = pawn;
 
+		this.config = {
+			shoot_instant: true,
+			aim_direction_priority: true
+		}
+
 		this.shoot_requested = false;
 		this.shoot_direction = new Vector3();
 
@@ -54,7 +59,6 @@ class PawnBehaviourBowlingA {
 
 		if (spawn_requested) {
 			this.spawn_projectile(this.shoot_direction);
-			this.shoot_requested = false;
 		} else if (!spawn_queried) {
 			this.shoot_requested = false;
 		}
@@ -74,6 +78,11 @@ class PawnBehaviourBowlingA {
     vec.init(x, 0, z);
 		vec.scaleEq(2);
     this._pawn.pawn_body.setLinearVelocity(vec);
+
+		if (this.config.aim_direction_priority && this._pawn.pawn_actions.aims) {
+			return;
+		}
+
     this._pawn.pawn_draw.direction.set(x, 0, z);
 	}
 
@@ -82,11 +91,13 @@ class PawnBehaviourBowlingA {
 			return;
 		}
 
+		this.shoot_requested = false;
+
     const radius = 0.5;
     const pos = cache.vec3.v1;
     const dir = direction;
     pos
-      .copy(dir)
+      .copy(dir).normalize()
       .setLength(radius * 2)
       .add(this._pawn.pawn_draw._target.position);
     pos.y = 0.5;
@@ -119,8 +130,12 @@ class PawnBehaviourBowlingA {
 
     const dir = this._pawn.pawn_draw.direction;
 		this.shoot_direction.copy(dir);
-		this.shoot_requested = true;
-    this._pawn.pawn_draw.animator.transite("hit", true);
+		if (this.config.shoot_instant) {
+			this.spawn_projectile(this.shoot_direction);
+		} else {
+			this._pawn.pawn_draw.animator.transite("hit", true);
+			this.shoot_requested = true;
+		}
 	}
 
   static stabilizate_body(physics, dt, body, factor = 0.07) {

@@ -13,6 +13,10 @@ class PageSplashscreenBowling extends PageBase {
 	constructor() {
 		super();
 
+		this.config = {
+			zoom_on_aim: true
+		}
+
 		/** @type {SimpleSession} */
 		this.session = null;
 		/** @type {InputsDualstick} */
@@ -38,7 +42,9 @@ class PageSplashscreenBowling extends PageBase {
 
 	input(type, start) {
 		this.level.pawn.action(type, start);
-		this.camera_controls.controls.zoom(type == InputAction.action_b && start);
+		if (this.config.zoom_on_aim) {
+			this.camera_controls.controls.zoom(type == InputAction.action_b && start);
+		}
 	}
 
 	/**
