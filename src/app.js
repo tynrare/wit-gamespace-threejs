@@ -5,6 +5,7 @@ import PageMainmenu from "./page_mainmenu.js";
 import PageSettings from "./page_settings.js";
 import PageSplashscreenBowlingD240727 from "./tests/d240727_bowling/page_splashscreen_bownling.js";
 import PageSplashscreenBowling from "./scenes/splashcreen_bowling.js";
+import PageSplashscreenBowlingD240823 from "./tests/splashscreen_bowling_d240823.js";
 import PageMinigameA from "./scenes/page_minigame_a.js";
 import PageBlockbreaker from "./tests/page_blockbreaker.js";
 
@@ -56,6 +57,7 @@ class App {
       settings: new PageSettings(),
       splashscreen_bowling_d: new PageSplashscreenBowlingD240727(),
       splashscreen_bowling: new PageSplashscreenBowling(),
+      splashscreen_bowling_d240823: new PageSplashscreenBowlingD240823(),
       minigame_a: new PageMinigameA(),
       blockbreaker: new PageBlockbreaker(),
 
