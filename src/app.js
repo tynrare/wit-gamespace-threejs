@@ -1,4 +1,4 @@
-/** @namespace Core */
+/** @namespace ty */
 
 import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";

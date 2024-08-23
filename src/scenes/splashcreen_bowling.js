@@ -14,13 +14,13 @@ class PageSplashscreenBowling extends PageBase {
 	constructor() {
 		super();
 
-    /** @type {SimpleSession} */
-    this.session = null;
-    /** @type {InputsDualstick} */
-    this.inputs = null;
-    /** @type {LevelBowlingA} */
-    this.level = null;
-    /** @type {CameraBowlingA} */
+		/** @type {SimpleSession} */
+		this.session = null;
+		/** @type {InputsDualstick} */
+		this.inputs = null;
+		/** @type {LevelBowlingA} */
+		this.level = null;
+		/** @type {CameraBowlingA} */
 		this.camera_controls = null;
 
 		this.loaded = false;
