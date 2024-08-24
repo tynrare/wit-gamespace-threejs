@@ -7,10 +7,100 @@ const SimpleSessionState = {
   PLAY: 1,
 };
 
+const SimpleSessionElementStyle = {
+	PIC: 0,
+	BAR: 1
+}
+
+class GenericGuiBarsStats {
+  constructor(opts = {
+		hearts_style: SimpleSessionElementStyle.PIC,
+		energy_style: SimpleSessionElementStyle.BAR,
+	}) {
+		this.hearts_style = opts?.hearts_style ?? SimpleSessionElementStyle.PIC;
+		this.energy_style = opts?.energy_style ?? SimpleSessionElementStyle.BAR;
+	}
+
+	run(container, hearts, energy) {
+		this.container = container;
+		this.hearts = hearts;
+		this.energy = energy;
+
+		this.hearts.innerHTML = "";
+		this.energy.innerHTML = "";
+    this.printhearts(3, 0);
+    this.printenergy(2, 0);
+	}
+
+  printhearts(total, hurt) {
+    for (let i = 0; i < Math.max(total, this.hearts.children.length); i++) {
+      let h = this.hearts.children[i];
+      if (!h) {
+				h = this._make_heart_element();
+        this.hearts.appendChild(h);
+      }
+      h.classList[i >= total ? "add" : "remove"]("hidden");
+      h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
+    }
+  }
+
+	_make_heart_element() {
+		switch(this.hearts_style) {
+			case SimpleSessionElementStyle.PIC: {
+        const h = document.createElement("pic");
+        h.classList.add("heart");
+				return h;
+			}
+			case SimpleSessionElementStyle.BAR: {
+        const h = document.createElement("bar");
+        h.classList.add("pink");
+				return h;
+			}
+		}
+	}
+
+  printenergy(total, spent) {
+		const max = Math.max(total, this.energy.children.length);
+    for (let i = 0; i < max; i++) {
+      let h = this.energy.children[i];
+      if (!h) {
+        h = this._make_energy_element();
+        this.energy.appendChild(h);
+      }
+      h.classList[i >= total ? "add" : "remove"]("hidden");
+      h.classList[i >= total - spent ? "add" : "remove"]("disabled");
+			const progress = Math.min(total - i - spent, 1) * 100;
+      h.classList[progress < 100 ? "add" : "remove"]("muted");
+			h.style.setProperty("--progress", progress + "%");
+    }
+  }
+
+	_make_energy_element() {
+		switch(this.energy_style) {
+			case SimpleSessionElementStyle.PIC: {
+        const h = document.createElement("pic");
+        h.classList.add("circle");
+				return h;
+			}
+			case SimpleSessionElementStyle.BAR: {
+        const h = document.createElement("bar");
+        h.classList.add("blue");
+				return h;
+			}
+		}
+	}
+}
+
 class SimpleSession {
-  constructor() {
+  constructor(opts = {
+		hearts_style: SimpleSessionElementStyle.PIC,
+		energy_style: SimpleSessionElementStyle.BAR,
+	}) {
     /** @type {SimpleSessionState} */
     this.state = SimpleSessionState.MENU;
+
+    /** @type {GenericGuiBarsStats} */
+		this.generic_bars = new GenericGuiBarsStats(opts);
   }
   /**
    * @param {HTMLElement} container .
@@ -41,7 +131,9 @@ class SimpleSession {
     playbtn.addEventListener("click", this._playbtn_click_event);
 
     this.startmenu();
+
     this.printscore(0);
+		this.generic_bars.run(null, this.hearts, this.energy);
 
     return this;
   }
@@ -85,33 +177,11 @@ class SimpleSession {
   }
 
   printhearts(total, hurt) {
-    for (let i = 0; i < Math.max(total, this.hearts.children.length); i++) {
-      let h = this.hearts.children[i];
-      if (!h) {
-        h = document.createElement("pic");
-        h.classList.add("heart");
-        this.hearts.appendChild(h);
-      }
-      h.classList[i >= total ? "add" : "remove"]("hidden");
-      h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
-    }
-  }
-
+		this.generic_bars.printhearts(total, hurt);
+	}
   printenergy(total, spent) {
-		const max = Math.max(total, this.energy.children.length);
-    for (let i = 0; i < max; i++) {
-      let h = this.energy.children[i];
-      if (!h) {
-        h = document.createElement("bar");
-        this.energy.appendChild(h);
-      }
-      h.classList[i >= total ? "add" : "remove"]("hidden");
-      h.classList[i >= total - spent ? "add" : "remove"]("disabled");
-			const progress = Math.min(total - i - spent, 1) * 100;
-      h.classList[progress < 100 ? "add" : "remove"]("muted");
-			h.style.setProperty("--progress", progress + "%");
-    }
-  }
+		this.generic_bars.printenergy(total, spent);
+	}
 
   dispose() {
     this.playbtn.removeEventListener("click", this._playbtn_click_event);
@@ -119,5 +189,5 @@ class SimpleSession {
   }
 }
 
-export { SimpleSession, SimpleSessionState };
+export { SimpleSession, SimpleSessionState, SimpleSessionElementStyle, GenericGuiBarsStats };
 export default SimpleSession;

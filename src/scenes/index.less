@@ -19,6 +19,21 @@
     display: flex;
 		user-select: none;
 
+    container.gp-ui-floating {
+			position: absolute;
+			transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+			& > * {
+				margin: auto;
+			}
+		}
+
+		container.small {
+			font-size: 0.5em;
+		}
+
     container.gp-ui-leftgui {
       display: flex;
       flex-direction: column;
@@ -32,7 +47,7 @@
     container.gp-ui-score {
       display: flex;
       flex-direction: row;
-      gap: 10px;
+      gap: 5px;
     }
 
     container.gp-ui-score {
@@ -79,7 +94,6 @@
 			background-color: gray;
 			border-radius: 4px;
 			--progress: 100%;
-			@color: #1f91b3;
 
 			&.disabled::before {
 				visible: false;
@@ -89,6 +103,25 @@
 				opacity: 0.5;
 			}
 
+			.bar-style(@color) {
+				background-color: @color;
+				box-shadow: 
+					inset 0px -3px darken(@color, 10%),
+					inset 0px -4px lighten(@color, 20%);
+			}
+
+			&.green::before {
+				.bar-style(#45BF55);
+			}
+
+			&.pink::before {
+				.bar-style(#FF7166);
+			}
+
+			&.blue::before {
+				.bar-style(#1f91b3);
+			}
+
 			&::before {
 				@pad: 1px;
 				content: '';
@@ -96,11 +129,7 @@
 				height: calc(100% + @pad * 2);
 				transform: translate(-@pad, -@pad);
 				display: block;
-				background-color: @color;
 				border-radius: 4px;
-				box-shadow: 
-					inset 0px -3px darken(@color, 10%),
-					inset 0px -4px lighten(@color, 20%);
 			}
 		}
 
@@ -112,6 +141,7 @@
       height: 2em;
       position: relative;
       display: block;
+			margin: 0px 2px;
 
       &.disabled {
         filter: grayscale(1);

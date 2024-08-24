@@ -16,6 +16,8 @@ class PawnBehaviourBowlingA {
 			shoot_instant: true,
 			shoot_limit: 2,
 			shoot_limit_recharge: 1000,
+			hearts_limit: 3,
+			hearts_limit_recharge: 1000,
 			aim_direction_priority: true,
 		};
 
@@ -30,22 +32,36 @@ class PawnBehaviourBowlingA {
 
 		this.shoots_spent = 0;
 		this.shoot_recharge_t = 0;
+
+		this.hearts_spent = 0;
+		this.hearts_recharge_t = 0;
 	}
 
 	step(dt) {
 		this._step_spawn_projectile();
 		this._step_pawn_stun(dt);
+		this._step_recharges(dt);
 
 		if (!this.stun_time) {
 			this.stabilizate_body(dt);
 		}
+	}
 
+	_step_recharges(dt) {
 		if (this.config.shoot_limit && this.shoots_spent) {
 			this.shoot_recharge_t += dt;
 
 			if (this.shoot_recharge_t >= this.config.shoot_limit_recharge) {
 				this.shoot_recharge_t = 0;
 				this.shoots_spent -= 1;
+			}
+		}
+		if (this.config.hearts_limit && this.hearts_spent) {
+			this.hearts_recharge_t += dt;
+
+			if (this.hearts_recharge_t >= this.config.hearts_limit_recharge) {
+				this.hearts_recharge_t = 0;
+				this.hearts_spent -= 1;
 			}
 		}
 	}
@@ -179,10 +195,9 @@ class PawnBehaviourBowlingA {
 			return;
 		}
 
-		if (this.config.shoot_limit) {
-			this.shoots_spent += 1;
-			this.shoot_recharge_t = 0;
-		}
+		this.shoots_spent += 1;
+		this.shoot_recharge_t = 0;
+		this.hearts_recharge_t = 0;
 
 		const dir = this._pawn.pawn_draw.direction;
 		this.shoot_direction.copy(dir);
@@ -192,6 +207,12 @@ class PawnBehaviourBowlingA {
 			this._pawn.pawn_draw.animator.transite("hit", true);
 			this.shoot_requested = true;
 		}
+	}
+
+	hurt() {
+		this.shoot_recharge_t = 0;
+		this.hearts_recharge_t = 0;
+		this.hearts_spent -= 1;
 	}
 
 	static stabilizate_body(physics, dt, body, factor = 0.07) {

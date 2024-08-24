@@ -1,5 +1,5 @@
 import PageBase from "../page_base.js";
-import SimpleSession from "./simple_session.js";
+import { SimpleSession, SimpleSessionElementStyle } from "./simple_session.js";
 import { InputAction, InputsDualstick } from "../pawn/inputs_dualstick.js";
 import App from "../app.js";
 import Scoreboard from "../scoreboard.js";
@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { Color, Vector3 } from "three";
 import CameraBowlingA from "./bowling/camera_bowling.js";
 import { cache, Vec3Up } from "../math.js";
+import OverlayUiBowling from "./bowling/overlay_ui_bowling.js";
 
 class PageSplashscreenBowling extends PageBase {
 	constructor() {
@@ -26,6 +27,9 @@ class PageSplashscreenBowling extends PageBase {
 		/** @type {CameraBowlingA} */
 		this.camera_controls = null;
 
+		/** @type {OverlayUiBowling} */
+		this.overlay_ui = null;
+
 		this.loaded = false;
 
 		this.score = 0;
@@ -38,12 +42,8 @@ class PageSplashscreenBowling extends PageBase {
 
 		this.level.step(dt);
 		this.camera_controls.step(dt);
-
-		const pb = this.level.pawn.pawn_behaviour;
-		if (pb.config.shoot_limit) {
-			const f = pb.shoot_recharge_t / pb.config.shoot_limit_recharge;
-			this.session.printenergy(pb.config.shoot_limit, pb.shoots_spent - f);
-		}
+		this.overlay_ui.step(dt);
+		OverlayUiBowling.set_bars_values(this.session.generic_bars, this.level.pawn);
 	}
 
 	input(type, start) {
@@ -77,12 +77,16 @@ class PageSplashscreenBowling extends PageBase {
 		App.instance.spashscreen(true);
 		App.instance.start(this.container.querySelector("render"));
 
-		this.session = new SimpleSession().init(this.container, () =>
+		this.session = new SimpleSession({
+			hearts_style: SimpleSessionElementStyle.BAR
+		}).init(this.container, () =>
 			this.playstart(),
 		);
 
 		this.level = new LevelBowlingA();
 		this.camera_controls = new CameraBowlingA().run();
+
+		this.overlay_ui = new OverlayUiBowling(this.session.ui);
 
 		this.load();
 	}
@@ -103,12 +107,15 @@ class PageSplashscreenBowling extends PageBase {
 			this.input_analog.bind(this),
 		);
 		this.inputs.run();
+
+		this.overlay_ui.run(this.level);
 	}
 
 	playstop() {
 		this.camera_controls.playstop();
 		this.session.endplay(this.score);
 		this.inputs.stop();
+		this.overlay_ui.stop();
 		this.inputs = null;
 	}
 
