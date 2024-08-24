@@ -19,18 +19,24 @@
     display: flex;
 		user-select: none;
 
-    container.gp-ui-hearts,
-    container.gp-ui-score {
+    container.gp-ui-leftgui {
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       gap: 10px;
       padding: 10px;
       margin: auto;
       margin-top: 0;
       margin-left: 0;
+		}
+    container.gp-ui-hearts,
+    container.gp-ui-score {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
     }
 
     container.gp-ui-score {
+      margin: auto;
       margin-top: 0;
       margin-right: 0;
       padding: 5px;
@@ -59,6 +65,40 @@
           0px 3px #c35002;
       }
     }
+
+    container.gp-ui-energy {
+			display: flex;
+			flex-direction: row;
+			gap: 5px;
+		}
+
+    bar {
+      width: 3em;
+      height: 1.5em;
+			display: block;
+			background-color: gray;
+			border-radius: 4px;
+			--progress: 100%;
+			@color: #1f91b3;
+
+			&.disabled::before {
+				visible: false;
+			}
+
+			&::before {
+				@pad: 1px;
+				content: '';
+				width: calc(var(--progress) + @pad * 2);
+				height: calc(100% + @pad * 2);
+				transform: translate(-@pad, -@pad);
+				display: block;
+				background-color: @color;
+				border-radius: 4px;
+				box-shadow: 
+					inset 0px -3px darken(@color, 10%),
+					inset 0px -4px lighten(@color, 20%);
+			}
+		}
 
     container.gp-ui-hearts pic {
       background-size: contain;

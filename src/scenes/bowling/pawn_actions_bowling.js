@@ -49,7 +49,7 @@ class PawnActionsBowlingA {
 
   action_aim(x, z) {
 		this.aims = Boolean(x && z);
-    this._pawn.pawn_draw.direction.set(x, 0, z);
+		this._pawn.pawn_behaviour.aim(x, z);
   }
 
   action_shoot() {

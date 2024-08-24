@@ -21,6 +21,7 @@ class SimpleSession {
     const menu = container.querySelector(".gp-menu");
     const inputs = container.querySelector(".gp-inputs");
     const hearts = ui.querySelector(".gp-ui-hearts");
+    const energy = ui.querySelector(".gp-ui-energy");
     const score = ui.querySelector(".gp-ui-score .score");
     const playbtn = menu.querySelector(".playbtn");
     const scoreboard = menu.querySelector(".scoreboard");
@@ -30,6 +31,7 @@ class SimpleSession {
     this.menu = menu;
     this.inputs = inputs;
     this.hearts = hearts;
+    this.energy = energy;
     this.score = score;
     this.playbtn = playbtn;
     this.scoreboard = scoreboard;
@@ -92,6 +94,21 @@ class SimpleSession {
       }
       h.classList[i >= total ? "add" : "remove"]("hidden");
       h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
+    }
+  }
+
+  printenergy(total, spent) {
+		const max = Math.max(total, this.energy.children.length);
+    for (let i = 0; i < max; i++) {
+      let h = this.energy.children[i];
+      if (!h) {
+        h = document.createElement("bar");
+        this.energy.appendChild(h);
+      }
+      h.classList[i >= total ? "add" : "remove"]("hidden");
+      h.classList[i >= total - spent ? "add" : "remove"]("disabled");
+			const progress = Math.min(total - i - spent, 1) * 100;
+			h.style.setProperty("--progress", progress + "%");
     }
   }
 

@@ -123,6 +123,14 @@ class PawnBehaviourBowlingA {
     body.applyLinearImpulse(impulse);
 	}
 
+	aim(x, z) {
+		if (this.stun) {
+			return;
+		}
+
+    this._pawn.pawn_draw.direction.set(x, 0, z);
+	}
+
 	shoot() {
 		if (this.stun) {
 			return;
