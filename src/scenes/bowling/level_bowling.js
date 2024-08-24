@@ -7,6 +7,7 @@ import Loader from "../../loader.js";
 import App from "../../app.js";
 import { cache, clamp } from "../../math.js";
 import PawnBowlingA from "./pawn_bowling.js";
+import PawnBotBowlingA from "./pawn_bot_bowling.js";
 
 class LevelBowlingUtils {
   constructor(physics) {
@@ -70,6 +71,8 @@ class LevelBowlingMap {
     this.playscene = null;
     /** @type {string} */
     this.scenename = null;
+
+		this.spawnpoints = [];
   }
 
 	create_default_playscene() {
@@ -151,10 +154,26 @@ class LevelBowlingMap {
     });
   }
 
+  get_rand_spawnpoint() {
+    if (!this.spawnpoints.length) {
+      const pos = cache.vec3.v0;
+      pos.x = (Math.random() - 0.5) * 10;
+      pos.y = 10;
+      pos.z = (Math.random() - 0.5) * 10;
+
+      return pos;
+    }
+
+    return this.spawnpoints[
+      Math.floor(Math.random() * this.spawnpoints.length)
+    ];
+  }
+
   close_playscene() {
     this.scenename = null;
     this.playscene?.removeFromParent();
     this.playscene = null;
+		this.spawnpoints.length = 0;
   }
 
 	stop() {
@@ -255,6 +274,8 @@ class LevelBowlingA {
     this.pawns = [];
     /** @type {PawnBowlingA} */
     this.pawn = null;
+    /** @type {Array<PawnBotBowlingA>} */
+    this.bots = [];
 
 		this.guids = 0;
   }
@@ -267,6 +288,11 @@ class LevelBowlingA {
 		for (const k in this.pawns) {
 			const pawn = this.pawns[k];
 			pawn.step(dt);
+		}
+
+		for (const k in this.bots) {
+			const bot = this.bots[k];
+			bot.step(dt, this.pawns);
 		}
   }
 
@@ -285,6 +311,8 @@ class LevelBowlingA {
 		await this.pawn.load();
     await this.map.run(opts?.scene);
     await this.logo.run();
+
+		this.create_bots(5);
   }
 
   /**
@@ -304,6 +332,14 @@ class LevelBowlingA {
     }
     return pawn;
   }
+
+	create_bots(count) {
+    for (let i = 0; i < count; i++) {
+      const pawn = this.create_pawn(this.map.get_rand_spawnpoint());
+      this.bots.push(new PawnBotBowlingA(pawn));
+    }
+	}
+
 
 	stop() {
 		for (const k in this.pawns) {
