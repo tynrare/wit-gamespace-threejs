@@ -8,9 +8,6 @@ class PawnActionsBowlingA {
   constructor(pawn) {
     /** @param {PawnBowlingA} */
     this._pawn = pawn;
-
-		this.aims = false;
-		this.moves = false;
   }
 
 	step(dt) {
@@ -43,12 +40,10 @@ class PawnActionsBowlingA {
   }
 
   action_move(x, z) {
-		this.moves = Boolean(x && z);
 		this._pawn.pawn_behaviour.move(x, z);
   }
 
   action_aim(x, z) {
-		this.aims = Boolean(x && z);
 		this._pawn.pawn_behaviour.aim(x, z);
   }
 

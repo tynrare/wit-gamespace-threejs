@@ -19,13 +19,12 @@ class PawnVisualsBowlingA {
 		this.pointer_mesh.position.copy(this._pawn.pawn_dbg_mesh.position);
 		const direction = this._pawn.pawn_draw.direction;
 
-		const aims =
-			this._pawn.pawn_actions.aims && !this._pawn.pawn_behaviour.stun;
-		if (aims) {
+		const pb = this._pawn.pawn_behaviour;
+		if (pb.aims) {
 			const rotation = Math.atan2(direction.x, direction.z);
 			this.pointer_mesh.rotation.y = rotation - Math.PI * 0.5;
 		}
-		const scale = aims ? 3 : 0;
+		const scale = pb.aims ? 3 : 0;
 		this.pointer_mesh.scale.x = lerp(this.pointer_mesh.scale.x, scale, 0.8);
 	}
 

@@ -38,6 +38,12 @@ class PageSplashscreenBowling extends PageBase {
 
 		this.level.step(dt);
 		this.camera_controls.step(dt);
+
+		const pb = this.level.pawn.pawn_behaviour;
+		if (pb.config.shoot_limit) {
+			const f = pb.shoot_recharge_t / pb.config.shoot_limit_recharge;
+			this.session.printenergy(pb.config.shoot_limit, pb.shoots_spent - f);
+		}
 	}
 
 	input(type, start) {
