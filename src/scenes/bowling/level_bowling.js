@@ -294,6 +294,8 @@ class LevelBowlingA {
 			const bot = this.bots[k];
 			bot.step(dt, this.pawns);
 		}
+
+		this.respawn_bodies();
   }
 
   async run(opts = { floor: false, scene: null }) {
@@ -312,7 +314,7 @@ class LevelBowlingA {
     await this.map.run(opts?.scene);
     await this.logo.run();
 
-		this.create_bots(5);
+		this.create_bots(1);
   }
 
   /**
@@ -340,6 +342,23 @@ class LevelBowlingA {
     }
 	}
 
+  respawn_bodies() {
+    for (const i in this.physics.bodylist) {
+      const b = this.physics.bodylist[i];
+      if (b.getPosition().y > -10) {
+        continue;
+      }
+      if (b.temporal) {
+        this.physics.remove(b);
+        continue;
+      }
+
+      const position = this.map.get_rand_spawnpoint();
+      b.setPosition(
+        this.physics.cache.vec3_0.init(position.x, position.y, position.z),
+      );
+		}
+	}
 
 	stop() {
 		for (const k in this.pawns) {

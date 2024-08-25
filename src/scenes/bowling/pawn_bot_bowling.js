@@ -11,9 +11,8 @@ class PawnBotBowlingA {
 		this._pawn = pawn;
 
 		this.elapsed = 0;
-		this.requested_attack = 1000;
 		this.elapsed_attack = 0;
-		this.charge_requested = 0;
+		this.attack_cooldown = 500;
 		this.direction = new Vector3();
 	}
 
@@ -33,16 +32,28 @@ class PawnBotBowlingA {
 		}
 
 		const dir = cache.vec3.v0
-			.copy(pawn.pawn_dbg_mesh.position)
-			.sub(closest_enemy.pawn_dbg_mesh.position);
+			.copy(closest_enemy.pawn_dbg_mesh.position)
+			.sub(pawn.pawn_dbg_mesh.position);
 
-		const targ_dist = 7 + Math.sin(this.elapsed * 1e-3) * 5;
 		const dist = dir.length();
-		if (dist < targ_dist * 2) {
-			dir.negate();
-		}
 		dir.normalize();
-		this.direction.lerp(dir, 1 - Math.pow(0.1, dt));
+
+		const shoot = this.elapsed_attack >= this.attack_cooldown;
+
+		if (shoot) {
+			pawn.pawn_actions.action_aim(dir.x, dir.z);
+			pawn.pawn_actions.action_shoot();
+			pawn.pawn_actions.action_aim(0, 0);
+			this.elapsed_attack = 0;
+		} else {
+			const targ_dist = 7 + Math.sin(this.elapsed * 1e-3) * 5;
+			if (dist < targ_dist * 2) {
+				dir.negate();
+			}
+			this.direction.lerp(dir, 1 - Math.pow(0.1, dt));
+
+			pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
+		}
 	}
 
 	/**

@@ -74,7 +74,7 @@ class PawnBehaviourBowlingA {
 		if (up < 0.9 && !this.stun_time && !this.stun) {
 			this.stun_time = 1000;
 			this.stun = true;
-		} else if (up > 0.9) {
+		} else if (up > 0.95) {
 			this.stun = false;
 		}
 	}
@@ -114,9 +114,16 @@ class PawnBehaviourBowlingA {
 		this.moves = Boolean(x && z);
 
 		const physics = this._pawn._physics;
+
 		const vec = physics.cache.vec3_0;
 		vec.init(x, 0, z);
+		vec.normalize();
 		vec.scaleEq(2);
+
+		const vecv = physics.cache.vec3_1;
+		this._pawn.pawn_body.getLinearVelocityTo(vecv);
+		vec.y = vecv.y;
+
 		this._pawn.pawn_body.setLinearVelocity(vec);
 
 		if (this.config.aim_direction_priority && this.aims) {
