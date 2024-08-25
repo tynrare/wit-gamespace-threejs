@@ -16,6 +16,10 @@ class PawnBotBowlingA {
 		this.direction = new Vector3();
 	}
 
+	run() {
+		this.elapsed_attack = Math.random() * -10000 - 1000;
+	}
+
 	step(dt, pawns) {
 		this.elapsed_attack += dt;
 		this.elapsed += dt;

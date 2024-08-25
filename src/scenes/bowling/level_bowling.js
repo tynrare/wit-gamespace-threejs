@@ -338,7 +338,9 @@ class LevelBowlingA {
 	create_bots(count) {
     for (let i = 0; i < count; i++) {
       const pawn = this.create_pawn(this.map.get_rand_spawnpoint());
-      this.bots.push(new PawnBotBowlingA(pawn));
+			const bot = new PawnBotBowlingA(pawn);
+			bot.run();
+      this.bots.push(bot);
     }
 	}
 

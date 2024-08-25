@@ -30,6 +30,8 @@ class PawnBehaviourBowlingA {
 		this.stun_time = 0;
 		this.stun = false;
 
+		this.invulnerable = false;
+
 		this.shoots_spent = 0;
 		this.shoot_recharge_t = 0;
 
@@ -244,9 +246,10 @@ class PawnBehaviourBowlingA {
 	}
 
 	hurt() {
-		if (this.stun) {
+		if (this.stun || this.invulnerable) {
 			return;
 		}
+
 		this.shoot_recharge_t = 0;
 		this.hearts_recharge_t = 0;
 		this.hearts_spent += 1;
@@ -257,6 +260,15 @@ class PawnBehaviourBowlingA {
 			this.stun_time = Infinity;
 			this._pawn.pawn_draw.stun = true;
 		}
+	}
+
+	revive() {
+		this.shoot_recharge_t = 0;
+		this.hearts_recharge_t = 0;
+		this.hearts_spent = 0;
+		this.shoots_spent = 0;
+		this.stun_time = 0;
+		this.stun = false;
 	}
 
 	static stabilizate_body(physics, dt, body, factor = 0.07) {
