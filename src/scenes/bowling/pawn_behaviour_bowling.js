@@ -15,9 +15,9 @@ class PawnBehaviourBowlingA {
 		this.config = {
 			shoot_instant: true,
 			shoot_limit: 2,
-			shoot_limit_recharge: 1000,
+			shoot_limit_recharge: 3000,
 			hearts_limit: 3,
-			hearts_limit_recharge: 1000,
+			hearts_limit_recharge: 5000,
 			aim_direction_priority: true,
 		};
 
@@ -41,10 +41,29 @@ class PawnBehaviourBowlingA {
 		this._step_spawn_projectile();
 		this._step_pawn_stun(dt);
 		this._step_recharges(dt);
+		this._step_collisions(dt);
 
 		if (!this.stun_time) {
 			this.stabilizate_body(dt);
 		}
+	}
+
+	_step_collisions() {
+    let contact_link_list = this._pawn.pawn_body.getContactLinkList();
+    while (contact_link_list) {
+      const contact = contact_link_list.getContact();
+      const other = contact_link_list.getOther();
+
+      contact_link_list = contact_link_list.getNext();
+
+      if (!contact.isTouching()) {
+        continue;
+      }
+
+			if (other.userData?.type_projectile) {
+				this.hurt();
+			}
+    }
 	}
 
 	_step_recharges(dt) {
@@ -74,7 +93,7 @@ class PawnBehaviourBowlingA {
 		if (up < 0.9 && !this.stun_time && !this.stun) {
 			this.stun_time = 1000;
 			this.stun = true;
-		} else if (up > 0.95) {
+		} else if (up > 0.95 && this.stun_time <= 0) {
 			this.stun = false;
 		}
 	}
@@ -159,6 +178,14 @@ class PawnBehaviourBowlingA {
 				restitution: 0.7,
 			},
 		);
+
+		body.temporal = true;
+		body.userData = {
+			owner : this._pawn.id,
+			timestamp : Date.now(),
+			type_projectile : true,
+		}
+
 		const mesh = this._pawn.projectile_gltf.scene.clone();
 		mesh.scale.multiplyScalar(radius * 2);
 		mesh.position.copy(pos);
@@ -217,9 +244,19 @@ class PawnBehaviourBowlingA {
 	}
 
 	hurt() {
+		if (this.stun) {
+			return;
+		}
 		this.shoot_recharge_t = 0;
 		this.hearts_recharge_t = 0;
-		this.hearts_spent -= 1;
+		this.hearts_spent += 1;
+		this.stun_time = 1000;
+		this.stun = true;
+
+		if (this.hearts_spent >= this.config.hearts_limit) {
+			this.stun_time = Infinity;
+			this._pawn.pawn_draw.stun = true;
+		}
 	}
 
 	static stabilizate_body(physics, dt, body, factor = 0.07) {

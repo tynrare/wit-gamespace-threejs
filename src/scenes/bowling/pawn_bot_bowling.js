@@ -12,7 +12,7 @@ class PawnBotBowlingA {
 
 		this.elapsed = 0;
 		this.elapsed_attack = 0;
-		this.attack_cooldown = 500;
+		this.attack_cooldown = 700;
 		this.direction = new Vector3();
 	}
 

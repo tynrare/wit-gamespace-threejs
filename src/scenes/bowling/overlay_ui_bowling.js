@@ -1,5 +1,8 @@
 import LevelBowlingA from "./level_bowling.js";
-import { SimpleSessionElementStyle, GenericGuiBarsStats } from "../simple_session.js";
+import {
+	SimpleSessionElementStyle,
+	GenericGuiBarsStats,
+} from "../simple_session.js";
 import * as THREE from "three";
 import { cache, clamp } from "../../math.js";
 import App from "../../app.js";
@@ -23,6 +26,10 @@ class OverlayUiBowling {
 		for (const k in this._level.pawns) {
 			const pawn = this._level.pawns[k];
 			let ov = this.overlays[k];
+			if (pawn.pawn_behaviour.stun_time === Infinity) {
+				this.remove_element(k);
+				continue;
+			}
 			if (!ov) {
 				ov = this.make_overlay_element();
 				this.container.appendChild(ov.container);
@@ -43,7 +50,9 @@ class OverlayUiBowling {
 		root.appendChild(hearts);
 		root.appendChild(energy);
 
-		const overlay = new GenericGuiBarsStats({ hearts_style: SimpleSessionElementStyle.BAR });
+		const overlay = new GenericGuiBarsStats({
+			hearts_style: SimpleSessionElementStyle.BAR,
+		});
 		overlay.run(root, hearts, energy);
 
 		return overlay;
@@ -72,8 +81,8 @@ class OverlayUiBowling {
 		const hw = width * 0.5;
 		const hh = height * 0.5;
 
-		v.x = ( v.x * hw ) + hw;
-		v.y = - ( v.y * hh ) + hh;
+		v.x = v.x * hw + hw;
+		v.y = -(v.y * hh) + hh;
 		v.y -= 100;
 
 		element.style.left = v.x + "px";
@@ -86,8 +95,21 @@ class OverlayUiBowling {
 		return this;
 	}
 
+	remove_element(id) {
+		const ov = this.overlays[id];
+		if (!ov) {
+			return;
+		}
+		ov.container.parentElement.removeChild(ov.container);
+		delete this.overlays[id];
+	}
+
 	stop() {
 		this._level = null;
+
+		for (const k in this.overlays) {
+			this.remove_element(k);
+		}
 	}
 }
 

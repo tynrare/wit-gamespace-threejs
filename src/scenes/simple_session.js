@@ -41,6 +41,9 @@ class GenericGuiBarsStats {
       }
       h.classList[i >= total ? "add" : "remove"]("hidden");
       h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
+			const progress = Math.min(total - i - hurt, 1) * 100;
+      h.classList[progress < 100 ? "add" : "remove"]("muted");
+			h.style.setProperty("--progress", progress + "%");
     }
   }
 
