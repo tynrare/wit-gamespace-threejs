@@ -85,6 +85,20 @@ class OverlayUiBowling {
 		v.y = -(v.y * hh) + hh;
 		v.y -= 100;
 
+		const elwidth = element.clientWidth;
+		const elheight = element.clientHeight;
+		const elhwidth = elwidth * 0.5;
+		const elhheight = elheight * 0.5;
+
+		const maxx = width + elhwidth;
+		const maxy = height + elhheight;
+		v.x = clamp(-elhwidth, maxx, v.x);
+		v.y = clamp(-elhheight, maxy, v.y);
+
+		const outscreen =
+			v.x == -elhwidth || v.x == maxx || v.y == -elhheight || v.y == maxy;
+		element.classList[outscreen ? "add" : "remove"]("hidden");
+
 		element.style.left = v.x + "px";
 		element.style.top = v.y + "px";
 	}
