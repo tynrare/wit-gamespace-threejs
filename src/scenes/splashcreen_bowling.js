@@ -32,12 +32,24 @@ class PageSplashscreenBowling extends PageBase {
 
 		this.loaded = false;
 
+		this.gameover_elapsed = 0;
+
+		this.inplay = false;
+
 		this.score = 0;
 	}
 
 	step(dt) {
 		if (!this.loaded) {
 			return;
+		}
+
+		const pb = this.level.pawn.pawn_behaviour;
+		if (pb.dead && this.inplay) {
+			this.gameover_elapsed += dt;
+			if (this.gameover_elapsed >= 3000) {
+				this.playstop();
+			}
 		}
 
 		this.level.step(dt);
@@ -98,7 +110,13 @@ class PageSplashscreenBowling extends PageBase {
 	}
 
 	playstart() {
-		this.level.pawn.pawn_behaviour.revive();
+		this.inplay = true;
+		this.gameover_elapsed = 0;
+
+		for (const k in this.level.pawns) {
+			const pawn = this.level.pawns[k];
+			pawn.pawn_behaviour.revive();
+		}
 
 		this.camera_controls.playstart(this.level.pawn.pawn_dbg_mesh);
 
@@ -114,6 +132,7 @@ class PageSplashscreenBowling extends PageBase {
 	}
 
 	playstop() {
+		this.inplay = false;
 		this.camera_controls.playstop();
 		this.session.endplay(this.score);
 		this.inputs.stop();

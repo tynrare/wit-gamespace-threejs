@@ -37,6 +37,9 @@ class PawnBehaviourBowlingA {
 
 		this.hearts_spent = 0;
 		this.hearts_recharge_t = 0;
+		this.dead = false;
+
+		this.contacts = 0;
 	}
 
 	step(dt) {
@@ -52,6 +55,7 @@ class PawnBehaviourBowlingA {
 
 	_step_collisions() {
     let contact_link_list = this._pawn.pawn_body.getContactLinkList();
+		this.contacts = 0;
     while (contact_link_list) {
       const contact = contact_link_list.getContact();
       const other = contact_link_list.getOther();
@@ -61,6 +65,8 @@ class PawnBehaviourBowlingA {
       if (!contact.isTouching()) {
         continue;
       }
+
+			this.contacts += 1;
 
 			if (other.userData?.type_projectile) {
 				this.hurt();
@@ -132,6 +138,10 @@ class PawnBehaviourBowlingA {
 			return;
 		}
 
+		if (!this.contacts) {
+			return;
+		}
+
 		this.moves = Boolean(x && z);
 
 		const physics = this._pawn._physics;
@@ -141,9 +151,11 @@ class PawnBehaviourBowlingA {
 		vec.normalize();
 		vec.scaleEq(2);
 
+		/*
 		const vecv = physics.cache.vec3_1;
 		this._pawn.pawn_body.getLinearVelocityTo(vecv);
 		vec.y = vecv.y;
+		*/
 
 		this._pawn.pawn_body.setLinearVelocity(vec);
 
@@ -259,6 +271,7 @@ class PawnBehaviourBowlingA {
 		if (this.hearts_spent >= this.config.hearts_limit) {
 			this.stun_time = Infinity;
 			this._pawn.pawn_draw.stun = true;
+			this.dead = true;
 		}
 	}
 
@@ -268,7 +281,9 @@ class PawnBehaviourBowlingA {
 		this.hearts_spent = 0;
 		this.shoots_spent = 0;
 		this.stun_time = 0;
+		this._pawn.pawn_draw.stun = false;
 		this.stun = false;
+		this.dead = false;
 	}
 
 	static stabilizate_body(physics, dt, body, factor = 0.07) {

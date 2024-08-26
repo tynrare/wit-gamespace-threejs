@@ -292,6 +292,7 @@ class App {
         document.msExitFullscreen();
       }
     } else {
+			window.scrollTo(0, 1);
       if (element.requestFullscreen) {
         element.requestFullscreen();
       } else if (element.webkitRequestFullscreen) {
