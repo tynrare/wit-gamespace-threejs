@@ -242,6 +242,14 @@ class PawnBehaviourBowlingA {
 		}
 	}
 
+	get shoots_spent_f() {
+		return this.shoots_spent / this.config.shoot_limit;
+	}
+
+	get hearts_spent_f() {
+		return this.hearts_spent / this.config.hearts_limit;
+	}
+
 	revive() {
 		this.shoot_recharge_t = 0;
 		this.hearts_recharge_t = 0;

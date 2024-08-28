@@ -16,15 +16,21 @@ class PawnBotBowlingA {
 		/** @type {Physics} */
 		this._physics = level.physics;
 
+		this.config = {
+			safe_distance: 5,
+			waving_distance: 4,
+			waving_speed: 1e-3,
+			attack_distance: 6,
+			attack_cooldown: 1200
+		};
 
 		this.elapsed = 0;
 		this.elapsed_attack = 0;
-		this.attack_cooldown = 700;
 		this.direction = new Vector3();
 	}
 
 	run() {
-		this.elapsed_attack = Math.random() * -10000 - 1000;
+		this.elapsed_attack = Math.random() * -5000 - 1000;
 	}
 
 	step(dt) {
@@ -65,18 +71,64 @@ class PawnBotBowlingA {
 					dir.negate();
 				}
 				this.direction.copy(dir);
-			} 
 
-
-			pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
-			return;
+				pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
+				return;
+			}
 		}
 
+		// b. hunt
+
 		const pawns = this._level.pawns;
+		/** @type {PawnBowlingA} */
 		const closest_enemy = this.find_closest_enemy(pawns);
 		if (closest_enemy) {
+			const ce = closest_enemy;
 
-			pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
+			// point at safe distance
+			let safe_distance = this.config.safe_distance;
+
+			// move away when shoots or hearts spent
+			safe_distance += this._pawn.pawn_behaviour.shoots_spent_f * 2;
+			safe_distance += this._pawn.pawn_behaviour.hearts_spent_f * 4;
+
+			const targ = cache.vec3.v0;
+			const len = cache.vec3.v1;
+			len.copy(this._pawn.position).sub(ce.position);
+			targ.copy(len);
+			targ.normalize().multiplyScalar(safe_distance);
+			targ.add(ce.position);
+
+			// shifting point with sin
+			const wavedir = cache.vec3.v2;
+			wavedir.copy(len).cross(Vec3Up).normalize();
+			wavedir.multiplyScalar(
+				Math.sin(this.elapsed * this.config.waving_speed) *
+					this.config.waving_distance,
+			);
+
+			targ.add(wavedir);
+
+			const dir = cache.vec3.v4;
+			dir.copy(targ).sub(this._pawn.position);
+			const dist = Math.min(dir.length(), 1);
+			dir.normalize().multiplyScalar(dist);
+
+			const shoot = 
+				this.elapsed_attack >= this.config.attack_cooldown &&
+				len.length() <= this.config.attack_distance;
+
+			if (shoot) {
+				dir.copy(len).normalize().negate();
+				pawn.pawn_actions.action_aim(dir.x, dir.z);
+				pawn.pawn_actions.action_shoot();
+				pawn.pawn_actions.action_aim(0, 0);
+				this.elapsed_attack = 0;
+			} else {
+				this.direction.copy(dir);
+				pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
+			}
+
 			return;
 		}
 	}
@@ -123,7 +175,7 @@ class PawnBotBowlingA {
 		const dist = dir.length();
 		dir.normalize();
 
-		const shoot = this.elapsed_attack >= this.attack_cooldown;
+		const shoot = this.elapsed_attack >= this.config.attack_cooldown;
 
 		if (shoot) {
 			pawn.pawn_actions.action_aim(dir.x, dir.z);

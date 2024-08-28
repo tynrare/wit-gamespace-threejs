@@ -125,6 +125,13 @@ class PawnBowlingA {
 		PawnBehaviourBowlingA.stabilizate_body(physics, dt, body, factor);
 	}
 
+	/**
+	 * @returns {Vector3} .
+	 */
+	get position() {
+		return this.pawn_dbg_mesh.position;
+	}
+
 	stop() {
 		this.character_scene?.removeFromParent();
 		this.pawn_dbg_mesh?.removeFromParent();
