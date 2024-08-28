@@ -67,9 +67,13 @@ class PawnBehaviourBowlingA {
 
 			this.contacts += 1;
 
-			if (other.userData?.type_projectile) {
-				this.hurt();
+			if (!other.userData?.type_projectile) {
+				continue;
 			}
+
+			this.hurt();
+			const projectile = this._pawn._level.projectiles[other.id];
+			projectile?.crush();
 		}
 	}
 

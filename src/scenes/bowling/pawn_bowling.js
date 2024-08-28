@@ -112,9 +112,6 @@ class PawnBowlingA {
 	async _load_pawn() {
 		this.character_gltf = await Loader.instance.get_gltf("bowling/pawn2.glb");
 		this.character_scene = SkeletonUtils.clone(this.character_gltf.scene);
-		this.projectile_gltf = await Loader.instance.get_gltf(
-			"bowling/projectile1.glb",
-		);
 	}
 
 	_create_pawn_draw() {

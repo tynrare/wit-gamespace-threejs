@@ -62,13 +62,13 @@ class PawnBotBowlingA {
 
 	/**
 	 *
-	 * @param {Array<AdTestcaseBowlingPawn>} pawns
+	 * @param {Object<string, any>} pawns
 	 */
 	find_closest_enemy(pawns) {
 		let closest_enemy = null;
 		let closest_dist = Infinity;
-		for (let i = 0; i < pawns.length; i++) {
-			const pawn = pawns[i];
+		for (const k in pawns) {
+			const pawn = pawns[k];
 			if (pawn == this._pawn) {
 				continue;
 			}
@@ -83,6 +83,9 @@ class PawnBotBowlingA {
 		}
 
 		return closest_enemy;
+	}
+
+	stop() {
 	}
 }
 
