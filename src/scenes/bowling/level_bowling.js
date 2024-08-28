@@ -334,7 +334,7 @@ class LevelBowlingA {
 		await this.map.run(opts?.scene);
 		await this.logo.run();
 
-		this.create_bots(1);
+		this.create_bots(5);
 	}
 
 	/**
