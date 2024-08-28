@@ -1,14 +1,21 @@
-import { cache } from "../../math.js";
+import { cache, Vec3Up } from "../../math.js";
 import { Vector3 } from "three";
+import PawnBowlingA from "./pawn_bowling.js";
+import LevelBowlingA from "./level_bowling.js";
 
 class PawnBotBowlingA {
 	/**
-	 *
-	 * @param {AdTestcaseBowlingPawn} pawn
+	 * @param {PawnBowlingA} pawn
+	 * @param {LevelBowlingA} level
 	 */
-	constructor(pawn) {
-		/** @type {AdTestcaseBowlingPawn} */
+	constructor(pawn, level) {
+		/** @type {PawnBowlingA} */
 		this._pawn = pawn;
+		/** @type {LevelBowlingA} */
+		this._level = level;
+		/** @type {Physics} */
+		this._physics = level.physics;
+
 
 		this.elapsed = 0;
 		this.elapsed_attack = 0;
@@ -20,7 +27,7 @@ class PawnBotBowlingA {
 		this.elapsed_attack = Math.random() * -10000 - 1000;
 	}
 
-	step(dt, pawns) {
+	step(dt) {
 		this.elapsed_attack += dt;
 		this.elapsed += dt;
 
@@ -30,11 +37,85 @@ class PawnBotBowlingA {
 			return;
 		}
 
-		const closest_enemy = this.find_closest_enemy(pawns);
-		if (!closest_enemy) {
+		this.direction.setScalar(0);
+
+		// a. doodge
+		const projectiles = this._level.projectiles;
+		const closest_projectile = this.find_closest(projectiles, (o) => {
+			return o.mesh.position;
+		});
+
+		if (closest_projectile) {
+			const cp = closest_projectile;
+			const vel = cache.vec3.v0;
+			const dir = cache.vec3.v1;
+			const pvel = this._physics.cache.vec3_0;
+			cp.body.getLinearVelocityTo(pvel);
+			vel.set(pvel.x, pvel.y, pvel.z);
+			dir.copy(this._pawn.pawn_dbg_mesh.position).sub(cp.mesh.position);
+
+			vel.normalize();
+			dir.normalize();
+			const dot = vel.dot(dir);
+
+			if (dot >= 0.8) {
+				vel.sub(dir);
+				dir.cross(Vec3Up).normalize();
+				if (vel.dot(dir) > 0) {
+					dir.negate();
+				}
+				this.direction.copy(dir);
+			} 
+
+
+			pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
 			return;
 		}
 
+		const pawns = this._level.pawns;
+		const closest_enemy = this.find_closest_enemy(pawns);
+		if (closest_enemy) {
+
+			pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
+			return;
+		}
+	}
+
+	find_closest(list, getpos) {
+		let closest = null;
+		let closest_dist = Infinity;
+		for (const k in list) {
+			const o = list[k];
+			if (o == this._pawn) {
+				continue;
+			}
+
+			const dist = this._pawn.pawn_dbg_mesh.position.distanceTo(getpos(o));
+			if (dist < closest_dist) {
+				closest_dist = dist;
+				closest = o;
+			}
+		}
+
+		return closest;
+	}
+
+	/**
+	 * @param {Object<string, any>} pawns
+	 */
+	find_closest_enemy(pawns) {
+		return this.find_closest(pawns, (p) => {
+			return p.pawn_dbg_mesh.position;
+		});
+	}
+
+	stop() {
+		this._pawn = null;
+		this._level = null;
+		this._physics = null;
+	}
+
+	pattern_a(dt, pawns) {
 		const dir = cache.vec3.v0
 			.copy(closest_enemy.pawn_dbg_mesh.position)
 			.sub(pawn.pawn_dbg_mesh.position);
@@ -58,34 +139,6 @@ class PawnBotBowlingA {
 
 			pawn.pawn_actions.action_move(this.direction.x, this.direction.z);
 		}
-	}
-
-	/**
-	 *
-	 * @param {Object<string, any>} pawns
-	 */
-	find_closest_enemy(pawns) {
-		let closest_enemy = null;
-		let closest_dist = Infinity;
-		for (const k in pawns) {
-			const pawn = pawns[k];
-			if (pawn == this._pawn) {
-				continue;
-			}
-
-			const dist = this._pawn.pawn_dbg_mesh.position.distanceTo(
-				pawn.pawn_dbg_mesh.position,
-			);
-			if (dist < closest_dist) {
-				closest_dist = dist;
-				closest_enemy = pawn;
-			}
-		}
-
-		return closest_enemy;
-	}
-
-	stop() {
 	}
 }
 

@@ -118,6 +118,10 @@ class PageSplashscreenBowling extends PageBase {
 			pawn.pawn_behaviour.revive();
 		}
 
+		for (const k in this.level.projectiles) {
+			this.level.remove_projectile(k);
+		}
+
 		this.camera_controls.playstart(this.level.pawn.pawn_dbg_mesh);
 
 		this.inputs = new InputsDualstick(

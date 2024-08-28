@@ -306,7 +306,12 @@ class LevelBowlingA {
 
 		for (const k in this.bots) {
 			const bot = this.bots[k];
-			bot.step(dt, this.pawns);
+			bot.step(dt);
+		}
+
+		for (const k in this.projectiles) {
+			const projectile = this.projectiles[k];
+			projectile.step(dt);
 		}
 
 		this.step_bodies();
@@ -329,7 +334,7 @@ class LevelBowlingA {
 		await this.map.run(opts?.scene);
 		await this.logo.run();
 
-		this.create_bots(5);
+		this.create_bots(1);
 	}
 
 	/**
@@ -359,10 +364,21 @@ class LevelBowlingA {
 		this.projectiles[projectile.body.id] = projectile;
 	}
 
+	remove_projectile(id, stop = true) {
+		const projectile = this.projectiles[id];
+		if (!projectile) {
+			return;
+		}
+		if (stop) {
+			projectile.stop();
+		}
+		delete this.projectiles[id];
+	}
+
 	create_bots(count) {
 		for (let i = 0; i < count; i++) {
 			const pawn = this.create_pawn(this.map.get_rand_spawnpoint());
-			const bot = new PawnBotBowlingA(pawn);
+			const bot = new PawnBotBowlingA(pawn, this);
 			bot.run();
 			this.bots[pawn.id] = bot;
 		}
@@ -407,9 +423,7 @@ class LevelBowlingA {
 		}
 
 		for (const k in this.projectiles) {
-			const projectile = this.projectiles[k];
-			projectile.stop();
-			delete this.projectiles[k];
+			this.remove_projectile(k);
 		}
 
 		this.physics.stop();
