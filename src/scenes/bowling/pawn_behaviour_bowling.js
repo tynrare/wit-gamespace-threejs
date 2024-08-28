@@ -1,7 +1,6 @@
 import PawnBowlingA from "./pawn_bowling.js";
 import { Vector3 } from "three";
 import { cache } from "../../math.js";
-import { Physics, RigidBodyType } from "../../physics.js";
 import App from "../../app.js";
 
 class PawnBehaviourBowlingA {
@@ -54,24 +53,24 @@ class PawnBehaviourBowlingA {
 	}
 
 	_step_collisions() {
-    let contact_link_list = this._pawn.pawn_body.getContactLinkList();
+		let contact_link_list = this._pawn.pawn_body.getContactLinkList();
 		this.contacts = 0;
-    while (contact_link_list) {
-      const contact = contact_link_list.getContact();
-      const other = contact_link_list.getOther();
+		while (contact_link_list) {
+			const contact = contact_link_list.getContact();
+			const other = contact_link_list.getOther();
 
-      contact_link_list = contact_link_list.getNext();
+			contact_link_list = contact_link_list.getNext();
 
-      if (!contact.isTouching()) {
-        continue;
-      }
+			if (!contact.isTouching()) {
+				continue;
+			}
 
 			this.contacts += 1;
 
 			if (other.userData?.type_projectile) {
 				this.hurt();
 			}
-    }
+		}
 	}
 
 	_step_recharges(dt) {
@@ -173,43 +172,7 @@ class PawnBehaviourBowlingA {
 
 		this.shoot_requested = false;
 
-		const radius = 0.5;
-		const pos = cache.vec3.v1;
-		const dir = direction;
-		pos
-			.copy(dir)
-			.normalize()
-			.setLength(radius * 2)
-			.add(this._pawn.pawn_draw._target.position);
-		pos.y = 0.5;
-		const body = this._pawn._physics.create_sphere(
-			pos,
-			radius,
-			RigidBodyType.DYNAMIC,
-			{
-				density: 10,
-				friction: 0.3,
-				restitution: 0.7,
-			},
-		);
-
-		body.temporal = true;
-		body.userData = {
-			owner : this._pawn.id,
-			timestamp : Date.now(),
-			type_projectile : true,
-		}
-
-		const mesh = this._pawn.projectile_gltf.scene.clone();
-		mesh.scale.multiplyScalar(radius * 2);
-		mesh.position.copy(pos);
-		App.instance.render.scene.add(mesh);
-		this._pawn._physics.attach(body, mesh);
-
-		const impulse = this._pawn._physics.cache.vec3_0;
-		impulse.init(dir.x, 0, dir.z);
-		impulse.scaleEq(50);
-		body.applyLinearImpulse(impulse);
+		this._pawn._level.create_projectile(this._pawn, direction);
 	}
 
 	aim(x, z) {

@@ -8,6 +8,7 @@ import App from "../../app.js";
 import { cache, clamp } from "../../math.js";
 import PawnBowlingA from "./pawn_bowling.js";
 import PawnBotBowlingA from "./pawn_bot_bowling.js";
+import ProjectileBallBowling from "./projectile_ball_bowling.js";
 
 class LevelBowlingUtils {
   constructor(physics) {
@@ -270,7 +271,7 @@ class LevelBowlingA {
     this.utils = null;
     /** @type {Environment1} */
     this.environment = null;
-    /** @type {Array<PawnBowlingA>} */
+    /** @type {Object<string, PawnBowlingA>} */
     this.pawns = [];
     /** @type {PawnBowlingA} */
     this.pawn = null;
@@ -322,7 +323,7 @@ class LevelBowlingA {
    */
   create_pawn(position, pawnclass = PawnBowlingA, load = true) {
 		const id = "p" + this.guids++;
-    const pawn = new (pawnclass ?? PawnBowlingA)(id, this.physics).run();
+    const pawn = new (pawnclass ?? PawnBowlingA)(id, this).run();
     this.pawns.push(pawn);
     if (position) {
       pawn.pawn_body.setPosition(
@@ -334,6 +335,14 @@ class LevelBowlingA {
     }
     return pawn;
   }
+
+	create_projectile(pawn, direction) {
+		const projectile = new ProjectileBallBowling(
+			pawn.id,
+			pawn.projectile_gltf.scene,
+			this,
+		).run(pawn.pawn_draw._target.position, direction);
+	}
 
 	create_bots(count) {
     for (let i = 0; i < count; i++) {

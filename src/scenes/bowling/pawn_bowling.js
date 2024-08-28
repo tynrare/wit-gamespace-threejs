@@ -1,5 +1,6 @@
 import { Physics, RigidBodyType } from "../../physics.js";
 import PawnDrawA from "./pawn_draw_bowling.js";
+import LevelBowlingA from "./level_bowling.js";
 import PawnActionsBowlingA from "./pawn_actions_bowling.js";
 import { cache } from "../../math.js";
 import { Vector3 } from "three";
@@ -11,11 +12,17 @@ import PawnBehaviourBowlingA from "./pawn_behaviour_bowling.js";
 import PawnVisualsBowlingA from "./pawn_visuals_bowling.js";
 
 class PawnBowlingA {
-	constructor(id, physics) {
+	/**
+	 * @param {string} id
+	 * @param {LevelBowlingA} level
+	 */
+	constructor(id, level) {
 		/** @type {string} */
 		this.id = id;
+		/** @type {LevelBowlingA} */
+		this._level = level;
 		/** @type {Physics} */
-		this._physics = physics;
+		this._physics = level.physics;
 		/** @type {oimo.dynamics.rigidbody.RigidBody} */
 		this.pawn_body = null;
 		/** @type {THREE.Mesh} */
@@ -92,6 +99,12 @@ class PawnBowlingA {
 			{ friction: 0.1, density: 1, adamping: 5, ldamping: 1 },
 			0x48a9b1,
 		);
+
+		const body = this._physics.bodylist[id];
+
+		body.userData = {
+			type_pawn : true,
+		}
 
 		return id;
 	}
