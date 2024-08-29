@@ -15,6 +15,7 @@ import PageTestcase3 from "./tests/page_testcase3.js";
 import PageTestcase4 from "./tests/page_testcase4.js";
 import PageTestcase5Navmesh from "./tests/page_testcase5_navmesh.js";
 import PageTestcase5aNavmesh from "./tests/page_testcase5a_navmesh.js";
+import PageTestcase6NetworkD240829 from "./tests/d240829_network/page_testcase6_network.js";
 import PageTestcase6Network from "./tests/page_testcase6_network.js";
 import AaPageTestcaseBowling from "./tests/deprecated/aa_page_tc_bowling.js";
 import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
@@ -75,7 +76,8 @@ class App {
       testcase12: new AfPageTestcaseBoulder(),
       testcase13: new PageTestcase5Navmesh(),
       testcase13a: new PageTestcase5aNavmesh(),
-      testcase14: new PageTestcase6Network(),
+      testcase14: new PageTestcase6NetworkD240829(),
+      testcase15: new PageTestcase6Network(),
     };
 
     /** @type {Render} */
@@ -116,6 +118,8 @@ class App {
     Stats.instance.show_elapsed_global(this.session.elapsed_global);
     Stats.instance.show_elapsed_play(this.playsession.elapsed);
     Stats.instance.show_elapsed_play_global(this.playsession.elapsed_global);
+
+    Stats.instance.show_fps(this.loop.ldt);
   }
 
   /**

@@ -68,8 +68,6 @@ class Loop {
 				this.step(this.ldt);
 			}
 
-			Stats.instance.show_fps(this.ldt);
-
 			requestAnimationFrame(this.loop.bind(this));
     } catch (err) {
       this.active = false;

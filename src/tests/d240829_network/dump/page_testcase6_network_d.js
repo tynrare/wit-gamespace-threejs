@@ -481,10 +481,10 @@ class LevelTestcase6Network {
 }
 
 /**
- * @class PageTestcase6Network
+ * @class PageTestcase6NetworkD240829
  * @memberof Pages/Tests
  */
-class PageTestcase6Network extends PageBase {
+class PageTestcase6NetworkD240829 extends PageBase {
   constructor() {
     super();
 
@@ -928,4 +928,4 @@ class PageTestcase6Network extends PageBase {
   }
 }
 
-export default PageTestcase6Network;
+export default PageTestcase6NetworkD240829;

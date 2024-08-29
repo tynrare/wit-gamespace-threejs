@@ -2,7 +2,7 @@ import logger from "./logger.js";
 
 class Entity {
   /**
-   * @param {Pool} pool .
+   * @param {Pool?} pool .
    * @param {ArrayBuffer} buffer .
    */
   constructor(
@@ -56,6 +56,9 @@ class Entity {
 
   dispose() {
     this.disposed = true;
+    if (!this._pool) {
+      return;
+    }
     delete this._pool.entities[this.id];
     this._pool.allocated -= 1;
     const index = this.index;

@@ -14,9 +14,10 @@ page#testsmenu
 			li: a(href="#testcase10") tank 0
 			li: a(href="#testcase11") vehicle
 			li: a(href="#testcase12") boulder
-			li: a(href="#testcase13") test 13: navmesh
-			li: a(href="#testcase13a") test 13a: navmesh
-			li: a(href="#testcase14") test 14: network
+			li: a(href="#testcase13") navmesh a
+			li: a(href="#testcase13a") navmesh b
+			li: a(href="#testcase14") network: v1
+			li: a(href="#testcase15") network: v2
 			li: a(href="#minigame_a") minigame a
 			li: a(href="#blockbreaker") blockbreaker
 			li: a(href="#splashscreen_bowling_d240823") bowling splashscreen d240823
@@ -61,6 +62,10 @@ page#testcase13a
 	render.fill-abs
 	.fill-abs: include ../pawn/joysticks.pug
 page#testcase14
+	render.fill-abs
+	overlay.gp-onscreen.fill-abs
+	overlay.gp-inputs.fill-abs
+page#testcase15
 	render.fill-abs
 	overlay.gp-onscreen.fill-abs
 	overlay.gp-inputs.fill-abs
