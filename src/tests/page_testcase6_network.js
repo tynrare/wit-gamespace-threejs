@@ -100,7 +100,7 @@ class PageTestcase6Network extends PageBase {
         if (initial) {
             this.create();
         } else {
-            network.send(MESSAGE_TYPE.ASK_ENTRANCE, null);
+            this.network.send(MESSAGE_TYPE.ASK_ENTRANCE, null);
         }
     }
 
