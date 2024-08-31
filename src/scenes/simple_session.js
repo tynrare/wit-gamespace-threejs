@@ -117,6 +117,7 @@ class SimpleSession {
     const energy = ui.querySelector(".gp-ui-energy");
     const score = ui.querySelector(".gp-ui-score .score");
     const playbtn = menu.querySelector(".playbtn");
+    const superbtn = menu.querySelector(".superbtn");
     const scoreboard = menu.querySelector(".scoreboard");
 
     this.container = container;
@@ -127,6 +128,7 @@ class SimpleSession {
     this.energy = energy;
     this.score = score;
     this.playbtn = playbtn;
+    this.superbtn = superbtn;
     this.scoreboard = scoreboard;
     this.onplay = onplay;
 
@@ -143,6 +145,7 @@ class SimpleSession {
 
   startmenu() {
     this.playbtn.classList.add("show");
+    this.superbtn.classList.add("show");
     this.ui.classList.add("hidden");
     this.inputs.classList.add("hidden");
     this.scoreboard.classList.remove("hidden");
@@ -166,6 +169,7 @@ class SimpleSession {
     this.onplay();
 
     this.playbtn.classList.remove("show");
+    this.superbtn.classList.remove("show");
     this.inputs.classList.remove("hidden");
     this.ui.classList.remove("hidden");
     this.scoreboard.classList.add("hidden");

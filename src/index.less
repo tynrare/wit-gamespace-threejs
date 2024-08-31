@@ -45,26 +45,54 @@ page {
     font-size: large;
     font-family: inherit;
     font-weight: bold;
-    color: #3ecbb1;
+		--color: #3ecbb1;
+    color: var(--color);
     background-color: #f3f3d6;
-    padding: 0.4em 2em;
-    border-radius: 50em;
-    border: 6px solid;
+		text-shadow: 
+			0px 1px #fffa,
+			0px 3px #2b9166;
     box-shadow:
       0px 8px #24554a,
-      0px 8px 100px 50px #f3f3d690;
+			0px 8px 0px 8px var(--color);
+			
+    padding: 0.4em 2em;
+    border-radius: 10em;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
       position: relative;
       top: 8px;
-      border: 6px solid;
       box-shadow:
-        0px 0px,
+				0px 0px 0px 8px var(--color),
         0px 0px 100px 50px #fffa;
     }
   }
+  .btn-style-a.purple {
+		--color: #b93ecb;
+    background-color: #f3f3d6;
+		text-shadow: 
+			0px 1px #fffa,
+			0px 3px #912b86;
+    box-shadow:
+      0px 8px #332455,
+			0px 8px 0px 8px var(--color);
+
+    &:active {
+      position: relative;
+      top: 8px;
+      box-shadow:
+				0px 0px 0px 8px var(--color),
+        0px 0px 100px 50px #fffa;
+    }
+	}
+
+	.btn-style-a.locked {
+		filter: grayscale(1) contrast(0.5) brightness(1.3);
+		position: relative;
+		top: 8px;
+		box-shadow: 0px 0px 0px 8px var(--color);
+	}
 
   .label-style-a {
 		font-family: "Rubik";
