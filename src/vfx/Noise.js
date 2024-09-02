@@ -1,9 +1,11 @@
 // https://github.com/leoncvlt/three-extended-material/blob/master/examples/extensions/Noise.js
 
+import { time_uniform } from "./time_uniform.js";
+
 export const Noise = {
   name: "noise",
   uniforms: {
-    noiseTime: 0,
+		noiseTime: 0,
   },
   vertexShader: (shader) => {
     shader = /*glsl*/ `
