@@ -17,6 +17,7 @@ import PageTestcase5Navmesh from "./tests/page_testcase5_navmesh.js";
 import PageTestcase5aNavmesh from "./tests/page_testcase5a_navmesh.js";
 import PageTestcase6NetworkD240829 from "./tests/d240829_network/page_testcase6_network.js";
 import PageTestcase6Network from "./tests/page_testcase6_network.js";
+import PageTestcase7Vfx from "./tests/page_testcase7_vfx.js";
 import AaPageTestcaseBowling from "./tests/deprecated/aa_page_tc_bowling.js";
 import AbPageTestcaseBowling from "./tests/deprecated/ab_page_tc_bowling.js";
 import AcPageTestcaseBowling from "./tests/deprecated/ac_page_tc_bowling.js";
@@ -78,6 +79,7 @@ class App {
       testcase13a: new PageTestcase5aNavmesh(),
       testcase14: new PageTestcase6NetworkD240829(),
       testcase15: new PageTestcase6Network(),
+      testcase16: new PageTestcase7Vfx(),
     };
 
     /** @type {Render} */

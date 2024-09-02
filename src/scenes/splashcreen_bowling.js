@@ -88,6 +88,7 @@ class PageSplashscreenBowling extends PageBase {
 
 		App.instance.spashscreen(true);
 		App.instance.start(this.container.querySelector("render"));
+    App.instance.render.scene.background = new Color(0x000);
 
 		this.session = new SimpleSession({
 			hearts_style: SimpleSessionElementStyle.BAR

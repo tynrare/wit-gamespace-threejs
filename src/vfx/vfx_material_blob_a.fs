@@ -5,6 +5,7 @@ varying vec3 vPosition;
 uniform float time;
 uniform sampler2D tDiffuse;
 uniform sampler2D noise0;
+uniform float blob_size;
 
 vec2 rotate2D(vec2 _st, float _angle){
     _st -= 0.5;
@@ -34,9 +35,8 @@ float checker(float size, vec2 uv) {
 }
 
 void main() {
-	float scale = 0.2;
-	float dist = distance(vPosition.xz * scale, vec2(0));
-	dist = pow(clamp(dist - 2.2, 0.0, 1.0), 1.9);
+	float dist = distance(vPosition.xz, vec2(0));
+	dist = pow(clamp(dist - blob_size, 0.0, 1.0), 1.9);
 
 	float noise_scale = 0.2;
 	float t = time * 1e-4;
@@ -47,7 +47,7 @@ void main() {
 	float color_factor_blob = step(0.04, noise * dist);
 
 	// transparent blob
-	//if  (color_factor_blob > 0.5) discard;
+	if  (color_factor_blob > 0.5) discard;
 
 	float color_factor_checker = checker(0.4, vPosition.xz);
 	vec3 color_checker = mix(vec3(0.8), vec3(0.9), color_factor_checker);
