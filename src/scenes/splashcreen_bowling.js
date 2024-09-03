@@ -67,7 +67,9 @@ class PageSplashscreenBowling extends PageBase {
       this.level.pawn,
     );
 
-    this.apply_superpowers(dt);
+		if (this.loaded) {
+			this.apply_superpowers(dt);
+		}
   }
 
   input(type, start) {
