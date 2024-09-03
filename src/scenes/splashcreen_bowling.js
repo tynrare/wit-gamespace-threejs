@@ -67,9 +67,7 @@ class PageSplashscreenBowling extends PageBase {
       this.level.pawn,
     );
 
-		if (this.loaded) {
-			this.apply_superpowers(dt);
-		}
+		this.apply_superpowers(dt);
   }
 
   input(type, start) {
@@ -189,6 +187,7 @@ class PageSplashscreenBowling extends PageBase {
 
   stop() {
     App.instance.pause();
+		this.superpowers = {};
 		this.playstop();
 
     this.session?.dispose();
