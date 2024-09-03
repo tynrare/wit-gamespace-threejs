@@ -19,6 +19,10 @@
     display: flex;
 		user-select: none;
 
+		&.hide-hearts .gp-ui-hearts {
+			display: none;
+		}
+
     container.gp-ui-floating {
 			position: absolute;
 			transform: translate(-50%, -50%);
@@ -157,6 +161,82 @@
     display: flex;
     flex-direction: column;
 
+		card {
+			display: none;
+		}
+
+		card.active {
+			height: 100%;
+			margin: 16px auto;
+			margin-bottom: 0;
+			padding: 8px;
+			width: min(600px, 80vw);
+			display: flex;
+			flex-direction: column;
+
+			&.background {
+				background-color: #000a;
+				backdrop-filter: blur(4px);
+				border-radius: 8px;
+			}
+		}
+
+		card entry {
+			& > * {
+				pointer-events: none;
+			}
+
+			user-select: none;
+			cursor: pointer;
+			background-color: #f3f3d6;
+			padding: 2px 8px;
+			border-radius: 1em;
+
+			display: grid;
+			grid-template-areas:
+				"img header"
+				"img description";
+			grid-template-columns: 64px auto;
+
+			&.active::after {
+				content: '✓';
+				margin-right: 0;
+				margin-left: auto;
+			}
+
+			header, &::after {
+				grid-area: header;
+				font-size: 2em;
+				font-family: "Rubik";
+        color: #333;
+        text-shadow:
+          0px 1px #000,
+          0px 3px #0005;
+			}
+
+			&.active {
+				&::after, header {
+					color: #f0c755;
+					text-shadow:
+					0px 1px #ffe59e,
+					0px 3px #c35002;
+				}
+				description {
+					opacity: 1;
+				}
+			}
+
+			description {
+				grid-area: description;
+				opacity: 0.6;
+			}
+
+			pic {
+				grid-area: img;
+				margin: auto;
+			}
+		}
+
     .scoreboard-style-a {
       margin: auto;
 
@@ -180,7 +260,7 @@
       }
     }
 
-    .playbtn, .superbtn {
+    .playbtn, .superbtn, .menubtn {
 			display: flex;
 			justify-content: center;
 			min-width: 12ch;
@@ -211,6 +291,24 @@
 						position: absolute;
 						display: block;
 					}
+
+					&[data-popup-locked] {
+						&:hover, &:active {
+							&::before {
+								font-size: 0.8em;
+								content: attr(data-popup-locked);
+								position: absolute;
+								top: -100%;
+								background-color: #000a;
+								padding: 6px;
+								width: 100%;
+								border-radius: 6px;
+								filter: brightness(2);
+								color: white;
+								text-shadow: 0px 2px #333;
+							}
+						}
+					}
 				}
       }
     }
@@ -219,11 +317,15 @@
 			margin-bottom: 0;
 		}
 
-		.playbtn {
+		.playbtn, .menubtn {
 			margin-top: 1em;
       margin-bottom: 10vh;
 		}
   }
+
+	.gp-card-superpowers {
+		gap: 6px;
+	}
 }
 
 // --- older version.

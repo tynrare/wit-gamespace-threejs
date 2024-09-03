@@ -366,9 +366,12 @@ class LevelBowlingA {
   /**
    * @param {Vector3?} position .
    */
-  create_pawn(position, pawnclass = PawnBowlingA, load = true) {
+  create_pawn(position, pawnclass = PawnBowlingA, load = true, run = true) {
     const id = "p" + this.guids++;
-    const pawn = new (pawnclass ?? PawnBowlingA)(id, this).run();
+    const pawn = new (pawnclass ?? PawnBowlingA)(id, this);
+		if (run) {
+			pawn.run();
+		}
     this.pawns[id] = pawn;
     if (position) {
       pawn.pawn_body.setPosition(
@@ -380,6 +383,16 @@ class LevelBowlingA {
     }
     return pawn;
   }
+
+	remove_pawn(id) {
+		const pawn = this.pawns[id];
+		if (!pawn) {
+			return;
+		}
+
+		pawn.stop();
+		delete this.pawns[id];
+	}
 
   create_projectile(pawn, direction, scale = 1) {
     const projectile = new ProjectileBallBowling(pawn.id, this).run(

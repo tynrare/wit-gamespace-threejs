@@ -60,7 +60,7 @@ class PawnBehaviourBowlingA {
 
     if (!this.stun_time) {
 			const sf = this.stabilization_factor * (this.moves ? 2 : 1);
-      this.stabilizate_body(dt * this.timescale, sf);
+      this.stabilizate_body(dt, sf);
     }
 
     if (this.boost) {

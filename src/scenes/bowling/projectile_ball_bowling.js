@@ -44,13 +44,14 @@ class ProjectileBallBowling {
 	 */
 	run(position, direction, scale = 1) {
 		this.timestamp = Date.now();
+		const ownerwidth = this._level.pawns[this.ownerid].config.body_width;
 		const radius = 0.5 * scale;
 		const pos = cache.vec3.v1;
 		const dir = direction;
 		pos
 			.copy(dir)
 			.normalize()
-			.setLength(radius * 2)
+			.setLength(radius * 2 + ownerwidth * 0.5)
 			.add(position);
 		pos.y = radius;
 		const body = this._physics.create_sphere(

@@ -39,7 +39,8 @@ class PawnBowlingA {
     this.config = {
       body_linear_damping: 1,
       body_angular_dumping: 5,
-			body_mass: 0.3
+			body_mass: 0.3,
+			body_width: 0.3
     };
 
     this.body_linear_damping = this.config.body_linear_damping;
@@ -101,7 +102,7 @@ class PawnBowlingA {
 
   _create_phys_body() {
     const pos = new Vector3(0, 1, 0);
-    const size = new Vector3(0.3, 1, 0);
+    const size = new Vector3(this.config.body_width, 1, 0);
     const id = this._physics.utils.create_physics_cylinder(
       pos,
       size,
@@ -159,6 +160,7 @@ class PawnBowlingA {
     this.character_gltf = null;
     this.pawn_dbg_mesh = null;
     this.pawn_draw = null;
+		this._physics.remove(this.pawn_body);
   }
 }
 

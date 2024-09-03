@@ -7,6 +7,7 @@ class Session {
 		this.timestamp_start = 0;
 		this.timestamp_stop = 0;
 		this._selapsed = 0;
+		this.sessions = 0;
 		this.load();
 		this.stop();
 	}
@@ -19,6 +20,7 @@ class Session {
 
 	stop() {
 		this.timestamp_stop = performance.now();
+		this.sessions += 1;
 		this.save();
 	}
 
@@ -32,10 +34,12 @@ class Session {
 
 	load() {
 		this._selapsed = this._load_key("selapsed");
+		this.sessions = this._load_key("ssessions");
 	}
 
 	save() {
 		this._save_key("selapsed", this.elapsed_global);
+		this._save_key("ssessions", this.sessions);
 	}
 
 	get elapsed() {
