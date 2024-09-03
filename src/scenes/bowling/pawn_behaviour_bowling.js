@@ -19,7 +19,7 @@ class PawnBehaviourBowlingA {
       hearts_limit: 3,
       hearts_limit_recharge: 5000,
       aim_direction_priority: true,
-			stabilization_factor: 0.25,
+			stabilization_factor: 0.20,
 			projectile_scale: 1
     };
 
