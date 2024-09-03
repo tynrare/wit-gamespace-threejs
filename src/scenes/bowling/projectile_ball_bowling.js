@@ -42,9 +42,9 @@ class ProjectileBallBowling {
 	 * @param {Vector3} position .
 	 * @param {Vector3} direction .
 	 */
-	run(position, direction) {
+	run(position, direction, scale = 1) {
 		this.timestamp = Date.now();
-		const radius = 0.5;
+		const radius = 0.5 * scale;
 		const pos = cache.vec3.v1;
 		const dir = direction;
 		pos
@@ -52,7 +52,7 @@ class ProjectileBallBowling {
 			.normalize()
 			.setLength(radius * 2)
 			.add(position);
-		pos.y = 0.5;
+		pos.y = radius;
 		const body = this._physics.create_sphere(
 			pos,
 			radius,
@@ -79,7 +79,7 @@ class ProjectileBallBowling {
 
 		const impulse = this._physics.cache.vec3_0;
 		impulse.init(dir.x, 0, dir.z);
-		impulse.scaleEq(this.config.impulse);
+		impulse.scaleEq(this.config.impulse * Math.pow(scale, 3));
 		body.applyLinearImpulse(impulse);
 
 		this.body = body;
@@ -92,6 +92,10 @@ class ProjectileBallBowling {
 		const sceneref = Loader.instance.cache.gltfs[FILENAME_VFX_FRACTURED].scene;
 		const scene = sceneref.clone();
 		scene.position.copy(this.mesh.position);
+		while (scene.children.length > 5) {
+			const index = Math.floor(Math.random() * scene.children.length);
+			scene.children[index].removeFromParent();
+		}
 		App.instance.render.scene.add(scene);
 		const fractures = this._level.utils.parse_playscene(scene, true, {
 			density: 2,

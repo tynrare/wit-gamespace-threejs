@@ -52,7 +52,7 @@ void main() {
 	// if  (color_factor_blob > 0.5) discard;
 
 	float color_factor_checker = checker(0.4, vPosition.xz);
-	vec3 color_checker = mix(vec3(0.8), vec3(0.9), color_factor_checker);
+	vec3 color_checker = mix(vec3(0.15), vec3(0.1), color_factor_checker);
 	vec3 colorfin = mix(color_checker, vec3(0.0), color_factor_blob);
 
 	gl_FragColor = vec4(colorfin, 1.0);

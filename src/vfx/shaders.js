@@ -9,20 +9,33 @@ let material_hza_instances = {};
 
 export function update_shaders() {
   time_uniform.value = App.instance.session.elapsed;
+	for (const k in material_hza_instances) {
+		const m = material_hza_instances[k];
+		m.noiseTime = App.instance.session.elapsed * 1e-3;
+	}
 }
 
-export function get_material_blob_a(texture_noise, blob_size = 10, wave_scale = 0.2) {
+/**
+ * @param {Object} [opts] .
+ * @param {number} [opts.blob_size=10] .
+ * @param {number} [opts.wave_scale=0.2] .
+ */
+export function get_material_blob_a(texture_noise, opts) {
   if (!material_blob_instance) {
-    material_blob_instance = new THREE.ShaderMaterial({
-      vertexShader: Simplestvs,
-      fragmentShader: MaterialBlobAfs,
-      uniforms: {
-        noise0: { value: texture_noise },
-        blob_size: { value: blob_size },
-				wave_scale: { value: wave_scale },
-        time: time_uniform,
-      },
-    });
+		const props = {
+			blob_size: opts?.blob_size ?? 10,
+			wave_scale: opts?.wave_scale ?? 0.2
+		}
+		material_blob_instance = new THREE.ShaderMaterial({
+			vertexShader: Simplestvs,
+			fragmentShader: MaterialBlobAfs,
+			uniforms: {
+				noise0: { value: texture_noise },
+				blob_size: { value: props.blob_size },
+				wave_scale: { value: props.wave_scale },
+				time: time_uniform,
+			},
+		});
   }
 
   return material_blob_instance;
@@ -63,10 +76,9 @@ export function get_material_hza(opts = {}, instance_id = 0) {
     }
 
     for (const kk in matopts) {
-      if (opts[k][kk]) {
-        continue;
+      if (!opts[k][kk]) {
+				opts[k][kk] = matopts[kk];
       }
-      opts[k][kk] = matopts[kk];
     }
   }
 
@@ -79,7 +91,7 @@ export function get_material_hza(opts = {}, instance_id = 0) {
   const _extensions = Object.keys(extensions)
     .filter((e) => !!extensions[e])
     .map((e) => extensionObjects[e]);
-  const _props = Object.values(opts_default).reduce((accumulator, extensionProps) => ({
+  const _props = Object.values(opts).reduce((accumulator, extensionProps) => ({
     ...accumulator,
     ...extensionProps,
   }));

@@ -42,7 +42,7 @@ class PageTestcase7Vfx extends PageBase {
   step(dt) {
     this.controls.update();
     update_shaders();
-		this.test_extmat.noiseTime += dt * 1e-3;
+    this.test_extmat.noiseTime += dt * 1e-3;
   }
 
   run() {
@@ -78,7 +78,7 @@ class PageTestcase7Vfx extends PageBase {
     let geometry = new THREE.CylinderGeometry();
     let material = get_material_blob_a(
       Loader.instance.get_texture("tex_noise0.png"),
-      0.3, 1
+      { blob_size: 0.3, wave_scale: 1 },
     );
 
     let mesh = new THREE.Mesh(geometry, material);
@@ -92,7 +92,7 @@ class PageTestcase7Vfx extends PageBase {
     let geometry = new THREE.SphereGeometry();
     const material = (this.test_extmat = get_material_hza({
       dither: {},
-      glow: {},
+      glow: { glowColor: new THREE.Color(0xff0000) },
       noise: {},
     }));
     let mesh = new THREE.Mesh(geometry, material);
