@@ -361,7 +361,7 @@ class PageTestcase6NetworkD240829 extends PageBase {
     }
 
     // remove entities
-    for (const k in this.level.entities) {
+    for (const k in this.level?.entities) {
       const entity = this.level.entities[k];
       if (!this.network.pool.entities[k]) {
         if (this.pawns[k]) {

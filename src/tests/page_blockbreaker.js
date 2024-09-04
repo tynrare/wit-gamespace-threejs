@@ -199,6 +199,7 @@ class LevelBlockbreaker {
       0xffff00,
       size,
     );
+    this.ball_mesh = ball_mesh;
     App.instance.render.scene.add(ball_mesh);
     this.physics.attach(ball, ball_mesh);
   }
@@ -560,7 +561,7 @@ class SceneBlockbreaker {
     const render = App.instance.render;
     const scene = render.scene;
 
-    render.pixelate(0.5, false);
+    render.pixelate(0.5);
 
     scene.background = new THREE.Color(0x66c0dc);
     this.lights = new LightsA().run(App.instance.render);

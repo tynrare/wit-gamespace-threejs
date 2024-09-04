@@ -68,7 +68,7 @@ class AbPageTestcaseBowling extends PageBase {
     const render = App.instance.render;
     const scene = render.scene;
 
-    render.pixelate(0.25, true);
+    render.pixelate(0.25, { grao: true });
 
     this.environment = new Environment1();
     this.environment.run({ floor: true });

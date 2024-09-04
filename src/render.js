@@ -11,6 +11,7 @@ import { RenderPixelatedPass } from "three/addons/postprocessing/RenderPixelated
 import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import RenderUtils from "./render_utils.js";
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 
 export class RenderCache {
   constructor() {
@@ -133,8 +134,9 @@ class Render {
    * @param {boolean|number} enable
    * @param gtao
    */
-  pixelate(enable, gtao = false) {
+  pixelate(enable, { gtao = false, bokeh = false } = {}) {
     if (!enable) {
+      this.bokehPass = null;
       this.composer = null;
       this.scale = 1;
 
@@ -165,8 +167,24 @@ class Render {
       this.composer.addPass(renderGTAOPass);
     }
 
+    if (bokeh) {
+      const bokehPass = new BokehPass( this.scene, this.camera, {
+        focus: 10.0,
+        aperture: 0.001,
+        maxblur: 0.01
+      } );
+      this.bokehPass = bokehPass;
+      this.composer.addPass(bokehPass);
+    }
+
     const outputPass = new OutputPass();
     this.composer.addPass(outputPass);
+  }
+
+  bokeh_focus(pos) {
+    if (this.bokehPass) {
+      this.bokehPass.uniforms['focus'].value = this.camera.position.distanceTo(pos);
+    }
   }
 
   // ---
