@@ -1,3 +1,9 @@
+# d240914
+
+- Время жизни снаряда `[1]` `ProjectileBallBowlingConfig.lifespan` 1000ms > 3000ms
+
+[1] `./scenes/bowling/projectile_ball_bowling.js`
+
 # d240830
 
 - [+] Суперсилы - дополнительные модификаторы, выбираемые перед игрой

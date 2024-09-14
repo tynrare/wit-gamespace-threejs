@@ -8,6 +8,11 @@ import Loader from "../../loader.js";
 const FILENAME = "bowling/projectile1.glb";
 const FILENAME_VFX_FRACTURED = "bowling/projectile1_fractured.glb";
 
+const ProjectileBallBowlingConfig = {
+	lifespan: 1000,
+	impulse: 30
+}
+
 class ProjectileBallBowling {
 	/**
 	 * @param {string} ownerid
@@ -21,10 +26,7 @@ class ProjectileBallBowling {
 		/** @type {Physics} */
 		this._physics = level.physics;
 
-		this.config = {
-			lifespan: 1000,
-			impulse: 30
-		}
+		this.config = Object.setPrototypeOf({}, ProjectileBallBowlingConfig);
 
 		this.timestamp = 0;
 
