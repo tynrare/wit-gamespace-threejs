@@ -14,14 +14,13 @@ import {
   SUPERPOWERS_CLASSES,
 } from "./bowling/superpowers_bowling.js";
 import logger from "../logger.js";
+import ConfigBowling from "./bowling/config_bowling.js"
 
 class PageSplashscreenBowling extends PageBase {
   constructor() {
     super();
 
-    this.config = {
-      zoom_on_aim: true,
-    };
+    this.config = new ConfigBowling();
 
     /** @type {SimpleSession} */
     this.session = null;
@@ -72,7 +71,7 @@ class PageSplashscreenBowling extends PageBase {
 
   input(type, start) {
     this.level.pawn.action(type, start);
-    if (this.config.zoom_on_aim) {
+    if (this.config.generic.zoom_on_aim) {
       this.camera_controls.controls.zoom(type == InputAction.action_b && start);
     }
   }
@@ -93,6 +92,8 @@ class PageSplashscreenBowling extends PageBase {
   }
 
   run() {
+    this.config.run();
+
     this.loaded = false;
     this.score = 0;
 

@@ -18,6 +18,8 @@ class Stats {
     this.elapsed_total_el = document.getElementById("elapsed_total_stat");
     this.elapsed_play_el = document.getElementById("elapsed_play_stat");
     this.elapsed_play_total_el = document.getElementById("elapsed_play_total_stat");
+    this.config_el = document.getElementById("config_stat");
+    this.config_save_btn = document.getElementById("config_stat_save");
   }
 
   show_fps(dt) {
@@ -47,6 +49,10 @@ class Stats {
 	print(message) {
 		this.print_el.innerHTML = message;
 	}
+
+  link_config_save(callback) {
+    this.config_save_btn.onclick = callback;
+  }
 
   /**
    * @returns {Stats} .

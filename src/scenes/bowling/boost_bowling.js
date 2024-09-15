@@ -168,8 +168,8 @@ class BoostEffectBowling {
         break;
       case BOOST_EFFECT_TYPE.SHIELD:
         this._pawn.pawn_behaviour.invulnerable = true;
-        this._pawn.pawn_behaviour.stabilization_factor =
-          this._pawn.pawn_behaviour.config.stabilization_factor * 2;
+        this._pawn.pawn_behaviour.config.stabilization_factor =
+          Object.getPrototypeOf(this._pawn.pawn_behaviour.config).stabilization_factor * 2;
         this._pawn.body_angular_dumping =
           this._pawn.config.body_angular_dumping * 2;
         this._pawn.pawn_body.setAngularDamping(this._pawn.body_angular_dumping);
@@ -182,8 +182,8 @@ class BoostEffectBowling {
         this._pawn.pawn_body.setMassData(dm);
         break;
       case BOOST_EFFECT_TYPE.ATTACK:
-        this._pawn.pawn_behaviour.projectile_scale =
-          this._pawn.pawn_behaviour.config.projectile_scale * 2;
+        this._pawn.pawn_behaviour.config.projectile_scale =
+          Object.getPrototypeOf(this._pawn.pawn_behaviour.config).projectile_scale * 2;
 				break;
     }
   }
@@ -195,8 +195,8 @@ class BoostEffectBowling {
         break;
       case BOOST_EFFECT_TYPE.SHIELD:
         this._pawn.pawn_behaviour.invulnerable = false;
-        this._pawn.pawn_behaviour.stabilization_factor =
-          this._pawn.pawn_behaviour.config.stabilization_factor * 1;
+        this._pawn.pawn_behaviour.config.stabilization_factor =
+          Object.getPrototypeOf(this._pawn.pawn_behaviour.config).stabilization_factor * 1;
         this._pawn.body_angular_dumping =
           this._pawn.config.body_angular_dumping * 1;
         this._pawn.pawn_body.setAngularDamping(this._pawn.body_angular_dumping);
@@ -209,8 +209,8 @@ class BoostEffectBowling {
         this._pawn.pawn_body.setMassData(dm);
         break;
       case BOOST_EFFECT_TYPE.ATTACK:
-        this._pawn.pawn_behaviour.projectile_scale =
-          this._pawn.pawn_behaviour.config.projectile_scale * 1;
+        this._pawn.pawn_behaviour.config.projectile_scale =
+          Object.getPrototypeOf(this._pawn.pawn_behaviour.config).projectile_scale * 1;
 				break;
     }
   }

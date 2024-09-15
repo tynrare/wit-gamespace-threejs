@@ -136,7 +136,27 @@ page {
 		border-top: #fffa solid 2px;
 		display: flex;
 		flex-direction: column;
+
+    text-wrap: wrap;
+    width: min-content;
+    max-width: 50%;
 	}
+
+  btn {
+    padding: 2px 6px;
+    background-color: black;
+    border-radius: 4px;
+    margin: 2px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    display: block;
+    text-align: center;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 #approot #splashscreen_loading {

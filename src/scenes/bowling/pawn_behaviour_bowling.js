@@ -4,6 +4,20 @@ import { cache } from "../../math.js";
 import App from "../../app.js";
 import { BOOST_EFFECT_TYPE, BoostEffectBowling } from "./boost_bowling.js";
 
+const PawnBehaviourBowlingAConfig = {
+  shoot_instant: true,
+  shoot_limit: 2,
+  shoot_limit_recharge: 3000,
+  hearts_limit: 3,
+  hearts_limit_recharge: 5000,
+  aim_direction_priority: true,
+  stabilization_factor: 0.20,
+  projectile_scale: 1,
+  movespeed: 2
+}
+
+const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf({}, PawnBehaviourBowlingAConfig);
+
 class PawnBehaviourBowlingA {
   /**
    * @param {PawnBowlingA} pawn
@@ -12,16 +26,8 @@ class PawnBehaviourBowlingA {
     /** @type {PawnBowlingA} */
     this._pawn = pawn;
 
-    this.config = {
-      shoot_instant: true,
-      shoot_limit: 2,
-      shoot_limit_recharge: 3000,
-      hearts_limit: 3,
-      hearts_limit_recharge: 5000,
-      aim_direction_priority: true,
-			stabilization_factor: 0.20,
-			projectile_scale: 1
-    };
+    /** @type PawnBehaviourBowlingAConfig */
+    this.config = Object.setPrototypeOf({}, PawnBehaviourBowlingAConfig_t);
 
     this.aims = false;
     this.moves = false;
@@ -47,9 +53,6 @@ class PawnBehaviourBowlingA {
 
     /** @type {BoostEffectBowling} */
     this.boost = null;
-
-		this.stabilization_factor = this.config.stabilization_factor;
-		this.projectile_scale = this.config.projectile_scale;
   }
 
   step(dt) {
@@ -59,7 +62,7 @@ class PawnBehaviourBowlingA {
     this._step_collisions(dt);
 
     if (!this.stun_time) {
-			const sf = this.stabilization_factor * (this.moves ? 2 : 1);
+			const sf = this.config.stabilization_factor * (this.moves ? 2 : 1);
       this.stabilizate_body(dt, sf);
     }
 
@@ -177,7 +180,7 @@ class PawnBehaviourBowlingA {
     const vec = physics.cache.vec3_0;
     vec.init(x, 0, z);
     vec.normalize();
-    vec.scaleEq(2 * this.timescale);
+    vec.scaleEq(this.config.movespeed * this.timescale);
 
     /*
 		const vecv = physics.cache.vec3_1;
@@ -201,7 +204,7 @@ class PawnBehaviourBowlingA {
 
     this.shoot_requested = false;
 
-    this._pawn._level.create_projectile(this._pawn, direction, this.projectile_scale);
+    this._pawn._level.create_projectile(this._pawn, direction, this.config.projectile_scale);
   }
 
   aim(x, z) {
@@ -324,3 +327,4 @@ class PawnBehaviourBowlingA {
 }
 
 export default PawnBehaviourBowlingA;
+export { PawnBehaviourBowlingAConfig_t, PawnBehaviourBowlingA }
