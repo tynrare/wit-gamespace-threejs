@@ -61,6 +61,8 @@ class PawnBehaviourBowlingA {
     this._step_recharges(dt * this.timescale);
     this._step_collisions(dt);
 
+    this._pawn.pawn_draw.no_ammo = this.shoots_spent >= this.config.shoot_limit;
+
     if (!this.stun_time) {
 			const sf = this.config.stabilization_factor * (this.moves ? 2 : 1);
       this.stabilizate_body(dt, sf);

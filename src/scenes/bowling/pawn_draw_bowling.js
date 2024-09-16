@@ -20,6 +20,7 @@ class PawnDrawA {
     this.velocity = new THREE.Vector3();
     this.direction = new THREE.Vector3();
     this.stun = false;
+    this.no_ammo = false;
 
     this.rotation = 0;
 
@@ -71,6 +72,8 @@ class PawnDrawA {
       speed: 1,
       loop: false,
     });
+    register("idle-noammo", "IDLE_NO");
+    register("run-noammo", "IDLE_DIE");
 
     am.pair("idle", "run");
     am.pair("run", "idle", ANIMATION_TRANSITION_MODE.instant);
@@ -82,6 +85,15 @@ class PawnDrawA {
     am.pair("run", "stun", ANIMATION_TRANSITION_MODE.instant);
     am.pair("stun", "idle", ANIMATION_TRANSITION_MODE.instant);
     am.pair("stun", "run", ANIMATION_TRANSITION_MODE.instant);
+
+    am.pair("idle", "idle-noammo", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("idle-noammo", "idle", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("run", "run-noammo", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("run-noammo", "run", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("idle", "run-noammo", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("run", "idle-noammo", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("idle-noammo", "run-noammo", ANIMATION_TRANSITION_MODE.instant);
+    am.pair("run-noammo", "idle-noammo", ANIMATION_TRANSITION_MODE.instant);
 
     this.animator.transite("idle");
   }
@@ -114,9 +126,9 @@ class PawnDrawA {
     if (this.stun) {
       this.animator.transite("stun");
     } else if (this.velocity.length() > 1e-2) {
-      this.animator.transite("run");
+      this.animator.transite("run" + (this.no_ammo ? "-noammo" : ""));
     } else {
-      this.animator.transite("idle");
+      this.animator.transite("idle" + (this.no_ammo ? "-noammo" : ""));
     }
   }
 
