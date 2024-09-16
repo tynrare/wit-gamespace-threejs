@@ -3,6 +3,16 @@ import { Vector3 } from "three";
 import PawnBowlingA from "./pawn_bowling.js";
 import LevelBowlingA from "./level_bowling.js";
 
+const PawnBotBowlingAConfig = {
+	safe_distance: 5,
+	waving_distance: 4,
+	waving_speed: 1e-3,
+	attack_distance: 6,
+	attack_cooldown: 1200
+}
+
+const PawnBotBowlingAConfig_t = Object.setPrototypeOf({}, PawnBotBowlingAConfig);
+
 class PawnBotBowlingA {
 	/**
 	 * @param {PawnBowlingA} pawn
@@ -16,13 +26,7 @@ class PawnBotBowlingA {
 		/** @type {Physics} */
 		this._physics = level.physics;
 
-		this.config = {
-			safe_distance: 5,
-			waving_distance: 4,
-			waving_speed: 1e-3,
-			attack_distance: 6,
-			attack_cooldown: 1200
-		};
+		this.config = Object.setPrototypeOf({}, PawnBotBowlingAConfig_t);
 
 		this.elapsed = 0;
 		this.elapsed_attack = 0;
@@ -195,3 +199,4 @@ class PawnBotBowlingA {
 }
 
 export default PawnBotBowlingA;
+export { PawnBotBowlingA, PawnBotBowlingAConfig_t };
