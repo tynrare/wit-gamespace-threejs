@@ -1,5 +1,6 @@
 import { PawnBehaviourBowlingAConfig_t } from "./pawn_behaviour_bowling.js";
 import { ProjectileBallBowlingConfig_t } from "./projectile_ball_bowling.js";
+import { OverlayUiBowlingConfig_t } from "./overlay_ui_bowling.js";
 import Stats from "../../stats";
 
 const ConfigBowlingGeneric = {
@@ -12,11 +13,12 @@ const ConfigBowlingGeneric_t = Object.setPrototypeOf({}, ConfigBowlingGeneric);
 
 class ConfigBowling {
     constructor() {
-        this.confignames = ["generic", "pawn_behabiour", "projectile"];
+        this.confignames = ["generic", "pawn_behabiour", "projectile", "overlay"];
         /** @type ConfigBowlingGeneric */
         this.generic = Object.setPrototypeOf({}, ConfigBowlingGeneric_t);
         this.pawn_behabiour = PawnBehaviourBowlingAConfig_t;
         this.projectile = ProjectileBallBowlingConfig_t;
+        this.overlay = OverlayUiBowlingConfig_t;
     }
 
     run() {

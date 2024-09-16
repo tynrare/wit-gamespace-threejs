@@ -7,12 +7,21 @@ import * as THREE from "three";
 import { cache, clamp } from "../../math.js";
 import App from "../../app.js";
 
+const OverlayUiBowlingConfig = {
+	show_enemy_energy: false
+}
+
+const OverlayUiBowlingConfig_t = Object.setPrototypeOf({}, OverlayUiBowlingConfig);
+
 class OverlayUiBowling {
 	constructor(container) {
 		/** @type {LevelBowlingA } **/
 		this._level = null;
 		/** @type {HTMLElement} **/
 		this.container = container;
+
+		/** @type {OverlayUiBowlingConfig} **/
+		this.config = Object.setPrototypeOf({}, OverlayUiBowlingConfig_t);
 
 		/** @type {Object<string, GenericGuiBarsStats>} **/
 		this.overlays = {};
@@ -31,16 +40,19 @@ class OverlayUiBowling {
 				continue;
 			}
 			if (!ov) {
-				ov = this.make_overlay_element();
+				ov = this.make_overlay_element(pawn != this._level.pawn);
 				this.container.appendChild(ov.container);
 				this.overlays[k] = ov;
 			}
 			this.set_element_screenpos(ov.container, pawn.pawn_dbg_mesh);
 			OverlayUiBowling.set_bars_values(ov, pawn);
+
+			const show_energy = this.config.show_enemy_energy || pawn == this._level.pawn;
+			ov.energy.classList[show_energy ? "remove" : "add"]("hidden");
 		}
 	}
 
-	make_overlay_element() {
+	make_overlay_element(enemy = true) {
 		const root = document.createElement("container");
 		root.classList.add("gp-ui-floating", "small");
 		const hearts = document.createElement("container");
@@ -52,6 +64,7 @@ class OverlayUiBowling {
 
 		const overlay = new GenericGuiBarsStats({
 			hearts_style: SimpleSessionElementStyle.BAR,
+			hearts_color: enemy ? "red" : "green"
 		});
 		overlay.run(root, hearts, energy);
 
@@ -128,3 +141,4 @@ class OverlayUiBowling {
 }
 
 export default OverlayUiBowling;
+export { OverlayUiBowlingConfig_t, OverlayUiBowling };

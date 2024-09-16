@@ -18,10 +18,12 @@ class GenericGuiBarsStats {
     opts = {
       hearts_style: SimpleSessionElementStyle.PIC,
       energy_style: SimpleSessionElementStyle.BAR,
+      hearts_color: "pink"
     },
   ) {
     this.hearts_style = opts?.hearts_style ?? SimpleSessionElementStyle.PIC;
     this.energy_style = opts?.energy_style ?? SimpleSessionElementStyle.BAR;
+    this.hearts_color = opts?.hearts_color ?? "pink"
   }
 
   run(container, hearts, energy) {
@@ -59,7 +61,7 @@ class GenericGuiBarsStats {
       }
       case SimpleSessionElementStyle.BAR: {
         const h = document.createElement("bar");
-        h.classList.add("pink");
+        h.classList.add(this.hearts_color);
         return h;
       }
     }

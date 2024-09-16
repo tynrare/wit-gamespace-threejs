@@ -41,7 +41,7 @@
     container.gp-ui-leftgui {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 0.3em;
       padding: 10px;
       margin: auto;
       margin-top: 0;
@@ -51,7 +51,6 @@
     container.gp-ui-score {
       display: flex;
       flex-direction: row;
-      gap: 5px;
     }
 
     container.gp-ui-score {
@@ -88,15 +87,13 @@
     container.gp-ui-energy {
 			display: flex;
 			flex-direction: row;
-			gap: 5px;
 		}
 
     bar {
       width: 3em;
-      height: 1.5em;
+      height: 1.2em;
 			display: block;
 			background-color: gray;
-			border-radius: 4px;
 			--progress: 100%;
 
 			&.disabled::before {
@@ -122,6 +119,10 @@
 				.bar-style(#FF7166);
 			}
 
+      &.red::before {
+				.bar-style(#ff3324);
+			}
+
 			&.blue::before {
 				.bar-style(#1f91b3);
 			}
@@ -133,8 +134,19 @@
 				height: calc(100% + @pad * 2);
 				transform: translate(-@pad, -@pad);
 				display: block;
-				border-radius: 4px;
 			}
+
+      &:first-child, &:first-child::before {
+        border-radius: 4px 0px 0px 4px;
+      }
+
+      &:last-child, &:last-child::before {
+        border-radius: 0px 4px 4px 0px;
+      }
+
+      &:not(:last-child) {
+        margin-right: 3px;
+      }
 		}
 
     container.gp-ui-hearts pic {
