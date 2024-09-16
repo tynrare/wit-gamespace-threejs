@@ -11,6 +11,7 @@ import PhysicsUtils from "./physics_utils.js";
 import App from "./app.js";
 
 const RigidBodyType = oimo.dynamics.rigidbody.RigidBodyType;
+/** @type {oimo.dynamics.rigidbody.RigidBody} */
 const RigidBody = oimo.dynamics.rigidbody.RigidBody;
 
 /**

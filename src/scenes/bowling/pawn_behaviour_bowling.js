@@ -1,8 +1,7 @@
 import PawnBowlingA from "./pawn_bowling.js";
 import { Vector3 } from "three";
-import { cache } from "../../math.js";
-import App from "../../app.js";
 import { BOOST_EFFECT_TYPE, BoostEffectBowling } from "./boost_bowling.js";
+import { Physics, RigidBody } from "../../physics.js";
 
 const PawnBehaviourBowlingAConfig = {
   shoot_instant: true,
@@ -12,8 +11,9 @@ const PawnBehaviourBowlingAConfig = {
   hearts_limit_recharge: 5000,
   aim_direction_priority: true,
   stabilization_factor: 0.20,
+  stabilization_base_factor: 0,
   projectile_scale: 1,
-  movespeed: 2
+  movespeed: 2,
 }
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf({}, PawnBehaviourBowlingAConfig);
@@ -305,6 +305,13 @@ class PawnBehaviourBowlingA {
     this.dead = false;
   }
 
+  /**
+   * 
+   * @param {Physics} physics 
+   * @param {number} dt 
+   * @param {RigidBody} body 
+   * @param {*} factor 
+   */
   static stabilizate_body(physics, dt, body, factor = 0.2) {
     // locks rotation
     //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
@@ -314,14 +321,16 @@ class PawnBehaviourBowlingA {
     const stabilization = physics.cache.vec3_0;
     const r = body.getRotation().toEulerXyz();
 
-    // torque applied ach step - it fas to be frame dependent
+    // torque applied ach step - it has to be frame dependent
     const df = dt / 30;
     const f2 = 1;
     // should it be  inverse-square time?
     const s = factor * df * f2;
 
     stabilization.init(-r.x * s, -r.y * s, -r.z * s);
-    stabilization.scaleEq(1 - up);
+    //const v = physics.cache.vec3_0;
+    //body.getAngularVelocityTo(v);
+    stabilization.scaleEq(1 - up + PawnBehaviourBowlingAConfig_t.stabilization_base_factor);
     stabilization.y = -r.y * s * up;
     stabilization.scaleEq(body.getMass());
     body.applyAngularImpulse(stabilization);
