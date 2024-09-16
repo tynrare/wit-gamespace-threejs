@@ -1,23 +1,74 @@
-import { PawnBehaviourBowlingAConfig_t } from "./pawn_behaviour_bowling";
+import { PawnBehaviourBowlingAConfig_t } from "./pawn_behaviour_bowling.js";
 import Stats from "../../stats";
 
 const ConfigBowlingGeneric = {
     zoom_on_aim: true
 }
 
+
 /** @type ConfigBowlingGeneric */
 const ConfigBowlingGeneric_t = Object.setPrototypeOf({}, ConfigBowlingGeneric);
 
-
 class ConfigBowling {
     constructor() {
+        this.confignames = ["generic", "pawn_behabiour"];
         /** @type ConfigBowlingGeneric */
         this.generic = Object.setPrototypeOf({}, ConfigBowlingGeneric_t);
+        this.pawn_behabiour = PawnBehaviourBowlingAConfig_t;
     }
 
     run() {
         Stats.instance.link_config_save(this.save.bind(this));
         this.load();
+        this._print();
+    }
+
+    _print() {
+        const register_input = (obj, key, input) => {
+            input.onchange = () => {
+                if (input.type === "checkbox") {
+                    obj[key] = input.checked;
+                } else {
+                    obj[key] = this._parse_value(input.value);
+                }
+                console.log(obj[key]);
+            }
+        }
+        for (const confname of this.confignames) {
+            const sep = document.createElement("sep");
+            sep.innerHTML = confname;
+            Stats.instance.config_el.appendChild(sep);
+
+            const conf = this[confname];
+            for (const k in conf) {
+                const entry = document.createElement("entry");
+                const label = document.createElement("label");
+                /** @type HTMLInputElement */
+                const input = document.createElement("input");
+                entry.appendChild(label);
+                entry.appendChild(input);
+                Stats.instance.config_el.appendChild(entry);
+
+                label.innerHTML = k;
+
+                switch (typeof conf[k]) {
+                    case "boolean":
+                        input.type = "checkbox";
+                        input.checked = conf[k];
+                        break;
+                    case "number":
+                        input.type = "number";
+                        input.value = conf[k];
+                        break;
+                    case "string":
+                        input.type = "text";
+                        input.value = conf[k];
+                        break;
+                }
+
+                register_input(conf, k, input);
+            }
+        }
     }
 
     save() {
@@ -32,7 +83,7 @@ class ConfigBowling {
 
         const urlParams = new URLSearchParams(query);
 
-        for (const confname of ["generic"]) {
+        for (const confname of this.confignames) {
             const conf = this[confname];
             for (const k in conf) {
                 if (!conf.hasOwnProperty(k)) {
@@ -64,26 +115,31 @@ class ConfigBowling {
 
         const urlParams = new URLSearchParams(query);
 
-        for (const confname of ["generic"]) {
+        for (const confname of this.confignames) {
             const conf = this[confname];
             for (const k in conf) {
                 const val = urlParams.get(`${confname}.${k}`);
-                if (val === null) {
-                    continue;
-                } else if (val === "false") {
-                    conf[k] = false;
-                } else if (val === "true") {
-                    conf[k] = true;
-                } else {
-                    const num = parseFloat(val);
-                    if (!isNaN(num)) {
-                        conf[k] = num;
-                    } else {
-                        conf[k] = val;
-                    }
+                const v = this._parse_value(val);
+                if (v !== null) {
+                    conf[k] = v;
                 }
+            }
+        }
+    }
 
-                console.log(conf[k]);
+    _parse_value(val) {
+        if (val === null || val === "null") {
+            return null;
+        } else if (val === "false") {
+            return false;
+        } else if (val === "true") {
+            return true;
+        } else {
+            const num = parseFloat(val);
+            if (!isNaN(num)) {
+                return num;
+            } else {
+                return val;
             }
         }
     }

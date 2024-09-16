@@ -120,7 +120,9 @@ page {
   color: white;
   text-shadow: 1px 1px black;
   backdrop-filter: blur(8px);
-
+  width: min-content;
+  max-width: 50%;
+  
 	details summary {
 		cursor: pointer;
 	}
@@ -138,9 +140,46 @@ page {
 		flex-direction: column;
 
     text-wrap: wrap;
-    width: min-content;
-    max-width: 50%;
+    overflow-wrap: break-word;
 	}
+
+  #print_stat {
+    display: flex;
+    flex-direction: row;
+  }
+
+  #config_stat entry {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    justify-content: space-between;
+
+    input {
+      color: white;
+      background: none;
+      border: none;
+      border-bottom: 1px gray solid;
+
+      &:focus, &:focus-visible {
+        border: none;
+        border-bottom: 1px white solid;
+      }
+    }
+  }
+
+  sep {
+    color: gray;
+    display: flex;
+    &::before, &::after {
+      margin: auto;
+      border: 1px gray solid;
+      content: "";
+      height: 0px;
+      flex-grow: 1;
+      display: flex;
+    }
+
+  }
 
   btn {
     padding: 2px 6px;
