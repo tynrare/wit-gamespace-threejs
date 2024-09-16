@@ -1,4 +1,5 @@
 import { PawnBehaviourBowlingAConfig_t } from "./pawn_behaviour_bowling.js";
+import { ProjectileBallBowlingConfig_t } from "./projectile_ball_bowling.js";
 import Stats from "../../stats";
 
 const ConfigBowlingGeneric = {
@@ -11,10 +12,11 @@ const ConfigBowlingGeneric_t = Object.setPrototypeOf({}, ConfigBowlingGeneric);
 
 class ConfigBowling {
     constructor() {
-        this.confignames = ["generic", "pawn_behabiour"];
+        this.confignames = ["generic", "pawn_behabiour", "projectile"];
         /** @type ConfigBowlingGeneric */
         this.generic = Object.setPrototypeOf({}, ConfigBowlingGeneric_t);
         this.pawn_behabiour = PawnBehaviourBowlingAConfig_t;
+        this.projectile = ProjectileBallBowlingConfig_t;
     }
 
     run() {
@@ -24,6 +26,7 @@ class ConfigBowling {
     }
 
     _print() {
+        Stats.instance.config_el.innerHTML = "";
         const register_input = (obj, key, input) => {
             input.onchange = () => {
                 if (input.type === "checkbox") {

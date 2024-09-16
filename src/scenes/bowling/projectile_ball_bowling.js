@@ -10,8 +10,13 @@ const FILENAME_VFX_FRACTURED = "bowling/projectile1_fractured.glb";
 
 const ProjectileBallBowlingConfig = {
 	lifespan: 1000,
-	impulse: 30
+	impulse: 30,
+	ldamping: 1,
+	density: 10,
+	scale: 1
 }
+
+const ProjectileBallBowlingConfig_t = Object.setPrototypeOf({}, ProjectileBallBowlingConfig);
 
 class ProjectileBallBowling {
 	/**
@@ -26,7 +31,7 @@ class ProjectileBallBowling {
 		/** @type {Physics} */
 		this._physics = level.physics;
 
-		this.config = Object.setPrototypeOf({}, ProjectileBallBowlingConfig);
+		this.config = Object.setPrototypeOf({}, ProjectileBallBowlingConfig_t);
 
 		this.timestamp = 0;
 
@@ -47,7 +52,7 @@ class ProjectileBallBowling {
 	run(position, direction, scale = 1) {
 		this.timestamp = Date.now();
 		const ownerwidth = this._level.pawns[this.ownerid].config.body_width;
-		const radius = 0.5 * scale;
+		const radius = 0.5 * scale * this.config.scale;
 		const pos = cache.vec3.v1;
 		const dir = direction;
 		pos
@@ -61,9 +66,10 @@ class ProjectileBallBowling {
 			radius,
 			RigidBodyType.DYNAMIC,
 			{
-				density: 10,
+				density: this.config.density,
 				friction: 0.3,
 				restitution: 0.7,
+				ldamping: this.config.ldamping
 			},
 		);
 
@@ -143,3 +149,4 @@ class ProjectileBallBowling {
 }
 
 export default ProjectileBallBowling;
+export { ProjectileBallBowlingConfig_t, ProjectileBallBowling }
