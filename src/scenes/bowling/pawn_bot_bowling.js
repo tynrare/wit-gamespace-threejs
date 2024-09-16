@@ -8,9 +8,11 @@ const PawnBotBowlingAConfig = {
 	waving_distance: 4,
 	waving_speed: 1e-3,
 	attack_distance: 6,
-	attack_cooldown: 1200
+	attack_cooldown: 1200,
+	target_switch_cooldown: 1200
 }
 
+/** @type {PawnBotBowlingAConfig} */
 const PawnBotBowlingAConfig_t = Object.setPrototypeOf({}, PawnBotBowlingAConfig);
 
 class PawnBotBowlingA {
@@ -26,10 +28,15 @@ class PawnBotBowlingA {
 		/** @type {Physics} */
 		this._physics = level.physics;
 
+		/** @type {PawnBotBowlingAConfig} */
 		this.config = Object.setPrototypeOf({}, PawnBotBowlingAConfig_t);
+
+		/** @type {PawnBowlingA} */
+		this.target_enemy = null;
 
 		this.elapsed = 0;
 		this.elapsed_attack = 0;
+		this.elapsed_target_switch = 0;
 		this.direction = new Vector3();
 	}
 
@@ -40,6 +47,7 @@ class PawnBotBowlingA {
 	step(dt) {
 		this.elapsed_attack += dt;
 		this.elapsed += dt;
+		this.elapsed_target_switch += dt;
 
 		const pawn = this._pawn;
 
@@ -85,7 +93,14 @@ class PawnBotBowlingA {
 
 		const pawns = this._level.pawns;
 		/** @type {PawnBowlingA} */
-		const closest_enemy = this.find_closest_enemy(pawns);
+		let closest_enemy = this.target_enemy;
+		if (!this.target_enemy || this.elapsed_target_switch > this.config.target_switch_cooldown) {
+			closest_enemy = this.find_closest_enemy(pawns);
+			if (this.target_enemy != closest_enemy) {
+				this.elapsed_target_switch = 0;
+			}
+			this.target_enemy = closest_enemy;
+		}
 		if (closest_enemy) {
 			const ce = closest_enemy;
 
