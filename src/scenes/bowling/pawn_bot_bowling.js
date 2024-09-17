@@ -93,8 +93,11 @@ class PawnBotBowlingA {
 
 		const pawns = this._level.pawns;
 		/** @type {PawnBowlingA} */
+		if (this.target_enemy?.disposed) {
+			this.target_enemy = null;
+		}
 		let closest_enemy = this.target_enemy;
-		if (!this.target_enemy || this.elapsed_target_switch > this.config.target_switch_cooldown) {
+		if (!closest_enemy || this.elapsed_target_switch > this.config.target_switch_cooldown) {
 			closest_enemy = this.find_closest_enemy(pawns);
 			if (this.target_enemy != closest_enemy) {
 				this.elapsed_target_switch = 0;

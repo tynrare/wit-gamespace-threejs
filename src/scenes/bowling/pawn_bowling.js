@@ -36,6 +36,7 @@ class PawnBowlingA {
     /** @type {PawnVisualsBowlingA} */
     this.pawn_visuals = null;
 
+    this.disposed = false;
     this.team = team;
 
     this.config = {
@@ -160,11 +161,13 @@ class PawnBowlingA {
     this.character_scene?.removeFromParent();
     this.pawn_dbg_mesh?.removeFromParent();
     this.pawn_visuals.stop();
+    this.pawn_draw.dispose();
     this.character_scene = null;
     this.character_gltf = null;
     this.pawn_dbg_mesh = null;
     this.pawn_draw = null;
 		this._physics.remove(this.pawn_body);
+    this.disposed = true;
   }
 }
 

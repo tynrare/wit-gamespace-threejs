@@ -15,6 +15,13 @@ import {
   BoostPropBowling,
 } from "./boost_bowling.js";
 
+const LevelBowlingConfig = {
+  bots_count: 3
+} 
+
+/** @type {LevelBowlingConfig} */
+const LevelBowlingConfig_t = Object.setPrototypeOf({}, LevelBowlingConfig);
+
 class LevelBowlingUtils {
   constructor(physics) {
     /** @type {Physics} */
@@ -306,6 +313,10 @@ class LevelBowlingA {
 		this.boosts_spawn_timestamp = 0;
 
     this.guids = 0;
+    this.bots_count = 0;
+
+    /** @type {LevelBowlingConfig} */
+		this.config = Object.setPrototypeOf({}, LevelBowlingConfig_t);
   }
 
   step(dt) {
@@ -340,6 +351,16 @@ class LevelBowlingA {
 		}
 
     this.step_bodies();
+
+
+    if (this.bots_count > this.config.bots_count) {
+      const bots_keys = Object.keys(this.bots);
+      while (bots_keys.length > this.config.bots_count) {
+        this.remove_bot(bots_keys.pop());
+      }
+    } else if (this.bots_count < this.config.bots_count) {
+      this.create_bots(this.config.bots_count - this.bots_count);
+    }
   }
 
   async run(opts = { floor: false, scene: null }) {
@@ -360,7 +381,7 @@ class LevelBowlingA {
     await this.map.run(opts?.scene);
     await this.logo.run();
 
-    this.create_bots(3);
+    this.create_bots(this.config.bots_count);
   }
 
   /**
@@ -448,7 +469,18 @@ class LevelBowlingA {
       const bot = new PawnBotBowlingA(pawn, this);
       bot.run();
       this.bots[pawn.id] = bot;
+      this.bots_count += 1;
     }
+  }
+
+  remove_bot(id) {
+    const bot = this.bots[id];
+    bot.stop();
+    delete this.bots[id];
+    const pawn = this.pawns[id];
+    pawn.stop();
+    delete this.pawns[id];
+    this.bots_count -= 1;
   }
 
   step_bodies() {
@@ -483,8 +515,8 @@ class LevelBowlingA {
     }
 
     for (const k in this.bots) {
-      const pawn = this.bots[k];
-      pawn.stop();
+      const bot = this.bots[k];
+      bot.stop();
       delete this.bots[k];
     }
 
@@ -505,4 +537,4 @@ class LevelBowlingA {
 }
 
 export default LevelBowlingA;
-export { LevelBowlingA, LevelBowlingUtils };
+export { LevelBowlingA, LevelBowlingUtils, LevelBowlingConfig_t };
