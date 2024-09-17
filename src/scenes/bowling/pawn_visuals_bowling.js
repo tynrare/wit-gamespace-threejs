@@ -7,15 +7,23 @@ class PawnVisualsBowlingA {
 	/**
 	 * @param {PawnBowlingA} pawn
 	 */
-	constructor(pawn) {
+	constructor(pawn, highlight_tint = 0xffffff) {
 		/** @type {PawnBowlingA} */
 		this._pawn = pawn;
 
 		/** @type {THREE.Object3D} */
 		this.pointer_mesh = null;
+
+		/** @type {THREE.Object3D} */
+		this.highlight_mesh = null;
+
+		this.highlight_tint = highlight_tint;
 	}
 
 	step(dt) {
+		this.highlight_mesh.position.copy(this._pawn.pawn_dbg_mesh.position);
+		this.highlight_mesh.position.y = 0;
+		
 		this.pointer_mesh.position.copy(this._pawn.pawn_dbg_mesh.position);
 		const direction = this._pawn.pawn_draw.direction;
 
@@ -30,6 +38,7 @@ class PawnVisualsBowlingA {
 
 	run() {
 		this._create_pointer_mesh();
+		this._create_highlight_mesh();
 
 		return this;
 	}
@@ -46,9 +55,20 @@ class PawnVisualsBowlingA {
 		App.instance.render.scene.add(this.pointer_mesh);
 	}
 
+	_create_highlight_mesh() {
+		const highlight = createImagePlane("bowling/circle0.png", false, this.highlight_tint);
+		this.highlight_mesh = new THREE.Object3D();
+		this.highlight_mesh.add(highlight);
+		highlight.position.y = 0.1;
+		highlight.rotateX(-Math.PI * 0.5);
+		App.instance.render.scene.add(this.highlight_mesh);
+	}
+
 	stop() {
 		this.pointer_mesh.removeFromParent();
 		this.pointer_mesh = null;
+		this.highlight_mesh.removeFromParent();
+		this.highlight_mesh = null;
 	}
 }
 

@@ -19,13 +19,14 @@ export function createFloorPlane(index = 0, pixelate = false) {
 	return plane;
 }
 
-export function createImagePlane(path, pixelate = false) {
+export function createImagePlane(path, pixelate = false, tint = 0xffffff) {
   const geometry = new THREE.PlaneGeometry(1, 1);
   const texture = Loader.instance.get_texture(path, pixelate);
   const material = new THREE.MeshToonMaterial({
     map: texture,
     alphaMap: texture,
-    alphaHash: true
+    alphaHash: true,
+    color: tint
   });
   const plane = new THREE.Mesh(geometry, material);
 

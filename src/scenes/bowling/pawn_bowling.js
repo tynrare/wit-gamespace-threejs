@@ -16,7 +16,7 @@ class PawnBowlingA {
    * @param {string} id
    * @param {LevelBowlingA} level
    */
-  constructor(id, level) {
+  constructor(id, level, team = 0) {
     /** @type {string} */
     this.id = id;
     /** @type {LevelBowlingA} */
@@ -35,6 +35,8 @@ class PawnBowlingA {
     this.pawn_behaviour = null;
     /** @type {PawnVisualsBowlingA} */
     this.pawn_visuals = null;
+
+    this.team = team;
 
     this.config = {
       body_linear_damping: 1,
@@ -81,10 +83,12 @@ class PawnBowlingA {
     this.pawn_draw._target.quaternion.copy(this.pawn_dbg_mesh.quaternion);
     this.pawn_draw._target.rotateY(this.pawn_draw.rotation);
   }
+
   async load() {
     await this._load_pawn();
     this._create_pawn_draw();
   }
+
   run() {
     const id = this._create_phys_body();
     const mesh = this._physics.meshlist[id];
@@ -95,7 +99,7 @@ class PawnBowlingA {
 
     this.pawn_actions = new PawnActionsBowlingA(this);
     this.pawn_behaviour = new PawnBehaviourBowlingA(this);
-    this.pawn_visuals = new PawnVisualsBowlingA(this).run();
+    this.pawn_visuals = new PawnVisualsBowlingA(this, this.team == 0 ? 0x00ff00 : 0xff0000).run();
 
     return this;
   }

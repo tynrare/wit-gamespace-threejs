@@ -373,7 +373,7 @@ class LevelBowlingA {
 			pawn.run();
 		}
     this.pawns[id] = pawn;
-    if (position) {
+    if (run && position) {
       pawn.pawn_body.setPosition(
         this.physics.cache.vec3_0.init(position.x, position.y, position.z),
       );
@@ -438,7 +438,13 @@ class LevelBowlingA {
 
   create_bots(count) {
     for (let i = 0; i < count; i++) {
-      const pawn = this.create_pawn(this.map.get_rand_spawnpoint());
+      const pawn = this.create_pawn(null, null, true, false);
+      pawn.team = 1;
+      pawn.run();
+      const p = this.map.get_rand_spawnpoint()
+      pawn.pawn_body.setPosition(
+        this.physics.cache.vec3_0.init(p.x, p.y, p.z),
+      );
       const bot = new PawnBotBowlingA(pawn, this);
       bot.run();
       this.bots[pawn.id] = bot;
