@@ -1,6 +1,10 @@
 /** @namespace Core */
 import { InputAction } from "./inputs.js";
 
+const InputsDualstickConfig = {
+  wasd_to_analog: true
+}
+
 /**
  * creates keyboard and two-sticks touch inputs
  *
@@ -295,11 +299,17 @@ function InputsDualstick(container, canvas, input, input_analog) {
     ev.stopImmediatePropagation();
   }
 
+  const keys_pressed = {};
+
   /**
    * @param {KeyboardEvent} ev
    */
   function keydown(ev) {
-    if (ev.repeat) return;
+    if (keys_pressed[ev.code]) {
+      return;
+    }
+
+    keys_pressed[ev.code] = true; 
 
     keycode(ev.code, true);
   }
@@ -307,7 +317,7 @@ function InputsDualstick(container, canvas, input, input_analog) {
    * @param {KeyboardEvent} ev
    */
   function keyup(ev) {
-    if (ev.repeat) return;
+    keys_pressed[ev.code] = false; 
 
     keycode(ev.code, false);
   }
@@ -322,10 +332,40 @@ function InputsDualstick(container, canvas, input, input_analog) {
     ArrowDown: InputAction.down,
     KeyS: InputAction.down,
   };
+
+  let key_x = 0;
+  let key_y = 0;
+
   function keycode(key, start) {
     const action = key_to_action[key] ?? null;
-    if (action !== null) {
-      input(action, start);
+    if (action === null) {
+      return;
+    }
+
+    input(action, start);
+
+    if (InputsDualstickConfig.wasd_to_analog) {
+      switch (action) {
+        case InputAction.left:
+          key_x += start ? 1 : -1;
+          break;
+        case InputAction.right:
+          key_x -= start ? 1 : -1;
+          break;
+        case InputAction.up:
+          key_y += start ? 1 : -1;
+          break;
+        case InputAction.down:
+          key_y -= start ? 1 : -1;
+          break;
+      }
+
+      const joystick_movement = access_joystick("movement");
+      joystick_movement.pointer_down = Boolean(key_x || key_y);
+      const w = joystick_movement.element.clientWidth;
+      const h = joystick_movement.element.clientHeight;
+      joystick_movement.dx = key_x * w * 0.5;
+      joystick_movement.dy = key_y * h * 0.5;
     }
   }
 }
