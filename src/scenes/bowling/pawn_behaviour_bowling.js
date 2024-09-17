@@ -11,9 +11,10 @@ const PawnBehaviourBowlingAConfig = {
   hearts_limit_recharge: 5000,
   aim_direction_priority: true,
   stabilization_factor: 0.20,
-  stabilization_base_factor: 0,
+  stabilization_base_factor: 0.1,
   projectile_scale: 1,
   movespeed: 2,
+  allow_active_boost_replace: true
 }
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf({}, PawnBehaviourBowlingAConfig);
@@ -259,7 +260,10 @@ class PawnBehaviourBowlingA {
    */
   boost_add(id, type) {
     if (this.boost) {
-      return false;
+      if (!this.config.allow_active_boost_replace) {
+        return false;
+      }
+      this.boost.disable();
     }
     const boost = new BoostEffectBowling(id, type, this._pawn);
     this.boost = boost;
