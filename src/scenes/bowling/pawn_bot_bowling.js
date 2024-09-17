@@ -98,8 +98,8 @@ class PawnBotBowlingA {
 			closest_enemy = this.find_closest_enemy(pawns);
 			if (this.target_enemy != closest_enemy) {
 				this.elapsed_target_switch = 0;
+				this.target_enemy = closest_enemy;
 			}
-			this.target_enemy = closest_enemy;
 		}
 		if (closest_enemy) {
 			const ce = closest_enemy;
