@@ -137,7 +137,7 @@ class LevelBowlingMap {
     if (!scene) {
       this.create_default_playscene();
     } else {
-      this.open_playscene(scene, false);
+      await this.open_playscene(scene, false);
     }
   }
 
