@@ -106,11 +106,12 @@ class ProjectileBallBowling {
 			scene.children[index].removeFromParent();
 		}
 		App.instance.render.scene.add(scene);
-		const fractures = this._level.utils.parse_playscene(scene, true, {
+		const opts = this._level.utils.parse_playscene(scene, true, {
 			density: 2,
 			friction: 0.3,
 			restitution: 0.7,
 		});
+		const fractures = opts.bodies;
 
 		const vel = this._physics.cache.vec3_0;
 		const ang = this._physics.cache.vec3_1;

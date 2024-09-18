@@ -58,9 +58,13 @@ class LevelBowlingUtils {
    */
   parse_playscene(scene, attach = false, opts) {
     const bodies = [];
+    let spawnpoints = null;
     scene.traverse((o) => {
       if (o.name.includes("spawn")) {
-        this.spawnpoints.push(o.position.clone());
+        if (!spawnpoints) {
+          spawnpoints = [];
+        }
+        spawnpoints.push(o.position.clone());
       }
 
       /** @type {THREE.Mesh} */
@@ -82,7 +86,10 @@ class LevelBowlingUtils {
       bodies.push(body);
     });
 
-    return bodies;
+    return {
+      bodies,
+      spawnpoints
+    };
   }
 
   stabilizate_body(dt, body, factor = 0.07) {
@@ -164,7 +171,10 @@ class LevelBowlingMap {
           }
           LightsA.apply_lightmaps_white(scene);
 
-          this._utils.parse_playscene(scene);
+          const opts = this._utils.parse_playscene(scene);
+          for (const i in opts.spawnpoints) {
+            this.spawnpoints.push(opts.spawnpoints[i]);
+          }
 
           resolve();
         });
@@ -229,13 +239,14 @@ class LevelBowlingLogo {
     this.scene = scene;
     render.scene.add(scene);
     scene.position.y = 10;
-    const letters = this._utils.parse_playscene(scene, true, {
+    const opts = this._utils.parse_playscene(scene, true, {
       restitution: 1.2,
       adamping: 3,
       friction: 0.1,
       density: 2,
       ldamping: 0.5,
     });
+    const letters = opts.bodies;
     this.logo_letters.splice(0, 0, ...letters);
     for (const i in this.logo_letters) {
       const ll = this.logo_letters[i];
