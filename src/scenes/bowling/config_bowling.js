@@ -41,7 +41,6 @@ class ConfigBowling {
                 } else {
                     obj[key] = this._parse_value(input.value);
                 }
-                console.log(obj[key]);
             }
         }
         for (const confname of this.confignames) {
