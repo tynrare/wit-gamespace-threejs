@@ -6,7 +6,8 @@ import { LevelBowlingConfig_t } from "./level_bowling.js";
 import Stats from "../../stats";
 
 const ConfigBowlingGeneric = {
-    zoom_on_aim: true
+    zoom_on_aim: true,
+    map: null
 }
 
 
@@ -104,25 +105,13 @@ class ConfigBowling {
         }
 
         const urlParamsString = urlParams.toString();
-        let newloc = window.location.toString();
-        if (query != urlParamsString) {
-            newloc = newloc.replace(query, "?" + urlParamsString);
-        }
+        const newloc = window.location.origin + "?" + urlParamsString + hash;
         navigator.clipboard.writeText(newloc).catch((e) => console.error(e));
         Stats.instance.print(newloc);
     }
 
     load() {
-        const hash = window.location.hash;
-        let query = "";
-        let name = hash.substring(1);
-        const query_index = hash.indexOf("?");
-        if (query_index >= 0) {
-            query = hash.substring(query_index);
-            name = hash.substring(1, query_index);
-        }
-
-        const urlParams = new URLSearchParams(query);
+        const urlParams = new URLSearchParams(window.location.search);
 
         for (const confname of this.confignames) {
             const conf = this[confname];

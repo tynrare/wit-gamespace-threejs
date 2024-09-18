@@ -14,6 +14,7 @@ import {
   BOOST_EFFECT_TYPES_LIST,
   BoostPropBowling,
 } from "./boost_bowling.js";
+import LightsA from "../../lights_a.js";
 
 const LevelBowlingConfig = {
   bots_count: 3
@@ -158,13 +159,12 @@ class LevelBowlingMap {
           const scene = gltf.scene;
           render.scene.add(scene);
           this.playscene = scene;
-          /** @type {THREE.Mesh} */
           if (config) {
             LightsA.apply_lightmaps(scene, root_path, config);
           }
           LightsA.apply_lightmaps_white(scene);
 
-          this.parse_playscene(scene);
+          this._utils.parse_playscene(scene);
 
           resolve();
         });
