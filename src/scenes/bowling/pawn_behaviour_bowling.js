@@ -127,17 +127,21 @@ class PawnBehaviourBowlingA {
     if (this.config.shoot_limit && this.shoots_spent && this.recharge_delay_t >= this.config.shoot_limit_recharge_delay) {
       this.shoot_recharge_t += dt;
 
-      if (this.shoot_recharge_t >= this.config.shoot_limit_recharge) {
+      const spent = (this.hearts_spent % 1) || 1;
+
+      if (this.shoot_recharge_t >= this.config.shoot_limit_recharge * spent) {
         this.shoot_recharge_t = 0;
-        this.shoots_spent -= 1;
+        this.shoots_spent -= spent;
       }
     }
     if (this.config.hearts_limit && this.hearts_spent && this.recharge_delay_t >= this.config.hearts_limit_recharge_delay) {
       this.hearts_recharge_t += dt;
 
-      if (this.hearts_recharge_t >= this.config.hearts_limit_recharge) {
+      const spent = (this.hearts_spent % 1) || 1;
+
+      if (this.hearts_recharge_t >= this.config.hearts_limit_recharge * spent) {
         this.hearts_recharge_t = 0;
-        this.hearts_spent -= 1;
+        this.hearts_spent -= spent;
       }
     }
   }
@@ -322,6 +326,7 @@ class PawnBehaviourBowlingA {
   revive() {
     this.shoot_recharge_t = 0;
     this.hearts_recharge_t = 0;
+    this.recharge_delay_t = 0;
     this.hearts_spent = 0;
     this.shoots_spent = 0;
     this.stun_time = 0;
