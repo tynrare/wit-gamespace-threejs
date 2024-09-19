@@ -15,6 +15,8 @@ const PawnBotBowlingAConfig = {
   dodge_awareness: 0.9,
   dodge_awareness_spread: 0.1,
   dodge_awareness_speed: 0.002,
+  aim_accuracy: 0.3,
+  aim_accuracy_spread: 1.5,
 };
 
 /** @type {PawnBotBowlingAConfig} */
@@ -157,6 +159,8 @@ class PawnBotBowlingA {
 
       if (shoot) {
         dir.copy(len).normalize().negate();
+        const shoot_spread = (Math.random() - 0.5) * (1 - this.config.aim_accuracy);
+        dir.applyAxisAngle(Vec3Up, shoot_spread * this.config.aim_accuracy_spread);
         pawn.pawn_actions.action_aim(dir.x, dir.z);
         pawn.pawn_actions.action_shoot();
         pawn.pawn_actions.action_aim(0, 0);

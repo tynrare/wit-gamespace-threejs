@@ -17,7 +17,8 @@ const PawnBehaviourBowlingAConfig = {
   allow_active_boost_replace: true,
   hearts_limit_recharge_delay: 100,
   shoot_limit_recharge_delay: 100,
-  hurt_damage_impulse: 1
+  hurt_damage_impulse: 1,
+  recieve_damage_in_stun: false
 };
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf(
@@ -297,7 +298,7 @@ class PawnBehaviourBowlingA {
   }
 
   hurt(amount = 1) {
-    if (this.stun || this.invulnerable) {
+    if ((this.stun && !this.config.recieve_damage_in_stun) || this.invulnerable) {
       return;
     }
 
