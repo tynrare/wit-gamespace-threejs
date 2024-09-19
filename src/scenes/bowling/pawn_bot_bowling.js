@@ -12,7 +12,9 @@ const PawnBotBowlingAConfig = {
   attack_distance: 3.5,
   attack_cooldown: 1300,
   target_switch_cooldown: 1200,
-  dodge_awareness: 1
+  dodge_awareness: 0.9,
+  dodge_awareness_spread: 0.1,
+  dodge_awareness_speed: 0.002,
 };
 
 /** @type {PawnBotBowlingAConfig} */
@@ -82,7 +84,10 @@ class PawnBotBowlingA {
       dir.normalize();
       const dot = vel.dot(dir);
 
-      if (dot >= 1 - this.config.dodge_awareness * 0.2) {
+      const awareness = this.config.dodge_awareness + Math.sin(this.elapsed * this.config.dodge_awareness_speed) *
+      this.config.dodge_awareness_spread;
+
+      if (dot >= 1 - awareness * 0.2) {
         vel.sub(dir);
         dir.cross(Vec3Up).normalize();
         if (vel.dot(dir) > 0) {

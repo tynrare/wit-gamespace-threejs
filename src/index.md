@@ -74,3 +74,5 @@
 | `attack_cooldown`            | промежуток между атаками                                   |
 | `target_switch_cooldown`     | промежуток между переключениями цели                       |
 | `dodge_awareness`            | реакция бота на летящие в него снаряды (0 - игнорирование) |
+| `dodge_awareness_spread`     | разброс реакции бота по синусоиде                          |
+| `dodge_awareness_speed`      | частота синусоиды                                          |
