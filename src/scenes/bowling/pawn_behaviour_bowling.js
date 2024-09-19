@@ -17,6 +17,7 @@ const PawnBehaviourBowlingAConfig = {
   allow_active_boost_replace: true,
   hearts_limit_recharge_delay: 100,
   shoot_limit_recharge_delay: 100,
+  hurt_damage_impulse: 1
 };
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf(
@@ -98,11 +99,17 @@ class PawnBehaviourBowlingA {
       }
 
       this.contacts += 1;
-
+      
       if (other.userData?.type_projectile) {
-        this.hurt();
+        this.hurt(other.userData?.damage ?? 1);
         const projectile = this._pawn._level.projectiles[other.id];
         projectile?.crush();
+
+        const manifold = contact.getManifold();
+        const v = this._pawn._physics.cache.vec3_0;
+        manifold.getNormalTo(v);
+        v.scaleEq(this.config.hurt_damage_impulse);
+        this._pawn.pawn_body.applyLinearImpulse(v);
       }
 
       if (other.userData?.type_boost) {
@@ -285,7 +292,7 @@ class PawnBehaviourBowlingA {
     return true;
   }
 
-  hurt() {
+  hurt(amount = 1) {
     if (this.stun || this.invulnerable) {
       return;
     }
@@ -293,7 +300,7 @@ class PawnBehaviourBowlingA {
     this.shoot_recharge_t = 0;
     this.hearts_recharge_t = 0;
     this.recharge_delay_t = 0;
-    this.hearts_spent += 1;
+    this.hearts_spent += amount;
     this.stun_time = 1000;
     this.stun = true;
 
