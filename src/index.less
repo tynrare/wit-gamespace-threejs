@@ -160,11 +160,19 @@ page {
     gap: 4px;
     justify-content: space-between;
 
+    label {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 30ch;
+    }
+
     input {
       color: white;
       background: none;
       border: none;
       border-bottom: 1px gray solid;
+
+      max-width: 10ch;
 
       &:focus, &:focus-visible {
         border: none;

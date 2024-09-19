@@ -58,6 +58,7 @@ class ConfigBowling {
                 Stats.instance.config_el.appendChild(entry);
 
                 label.innerHTML = k;
+                label.title = k;
 
                 switch (typeof conf[k]) {
                     case "boolean":

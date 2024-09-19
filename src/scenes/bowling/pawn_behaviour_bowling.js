@@ -15,6 +15,8 @@ const PawnBehaviourBowlingAConfig = {
   hearts_limit_recharge: 5000,
   aim_direction_priority: true,
   allow_active_boost_replace: true,
+  hearts_limit_recharge_delay: 100,
+  shoot_limit_recharge_delay: 100,
 };
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf(
@@ -49,6 +51,7 @@ class PawnBehaviourBowlingA {
 
     this.hearts_spent = 0;
     this.hearts_recharge_t = 0;
+    this.recharge_delay_t = 0;
     this.dead = false;
 
     this.timescale = 1;
@@ -112,7 +115,9 @@ class PawnBehaviourBowlingA {
   }
 
   _step_recharges(dt) {
-    if (this.config.shoot_limit && this.shoots_spent) {
+    this.recharge_delay_t += dt;
+
+    if (this.config.shoot_limit && this.shoots_spent && this.recharge_delay_t >= this.config.shoot_limit_recharge_delay) {
       this.shoot_recharge_t += dt;
 
       if (this.shoot_recharge_t >= this.config.shoot_limit_recharge) {
@@ -120,7 +125,7 @@ class PawnBehaviourBowlingA {
         this.shoots_spent -= 1;
       }
     }
-    if (this.config.hearts_limit && this.hearts_spent) {
+    if (this.config.hearts_limit && this.hearts_spent && this.recharge_delay_t >= this.config.hearts_limit_recharge_delay) {
       this.hearts_recharge_t += dt;
 
       if (this.hearts_recharge_t >= this.config.hearts_limit_recharge) {
@@ -251,6 +256,7 @@ class PawnBehaviourBowlingA {
     this.shoots_spent += 1;
     this.shoot_recharge_t = 0;
     this.hearts_recharge_t = 0;
+    this.recharge_delay_t = 0;
 
     const dir = this._pawn.pawn_draw.direction;
     this.shoot_direction.copy(dir);
@@ -286,6 +292,7 @@ class PawnBehaviourBowlingA {
 
     this.shoot_recharge_t = 0;
     this.hearts_recharge_t = 0;
+    this.recharge_delay_t = 0;
     this.hearts_spent += 1;
     this.stun_time = 1000;
     this.stun = true;
