@@ -22,12 +22,12 @@ class GenericGuiBarsStats {
     opts = {
       hearts_style: SimpleSessionElementStyle.PIC,
       energy_style: SimpleSessionElementStyle.BAR,
-      hearts_color: "pink"
+      hearts_color: "green"
     },
   ) {
     this.hearts_style = opts?.hearts_style ?? SimpleSessionElementStyle.PIC;
     this.energy_style = opts?.energy_style ?? SimpleSessionElementStyle.BAR;
-    this.hearts_color = opts?.hearts_color ?? "pink"
+    this.hearts_color = opts?.hearts_color ?? "green"
     /** @type {GenericGuiBarsStatsConfig} */
     this.config = Object.setPrototypeOf({}, GenericGuiBarsStatsConfig);
   }

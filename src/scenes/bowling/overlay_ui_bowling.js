@@ -8,7 +8,8 @@ import { cache, clamp } from "../../math.js";
 import App from "../../app.js";
 
 const OverlayUiBowlingConfig = {
-	show_enemy_energy: false
+	show_enemy_energy: false,
+	split_bars: true
 }
 
 const OverlayUiBowlingConfig_t = Object.setPrototypeOf({}, OverlayUiBowlingConfig);
@@ -31,6 +32,8 @@ class OverlayUiBowling {
 		if (!this._level) {
 			return;
 		}
+
+		this.container.classList[this.config.split_bars ? "add" : "remove"]("split-bars");
 
 		for (const k in this._level.pawns) {
 			const pawn = this._level.pawns[k];
