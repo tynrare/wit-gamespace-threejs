@@ -97,7 +97,7 @@ class GenericGuiBarsStats {
 
       h.classList[i >= total ? "add" : "remove"]("hidden");
       h.classList[i >= total - spent ? "add" : "remove"]("disabled");
-      const progress = Math.min(total - i - spent, 1) * 100;
+      const progress = Math.max(0, Math.min(total - i - spent, 1) * 100);
       h.classList[progress < 100 ? "add" : "remove"]("muted");
       h.style.setProperty("--progress", progress + "%");
     }

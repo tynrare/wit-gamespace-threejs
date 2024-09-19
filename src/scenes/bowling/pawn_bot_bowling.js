@@ -4,12 +4,15 @@ import PawnBowlingA from "./pawn_bowling.js";
 import LevelBowlingA from "./level_bowling.js";
 
 const PawnBotBowlingAConfig = {
-  safe_distance: 3,
+  safe_distance: 4,
+  safe_distance_spread: 2,
+  safe_distance_spread_speed: 0.002,
   waving_distance: 3,
   waving_speed: 0.003,
   attack_distance: 3.5,
   attack_cooldown: 1300,
   target_switch_cooldown: 1200,
+  dodge_awareness: 1
 };
 
 /** @type {PawnBotBowlingAConfig} */
@@ -79,7 +82,7 @@ class PawnBotBowlingA {
       dir.normalize();
       const dot = vel.dot(dir);
 
-      if (dot >= 0.8) {
+      if (dot >= 1 - this.config.dodge_awareness * 0.2) {
         vel.sub(dir);
         dir.cross(Vec3Up).normalize();
         if (vel.dot(dir) > 0) {
@@ -114,7 +117,8 @@ class PawnBotBowlingA {
       const ce = closest_enemy;
 
       // point at safe distance
-      let safe_distance = this.config.safe_distance;
+      let safe_distance = this.config.safe_distance + Math.sin(this.elapsed * this.config.safe_distance_spread_speed) *
+        this.config.safe_distance_spread;
 
       // move away when shoots or hearts spent
       safe_distance += this._pawn.pawn_behaviour.shoots_spent_f * 2;
