@@ -6,8 +6,7 @@ import { LevelBowlingConfig_t } from "./level_bowling.js";
 import Stats from "../../stats";
 
 const ConfigBowlingGeneric = {
-    zoom_on_aim: true,
-    map: null
+    zoom_on_aim: true
 }
 
 
@@ -16,7 +15,7 @@ const ConfigBowlingGeneric_t = Object.setPrototypeOf({}, ConfigBowlingGeneric);
 
 class ConfigBowling {
     constructor() {
-        this.confignames = ["generic", "pawn_behabiour", "projectile", "overlay", "bots", "level"];
+        this.confignames = ["generic", "level", "pawn_behabiour", "projectile", "overlay", "bots"];
         /** @type ConfigBowlingGeneric */
         this.generic = Object.setPrototypeOf({}, ConfigBowlingGeneric_t);
         this.pawn_behabiour = PawnBehaviourBowlingAConfig_t;
@@ -78,6 +77,18 @@ class ConfigBowling {
                 register_input(conf, k, input);
             }
         }
+    }
+
+    _log_all_configs() {
+        const tolog = {};
+        for (const key of this.confignames) {
+            const c = this[key];
+            tolog[key] = tolog[key] ?? {};
+            for (const k in c) {
+                tolog[key][k] = c[k];
+            }
+       }
+       console.log(JSON.stringify(tolog));
     }
 
     save() {

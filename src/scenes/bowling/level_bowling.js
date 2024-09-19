@@ -17,7 +17,8 @@ import {
 import LightsA from "../../lights_a.js";
 
 const LevelBowlingConfig = {
-  bots_count: 3
+  bots_count: 1,
+  map: null
 } 
 
 /** @type {LevelBowlingConfig} */
@@ -374,7 +375,7 @@ class LevelBowlingA {
     }
   }
 
-  async run(opts = { floor: false, scene: null }) {
+  async run(opts = { floor: false }) {
     this.environment = new Environment1();
     this.environment.run({ floor: opts?.floor ?? false });
     App.instance.render.scene.background = new THREE.Color(0x000);
@@ -389,7 +390,7 @@ class LevelBowlingA {
 
     await ProjectileBallBowling.preload();
     await this.pawn.load();
-    await this.map.run(opts?.scene);
+    await this.map.run(this.config.map);
     await this.logo.run();
 
     this.create_bots(this.config.bots_count);

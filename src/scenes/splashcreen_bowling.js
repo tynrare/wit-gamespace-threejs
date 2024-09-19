@@ -119,7 +119,7 @@ class PageSplashscreenBowling extends PageBase {
   }
 
   async load() {
-    await this.level.run({scene: this.config.generic.map});
+    await this.level.run();
     App.instance.spashscreen(false);
     this.loaded = true;
   }

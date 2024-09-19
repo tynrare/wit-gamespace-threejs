@@ -4,20 +4,23 @@ import { BOOST_EFFECT_TYPE, BoostEffectBowling } from "./boost_bowling.js";
 import { Physics, RigidBody } from "../../physics.js";
 
 const PawnBehaviourBowlingAConfig = {
+  shoot_limit: 1,
+  shoot_limit_recharge: 900,
+  stabilization_factor: 0.2,
+  stabilization_base_factor: 0.05,
+  projectile_scale: 0.9,
+  movespeed: 2.7,
   shoot_instant: true,
-  shoot_limit: 2,
-  shoot_limit_recharge: 3000,
   hearts_limit: 3,
   hearts_limit_recharge: 5000,
   aim_direction_priority: true,
-  stabilization_factor: 0.20,
-  stabilization_base_factor: 0.1,
-  projectile_scale: 1,
-  movespeed: 2,
-  allow_active_boost_replace: true
-}
+  allow_active_boost_replace: true,
+};
 
-const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf({}, PawnBehaviourBowlingAConfig);
+const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf(
+  {},
+  PawnBehaviourBowlingAConfig
+);
 
 class PawnBehaviourBowlingA {
   /**
@@ -48,7 +51,7 @@ class PawnBehaviourBowlingA {
     this.hearts_recharge_t = 0;
     this.dead = false;
 
-		this.timescale = 1;
+    this.timescale = 1;
 
     this.contacts = 0;
 
@@ -65,7 +68,7 @@ class PawnBehaviourBowlingA {
     this._pawn.pawn_draw.no_ammo = this.shoots_spent >= this.config.shoot_limit;
 
     if (!this.stun_time) {
-			const sf = this.config.stabilization_factor * (this.moves ? 2 : 1);
+      const sf = this.config.stabilization_factor * (this.moves ? 2 : 1);
       this.stabilizate_body(dt, sf);
     }
 
@@ -163,7 +166,7 @@ class PawnBehaviourBowlingA {
       this._pawn._physics,
       dt,
       this._pawn.pawn_body,
-      factor,
+      factor
     );
   }
 
@@ -186,10 +189,10 @@ class PawnBehaviourBowlingA {
     vec.scaleEq(this.config.movespeed * this.timescale);
 
     /*
-		const vecv = physics.cache.vec3_1;
-		this._pawn.pawn_body.getLinearVelocityTo(vecv);
-		vec.y = vecv.y;
-		*/
+    const vecv = physics.cache.vec3_1;
+    this._pawn.pawn_body.getLinearVelocityTo(vecv);
+    vec.y = vecv.y;
+    */
 
     this._pawn.pawn_body.setLinearVelocity(vec);
 
@@ -207,7 +210,11 @@ class PawnBehaviourBowlingA {
 
     this.shoot_requested = false;
 
-    this._pawn._level.create_projectile(this._pawn, direction, this.config.projectile_scale);
+    this._pawn._level.create_projectile(
+      this._pawn,
+      direction,
+      this.config.projectile_scale
+    );
   }
 
   aim(x, z) {
@@ -310,11 +317,11 @@ class PawnBehaviourBowlingA {
   }
 
   /**
-   * 
-   * @param {Physics} physics 
-   * @param {number} dt 
-   * @param {RigidBody} body 
-   * @param {*} factor 
+   *
+   * @param {Physics} physics
+   * @param {number} dt
+   * @param {RigidBody} body
+   * @param {*} factor
    */
   static stabilizate_body(physics, dt, body, factor = 0.2) {
     // locks rotation
@@ -334,7 +341,9 @@ class PawnBehaviourBowlingA {
     stabilization.init(-r.x * s, -r.y * s, -r.z * s);
     //const v = physics.cache.vec3_0;
     //body.getAngularVelocityTo(v);
-    stabilization.scaleEq(1 - up + PawnBehaviourBowlingAConfig_t.stabilization_base_factor);
+    stabilization.scaleEq(
+      1 - up + PawnBehaviourBowlingAConfig_t.stabilization_base_factor
+    );
     stabilization.y = -r.y * s * up;
     stabilization.scaleEq(body.getMass());
     body.applyAngularImpulse(stabilization);
@@ -342,4 +351,4 @@ class PawnBehaviourBowlingA {
 }
 
 export default PawnBehaviourBowlingA;
-export { PawnBehaviourBowlingAConfig_t, PawnBehaviourBowlingA }
+export { PawnBehaviourBowlingAConfig_t, PawnBehaviourBowlingA };

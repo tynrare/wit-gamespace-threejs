@@ -13,6 +13,10 @@ const SimpleSessionElementStyle = {
   BAR: 1,
 };
 
+const GenericGuiBarsStatsConfig = {
+  remove_unused_elements: true
+}
+
 class GenericGuiBarsStats {
   constructor(
     opts = {
@@ -24,6 +28,8 @@ class GenericGuiBarsStats {
     this.hearts_style = opts?.hearts_style ?? SimpleSessionElementStyle.PIC;
     this.energy_style = opts?.energy_style ?? SimpleSessionElementStyle.BAR;
     this.hearts_color = opts?.hearts_color ?? "pink"
+    /** @type {GenericGuiBarsStatsConfig} */
+    this.config = Object.setPrototypeOf({}, GenericGuiBarsStatsConfig);
   }
 
   run(container, hearts, energy) {
@@ -39,11 +45,18 @@ class GenericGuiBarsStats {
 
   printhearts(total, hurt) {
     for (let i = 0; i < Math.max(total, this.hearts.children.length); i++) {
+      /** @type {HTMLElement} */
       let h = this.hearts.children[i];
       if (!h) {
         h = this._make_heart_element();
         this.hearts.appendChild(h);
       }
+
+      if (i >= total && this.config.remove_unused_elements) {
+        h.parentElement.removeChild(h);
+        continue;
+      } 
+
       h.classList[i >= total ? "add" : "remove"]("hidden");
       h.classList[i >= total - hurt ? "add" : "remove"]("disabled");
       const progress = Math.min(total - i - hurt, 1) * 100;
@@ -70,11 +83,18 @@ class GenericGuiBarsStats {
   printenergy(total, spent) {
     const max = Math.max(total, this.energy.children.length);
     for (let i = 0; i < max; i++) {
+      /** @type {HTMLElement} */
       let h = this.energy.children[i];
       if (!h) {
         h = this._make_energy_element();
         this.energy.appendChild(h);
       }
+
+      if (i >= total && this.config.remove_unused_elements) {
+        h.parentElement.removeChild(h);
+        continue;
+      } 
+
       h.classList[i >= total ? "add" : "remove"]("hidden");
       h.classList[i >= total - spent ? "add" : "remove"]("disabled");
       const progress = Math.min(total - i - spent, 1) * 100;
