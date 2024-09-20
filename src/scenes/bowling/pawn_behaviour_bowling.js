@@ -50,10 +50,11 @@ class PawnBehaviourBowlingA {
 
     this.shoots_spent = 0;
     this.shoot_recharge_t = 0;
+    this.shoot_recharge_delay_t = 0;
 
     this.hearts_spent = 0;
     this.hearts_recharge_t = 0;
-    this.recharge_delay_t = 0;
+    this.hearts_recharge_delay_t = 0;
     this.dead = false;
 
     this.timescale = 1;
@@ -123,12 +124,13 @@ class PawnBehaviourBowlingA {
   }
 
   _step_recharges(dt) {
-    this.recharge_delay_t += dt;
+    this.hearts_recharge_delay_t += dt;
+    this.shoot_recharge_delay_t += dt;
 
     if (
       this.config.shoot_limit &&
       this.shoots_spent &&
-      this.recharge_delay_t >= this.config.shoot_limit_recharge_delay
+      this.shoot_recharge_delay_t >= this.config.shoot_limit_recharge_delay
     ) {
       this.shoot_recharge_t += dt;
 
@@ -142,7 +144,7 @@ class PawnBehaviourBowlingA {
     if (
       this.config.hearts_limit &&
       this.hearts_spent &&
-      this.recharge_delay_t >= this.config.hearts_limit_recharge_delay
+      this.hearts_recharge_delay_t >= this.config.hearts_limit_recharge_delay
     ) {
       this.hearts_recharge_t += dt;
 
@@ -275,8 +277,8 @@ class PawnBehaviourBowlingA {
 
     this.shoots_spent += 1;
     this.shoot_recharge_t = 0;
-    this.hearts_recharge_t = 0;
-    this.recharge_delay_t = 0;
+    //this.hearts_recharge_t = 0;
+    this.shoot_recharge_delay_t = 0;
 
     const dir = this._pawn.pawn_draw.direction;
     this.shoot_direction.copy(dir);
@@ -315,7 +317,8 @@ class PawnBehaviourBowlingA {
 
     this.shoot_recharge_t = 0;
     this.hearts_recharge_t = 0;
-    this.recharge_delay_t = 0;
+    this.hearts_recharge_delay_t = 0;
+    this.shoot_recharge_delay_t = 0;
     this.hearts_spent += amount;
     this.stun_time = 1000;
     this.stun = true;
@@ -338,7 +341,8 @@ class PawnBehaviourBowlingA {
   revive() {
     this.shoot_recharge_t = 0;
     this.hearts_recharge_t = 0;
-    this.recharge_delay_t = 0;
+    this.hearts_recharge_delay_t = 0;
+    this.shoot_recharge_delay_t = 0;
     this.hearts_spent = 0;
     this.shoots_spent = 0;
     this.stun_time = 0;
