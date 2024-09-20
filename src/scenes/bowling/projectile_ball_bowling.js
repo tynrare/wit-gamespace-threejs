@@ -14,7 +14,7 @@ const ProjectileBallBowlingConfig = {
   ldamping: 0.9,
   scale: 0.9,
   density: 10,
-  hearts_hurt_damage: 1
+  hearts_hurt_damage: 1,
 };
 
 const ProjectileBallBowlingConfig_t = Object.setPrototypeOf(
@@ -82,7 +82,7 @@ class ProjectileBallBowling {
     body.userData = {
       owner: this.ownerid,
       type_projectile: true,
-      damage: this.config.hearts_hurt_damage
+      damage: this.config.hearts_hurt_damage,
     };
 
     const sceneref = Loader.instance.cache.gltfs[FILENAME].scene;

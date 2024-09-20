@@ -17,7 +17,7 @@ import {
 import LightsA from "../../lights_a.js";
 
 const LevelBowlingConfig = {
-  bots_count: 1,
+  bots_count: 4,
   map: null
 } 
 

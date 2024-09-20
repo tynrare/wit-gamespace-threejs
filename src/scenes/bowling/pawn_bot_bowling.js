@@ -1,28 +1,45 @@
-import { cache, Vec3Up } from "../../math.js";
+import { cache, Vec3Up, lerp } from "../../math.js";
 import { Vector3 } from "three";
 import PawnBowlingA from "./pawn_bowling.js";
 import LevelBowlingA from "./level_bowling.js";
 
 const PawnBotBowlingAConfig = {
-  safe_distance: 4,
-  safe_distance_spread: 2,
-  safe_distance_spread_speed: 0.002,
-  waving_distance: 3,
+  safe_distance: 3,
+  safe_distance_spread: 2.6,
+  safe_distance_spread_speed: 0.0015,
+  waving_distance: 3.3,
+  attack_distance: 3.9,
+  target_switch_cooldown: 1300,
+  dodge_awareness: 0.84,
+  dodge_awareness_spread: 0.2,
+  dodge_awareness_speed: 0.003,
+  aim_accuracy: 0.8,
+  aim_accuracy_spread: 0.5,
   waving_speed: 0.003,
-  attack_distance: 3.5,
   attack_cooldown: 1300,
-  target_switch_cooldown: 1200,
-  dodge_awareness: 0.9,
-  dodge_awareness_spread: 0.1,
-  dodge_awareness_speed: 0.002,
-  aim_accuracy: 0.3,
-  aim_accuracy_spread: 1.5,
+  use_stupidity_factor: true
 };
+
+const PawnBotBowlingAConfigStupid = Object.setPrototypeOf({
+  dodge_awareness: 0.2,
+  aim_accuracy: 0.2,
+  aim_accuracy_spread: 2,
+  attack_cooldown: 1500,
+  waving_distance: 1.3,
+  waving_speed: 0.0001,
+  safe_distance_spread: 0,
+}, PawnBotBowlingAConfig);
 
 /** @type {PawnBotBowlingAConfig} */
 const PawnBotBowlingAConfig_t = Object.setPrototypeOf(
   {},
   PawnBotBowlingAConfig
+);
+
+/** @type {PawnBotBowlingAConfig} */
+const PawnBotBowlingAConfigStupid_t = Object.setPrototypeOf(
+  {},
+  PawnBotBowlingAConfigStupid
 );
 
 class PawnBotBowlingA {
@@ -40,6 +57,7 @@ class PawnBotBowlingA {
 
     /** @type {PawnBotBowlingAConfig} */
     this.config = Object.setPrototypeOf({}, PawnBotBowlingAConfig_t);
+    this.config_stupid = Object.setPrototypeOf({}, PawnBotBowlingAConfigStupid_t);
 
     /** @type {PawnBowlingA} */
     this.target_enemy = null;
@@ -48,10 +66,20 @@ class PawnBotBowlingA {
     this.elapsed_attack = 0;
     this.elapsed_target_switch = 0;
     this.direction = new Vector3();
+
+    this.stupidity = this.config.use_stupidity_factor ? 1 - Math.random() * Math.random() : 0;
   }
 
   run() {
     this.elapsed_attack = Math.random() * -5000 - 1000;
+  }
+
+  get_config_value(key, stupidity = this.stupidity) {
+    const s = this.use_stupidity_factor ? stupidity : 0;
+    const v1 = this.config[key];
+    const v2 = this.config_stupid[key];
+
+    return lerp(v1, v2 ?? v1, s);
   }
 
   step(dt) {
@@ -86,8 +114,10 @@ class PawnBotBowlingA {
       dir.normalize();
       const dot = vel.dot(dir);
 
-      const awareness = this.config.dodge_awareness + Math.sin(this.elapsed * this.config.dodge_awareness_speed) *
-      this.config.dodge_awareness_spread;
+      const awareness =
+        this.get_config_value("dodge_awareness") +
+        Math.sin(this.elapsed * this.get_config_value("dodge_awareness_speed")) *
+          this.get_config_value("dodge_awareness_spread");
 
       if (dot >= 1 - awareness * 0.2) {
         vel.sub(dir);
@@ -112,7 +142,7 @@ class PawnBotBowlingA {
     let closest_enemy = this.target_enemy;
     if (
       !closest_enemy ||
-      this.elapsed_target_switch > this.config.target_switch_cooldown
+      this.elapsed_target_switch > this.get_config_value("target_switch_cooldown")
     ) {
       closest_enemy = this.find_closest_enemy(pawns);
       if (this.target_enemy != closest_enemy) {
@@ -124,8 +154,10 @@ class PawnBotBowlingA {
       const ce = closest_enemy;
 
       // point at safe distance
-      let safe_distance = this.config.safe_distance + Math.sin(this.elapsed * this.config.safe_distance_spread_speed) *
-        this.config.safe_distance_spread;
+      let safe_distance =
+        this.get_config_value("safe_distance") +
+        Math.sin(this.elapsed * this.get_config_value("safe_distance_spread_speed")) *
+          this.get_config_value("safe_distance_spread");
 
       // move away when shoots or hearts spent
       safe_distance += this._pawn.pawn_behaviour.shoots_spent_f * 2;
@@ -142,8 +174,8 @@ class PawnBotBowlingA {
       const wavedir = cache.vec3.v2;
       wavedir.copy(len).cross(Vec3Up).normalize();
       wavedir.multiplyScalar(
-        Math.sin(this.elapsed * this.config.waving_speed) *
-          this.config.waving_distance
+        Math.sin(this.elapsed * this.get_config_value("waving_speed")) *
+          this.get_config_value("waving_distance")
       );
 
       targ.add(wavedir);
@@ -154,13 +186,17 @@ class PawnBotBowlingA {
       dir.normalize().multiplyScalar(dist);
 
       const shoot =
-        this.elapsed_attack >= this.config.attack_cooldown &&
-        len.length() <= this.config.attack_distance;
+        this.elapsed_attack >= this.get_config_value("attack_cooldown") &&
+        len.length() <= this.get_config_value("attack_distance");
 
       if (shoot) {
         dir.copy(len).normalize().negate();
-        const shoot_spread = (Math.random() - 0.5) * (1 - this.config.aim_accuracy);
-        dir.applyAxisAngle(Vec3Up, shoot_spread * this.config.aim_accuracy_spread);
+        const shoot_spread =
+          (Math.random() - 0.5) * (1 - this.get_config_value("aim_accuracy"));
+        dir.applyAxisAngle(
+          Vec3Up,
+          shoot_spread * this.get_config_value("aim_accuracy_spread")
+        );
         pawn.pawn_actions.action_aim(dir.x, dir.z);
         pawn.pawn_actions.action_shoot();
         pawn.pawn_actions.action_aim(0, 0);
@@ -216,7 +252,7 @@ class PawnBotBowlingA {
     const dist = dir.length();
     dir.normalize();
 
-    const shoot = this.elapsed_attack >= this.config.attack_cooldown;
+    const shoot = this.elapsed_attack >= this.get_config_value("attack_cooldown");
 
     if (shoot) {
       pawn.pawn_actions.action_aim(dir.x, dir.z);
@@ -236,4 +272,4 @@ class PawnBotBowlingA {
 }
 
 export default PawnBotBowlingA;
-export { PawnBotBowlingA, PawnBotBowlingAConfig_t };
+export { PawnBotBowlingA, PawnBotBowlingAConfig_t, PawnBotBowlingAConfigStupid_t };

@@ -4,6 +4,8 @@ import { BOOST_EFFECT_TYPE, BoostEffectBowling } from "./boost_bowling.js";
 import { Physics, RigidBody } from "../../physics.js";
 
 const PawnBehaviourBowlingAConfig = {
+  hearts_limit_recharge_delay: 3000,
+  recieve_damage_in_stun: true,
   shoot_limit: 1,
   shoot_limit_recharge: 900,
   stabilization_factor: 0.2,
@@ -15,10 +17,8 @@ const PawnBehaviourBowlingAConfig = {
   hearts_limit_recharge: 5000,
   aim_direction_priority: true,
   allow_active_boost_replace: true,
-  hearts_limit_recharge_delay: 100,
   shoot_limit_recharge_delay: 100,
-  hurt_damage_impulse: 1,
-  recieve_damage_in_stun: false
+  hurt_damage_impulse: 0.2,
 };
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf(
@@ -100,7 +100,7 @@ class PawnBehaviourBowlingA {
       }
 
       this.contacts += 1;
-      
+
       if (other.userData?.type_projectile) {
         this.hurt(other.userData?.damage ?? 1);
         const projectile = this._pawn._level.projectiles[other.id];
@@ -125,20 +125,28 @@ class PawnBehaviourBowlingA {
   _step_recharges(dt) {
     this.recharge_delay_t += dt;
 
-    if (this.config.shoot_limit && this.shoots_spent && this.recharge_delay_t >= this.config.shoot_limit_recharge_delay) {
+    if (
+      this.config.shoot_limit &&
+      this.shoots_spent &&
+      this.recharge_delay_t >= this.config.shoot_limit_recharge_delay
+    ) {
       this.shoot_recharge_t += dt;
 
-      const spent = (this.hearts_spent % 1) || 1;
+      const spent = this.hearts_spent % 1 || 1;
 
       if (this.shoot_recharge_t >= this.config.shoot_limit_recharge * spent) {
         this.shoot_recharge_t = 0;
         this.shoots_spent -= spent;
       }
     }
-    if (this.config.hearts_limit && this.hearts_spent && this.recharge_delay_t >= this.config.hearts_limit_recharge_delay) {
+    if (
+      this.config.hearts_limit &&
+      this.hearts_spent &&
+      this.recharge_delay_t >= this.config.hearts_limit_recharge_delay
+    ) {
       this.hearts_recharge_t += dt;
 
-      const spent = (this.hearts_spent % 1) || 1;
+      const spent = this.hearts_spent % 1 || 1;
 
       if (this.hearts_recharge_t >= this.config.hearts_limit_recharge * spent) {
         this.hearts_recharge_t = 0;
@@ -298,7 +306,10 @@ class PawnBehaviourBowlingA {
   }
 
   hurt(amount = 1) {
-    if ((this.stun && !this.config.recieve_damage_in_stun) || this.invulnerable) {
+    if (
+      (this.stun && !this.config.recieve_damage_in_stun) ||
+      this.invulnerable
+    ) {
       return;
     }
 

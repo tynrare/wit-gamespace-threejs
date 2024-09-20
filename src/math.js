@@ -47,6 +47,25 @@ export function dlerp(a, b, decay, dt) {
 	return b + (a - b) * Math.exp(-d * dt);
 }
 
+export function unlerp(a, b, t) {
+	return (t - a) / (b - a)
+}
+
+export function map(a1, b1, a2, b2, t) {
+	return lerp(a2, b2, unlerp(a1, b1, t));
+}
+
+/**
+* remaps value in range 0-1 into another range 0-1
+*/
+export function map_normal(min, max, t) {
+	return map(min, max, 0, 1, clamp(min, max, t));
+}
+
+export function distance(a, b) {
+	return Math.sqrt(Math.pow(a - b, 2));
+}
+
 // -- hashes
 
 // -- 3d math
