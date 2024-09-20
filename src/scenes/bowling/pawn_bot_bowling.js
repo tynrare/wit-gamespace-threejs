@@ -1,4 +1,4 @@
-import { cache, Vec3Up, lerp } from "../../math.js";
+import { cache, Vec3Up, lerp, clamp } from "../../math.js";
 import { Vector3 } from "three";
 import PawnBowlingA from "./pawn_bowling.js";
 import LevelBowlingA from "./level_bowling.js";
@@ -17,8 +17,8 @@ const PawnBotBowlingAConfig = {
   aim_accuracy_spread: 0.5,
   waving_speed: 0.003,
   attack_cooldown: 1300,
-  use_stupidity_factor: true,
-  use_max_stupidity: false,
+  stupidity_min: 0,
+  stupidity_max: 1,
 };
 
 const PawnBotBowlingAConfigStupid = Object.setPrototypeOf({
@@ -68,8 +68,7 @@ class PawnBotBowlingA {
     this.elapsed_target_switch = 0;
     this.direction = new Vector3();
 
-    this.stupidity = this.config.use_stupidity_factor ? 1 - Math.random() * Math.random() : 0;
-    this.stupidity = this.config.use_max_stupidity ? 1 : this.stupidity;
+    this.stupidity = clamp(this.config.stupidity_min, this.config.stupidity_max, 1 - Math.random() * Math.random());
   }
 
   run() {
@@ -77,8 +76,7 @@ class PawnBotBowlingA {
   }
 
   get_config_value(key, stupidity = this.stupidity) {
-    let s = this.config.use_stupidity_factor ? stupidity : 0;
-    s = this.config.use_max_stupidity ? 1 : s;
+    const s = clamp(this.config.stupidity_min, this.config.stupidity_max, stupidity);
     const v1 = this.config[key];
     const v2 = this.config_stupid[key];
 
