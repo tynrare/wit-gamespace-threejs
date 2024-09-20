@@ -17,7 +17,8 @@ const PawnBotBowlingAConfig = {
   aim_accuracy_spread: 0.5,
   waving_speed: 0.003,
   attack_cooldown: 1300,
-  use_stupidity_factor: true
+  use_stupidity_factor: true,
+  use_max_stupidity: false,
 };
 
 const PawnBotBowlingAConfigStupid = Object.setPrototypeOf({
@@ -68,6 +69,7 @@ class PawnBotBowlingA {
     this.direction = new Vector3();
 
     this.stupidity = this.config.use_stupidity_factor ? 1 - Math.random() * Math.random() : 0;
+    this.stupidity = this.config.use_max_stupidity ? 1 : this.stupidity;
   }
 
   run() {
@@ -75,7 +77,8 @@ class PawnBotBowlingA {
   }
 
   get_config_value(key, stupidity = this.stupidity) {
-    const s = this.use_stupidity_factor ? stupidity : 0;
+    let s = this.config.use_stupidity_factor ? stupidity : 0;
+    s = this.config.use_max_stupidity ? 1 : s;
     const v1 = this.config[key];
     const v2 = this.config_stupid[key];
 
