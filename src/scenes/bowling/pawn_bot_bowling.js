@@ -68,7 +68,7 @@ class PawnBotBowlingA {
     this.elapsed_target_switch = 0;
     this.direction = new Vector3();
 
-    this.stupidity = clamp(this.config.stupidity_min, this.config.stupidity_max, 1 - Math.random() * Math.random());
+    this.stupidity = 1 - Math.random() * Math.random();
   }
 
   run() {
