@@ -96,7 +96,7 @@ class PawnBehaviourBowlingA {
 
       contact_link_list = contact_link_list.getNext();
 
-      if (!contact.isTouching()) {
+      if (!contact?.isTouching()) {
         continue;
       }
 

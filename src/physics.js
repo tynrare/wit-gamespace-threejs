@@ -174,13 +174,17 @@ class Physics {
     shape_config.restitution = opts?.restitution ?? 0.1;
     const shape = new oimo.dynamics.rigidbody.Shape(shape_config);
     body.addShape(shape);
-    this.world.addRigidBody(body);
 
+    this.add_body(body)
+
+    return body;
+  }
+
+  add_body(body) {
+    this.world.addRigidBody(body);
     const id = "b" + this.guids++;
     this.bodylist[id] = body;
     body.id = id;
-
-    return body;
   }
 
   /**

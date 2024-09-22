@@ -1,4 +1,4 @@
-import { Physics, RigidBodyType } from "../../physics.js";
+import { Physics, RigidBody, RigidBodyType } from "../../physics.js";
 import PawnDrawA from "./pawn_draw_bowling.js";
 import LevelBowlingA from "./level_bowling.js";
 import PawnActionsBowlingA from "./pawn_actions_bowling.js";
@@ -10,6 +10,8 @@ import App from "../../app.js";
 import { InputAction } from "../../pawn/inputs_dualstick.js";
 import PawnBehaviourBowlingA from "./pawn_behaviour_bowling.js";
 import PawnVisualsBowlingA from "./pawn_visuals_bowling.js";
+import * as THREE from "three";
+import { oimo } from "../../lib/OimoPhysics.js";
 
 class PawnBowlingA {
   /**
@@ -75,7 +77,7 @@ class PawnBowlingA {
   }
   step_pawn_draw(dt) {
     // apply decoration mesh rotation
-    const shift = cache.vec3.v4.set(0, -0.5, 0);
+    const shift = cache.vec3.v4.set(0, -0.25, 0);
     shift.applyQuaternion(this.pawn_dbg_mesh.quaternion);
     this.pawn_draw._target.position.copy(this.pawn_dbg_mesh.position);
     this.pawn_draw._target.position.add(shift);
@@ -108,20 +110,59 @@ class PawnBowlingA {
   _create_phys_body() {
     const pos = new Vector3(0, 1, 0);
     const size = new Vector3(this.config.body_width, 1, 0);
-    const id = this._physics.utils.create_physics_cylinder(
-      pos,
-      size,
-      RigidBodyType.DYNAMIC,
-      {
-        friction: 0.1,
-        density: 1,
-        adamping: this.config.body_angular_dumping,
-        ldamping: this.config.body_linear_damping,
-      },
-      0x48a9b1,
-    );
 
-    const body = this._physics.bodylist[id];
+    let meshgeometry = new THREE.CylinderGeometry(
+      size.x,
+      size.x,
+      size.y,
+      6,
+    );
+    let material = App.instance.render.utils.create_material0(0x48a9b1);
+    let mesh = new THREE.Mesh(meshgeometry, material);
+    mesh.castShadow = true;
+    App.instance.render.scene.add(mesh);
+
+    const body_config = new oimo.dynamics.rigidbody.RigidBodyConfig();
+    body_config.position.init(pos.x, pos.y, pos.z);
+    body_config.type = RigidBodyType.DYNAMIC;
+    body_config.angularDamping = this.config.body_angular_dumping;
+    body_config.linearDamping = this.config.body_linear_damping;
+
+    const body = new RigidBody(body_config);
+
+    const aheight = size.y * 0.25;
+    const bheight = size.y * 0.35;
+
+    {
+      const geometry = new oimo.collision.geometry.CylinderGeometry(
+        size.x,
+        aheight,
+      );
+      const shape_config = new oimo.dynamics.rigidbody.ShapeConfig();
+      shape_config.geometry = geometry;
+      shape_config.density = 1;
+      shape_config.friction = 0.1;
+      shape_config.restitution = 0.1;
+      const shape = new oimo.dynamics.rigidbody.Shape(shape_config);
+      body.addShape(shape);
+    }
+    {
+      const geometry = new oimo.collision.geometry.CylinderGeometry(
+        size.x * 0.7,
+        bheight,
+      );
+      const shape_config = new oimo.dynamics.rigidbody.ShapeConfig();
+      shape_config.geometry = geometry;
+      shape_config.position.init(0, aheight + bheight, 0);
+      shape_config.density = 1;
+      shape_config.friction = 0.1;
+      shape_config.restitution = 0.1;
+      const shape = new oimo.dynamics.rigidbody.Shape(shape_config);
+      body.addShape(shape);
+    }
+
+    this._physics.add_body(body);
+    this._physics.attach(body, mesh);
 
 		const dm = body.getMassData();
 		dm.mass = this.body_mass;
@@ -131,7 +172,7 @@ class PawnBowlingA {
       type_pawn: true,
     };
 
-    return id;
+    return body.id;
   }
 
   async _load_pawn() {
