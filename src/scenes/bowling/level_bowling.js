@@ -68,7 +68,8 @@ class LevelBowlingUtils {
           spawnpoints["all"] = [];
         }
 
-        const match = o.name.match(/spawn-(\w+)/);
+        const match = o.name.match(/spawn-([a-z]+)/);
+        console.log(match, o.name);
         if (match) {
           const key = match[1];
           if (!spawnpoints[key]) {
