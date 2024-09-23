@@ -63,18 +63,18 @@ class LevelBowlingUtils {
     scene.traverse((o) => {
       if (o.name.includes("spawn")) {
         const pos = o.position.clone();
-        if (!spawnpoints) {
+          if (!spawnpoints) {
           spawnpoints = {};
           spawnpoints["all"] = [];
+        }
 
-          const match = o.name.match(/spawn-(\w+)/);
-          if (match) {
-            const key = match[1];
-            if (!spawnpoints[key]) {
-              spawnpoints[key] = []
-            }
-            spawnpoints[key].push(pos)
+        const match = o.name.match(/spawn-(\w+)/);
+        if (match) {
+          const key = match[1];
+          if (!spawnpoints[key]) {
+            spawnpoints[key] = []
           }
+          spawnpoints[key].push(pos)
         }
         spawnpoints["all"].push(pos);
       }
