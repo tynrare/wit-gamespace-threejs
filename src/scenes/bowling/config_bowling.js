@@ -6,6 +6,7 @@ import {
   PawnBotBowlingAConfigStupid_t,
 } from "./pawn_bot_bowling.js";
 import { LevelBowlingConfig_t } from "./level_bowling.js";
+import { CameraTopdownConfig_t } from "../../pawn/camera_topdown.js";
 import Stats from "../../stats";
 
 const ConfigBowlingGeneric = {
@@ -19,6 +20,7 @@ class ConfigBowling {
   constructor() {
     this.confignames = [
       "generic",
+      "camera",
       "level",
       "pawn_behabiour",
       "projectile",
@@ -34,6 +36,7 @@ class ConfigBowling {
     this.bot = PawnBotBowlingAConfig_t;
     this.bot_stupid = PawnBotBowlingAConfigStupid_t;
     this.level = LevelBowlingConfig_t;
+    this.camera = CameraTopdownConfig_t;
   }
 
   run() {

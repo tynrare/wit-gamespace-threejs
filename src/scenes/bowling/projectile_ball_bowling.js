@@ -65,7 +65,7 @@ class ProjectileBallBowling {
       .normalize()
       .setLength(radius * 2 + ownerwidth * 0.5)
       .add(position);
-    pos.y = radius;
+    pos.y = radius + 0.5;
     const body = this._physics.create_sphere(
       pos,
       radius,

@@ -29,8 +29,6 @@ class CameraBowlingA {
 	 */
 	playstart(follow) {
     this.controls = new CameraTopdown();
-    this.controls.config.distance = 10;
-    this.controls.config.height = 15;
     this.controls.init(
       App.instance.render.camera,
 			follow

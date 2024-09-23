@@ -62,10 +62,21 @@ class LevelBowlingUtils {
     let spawnpoints = null;
     scene.traverse((o) => {
       if (o.name.includes("spawn")) {
+        const pos = o.position.clone();
         if (!spawnpoints) {
-          spawnpoints = [];
+          spawnpoints = {};
+          spawnpoints["all"] = [];
+
+          const match = o.name.match(/spawn-(\w+)/);
+          if (match) {
+            const key = match[1];
+            if (!spawnpoints[key]) {
+              spawnpoints[key] = []
+            }
+            spawnpoints[key].push(pos)
+          }
         }
-        spawnpoints.push(o.position.clone());
+        spawnpoints["all"].push(pos);
       }
 
       /** @type {THREE.Mesh} */
@@ -109,7 +120,7 @@ class LevelBowlingMap {
     /** @type {string} */
     this.scenename = null;
 
-    this.spawnpoints = [];
+    this.spawnpoints = {};
   }
 
   create_default_playscene() {
@@ -155,7 +166,7 @@ class LevelBowlingMap {
 
   open_playscene(name, lightmaps = true) {
     const render = App.instance.render;
-    this.spawnpoints.length = 0;
+    this.spawnpoints = {};
     this.scenename = name;
 
     return new Promise((resolve, reject) => {
@@ -173,8 +184,8 @@ class LevelBowlingMap {
           LightsA.apply_lightmaps_white(scene);
 
           const opts = this._utils.parse_playscene(scene);
-          for (const i in opts.spawnpoints) {
-            this.spawnpoints.push(opts.spawnpoints[i]);
+          for (const k in opts.spawnpoints) {
+            this.spawnpoints[k] = Array.from(opts.spawnpoints[k]);
           }
 
           resolve();
@@ -193,8 +204,8 @@ class LevelBowlingMap {
     });
   }
 
-  get_rand_spawnpoint() {
-    if (!this.spawnpoints.length) {
+  get_rand_spawnpoint(key = "all") {
+    if (!this.spawnpoints[key]?.length) {
       const pos = cache.vec3.v0;
       pos.x = (Math.random() - 0.5) * 10;
       pos.y = 10;
@@ -203,7 +214,7 @@ class LevelBowlingMap {
       return pos;
     }
 
-    return this.spawnpoints[
+    return this.spawnpoints[key][
       Math.floor(Math.random() * this.spawnpoints.length)
     ];
   }
@@ -452,7 +463,7 @@ class LevelBowlingA {
 		const typei = Math.floor(BOOST_EFFECT_TYPES_LIST.length * Math.random());
 		const typekey = BOOST_EFFECT_TYPES_LIST[typei];
 		const type = BOOST_EFFECT_TYPE[typekey];
-    const position = this.map.get_rand_spawnpoint();
+    const position = this.map.get_rand_spawnpoint("boost");
     const boost = new BoostPropBowling(type, this).run(position);
 
     this.boosts[boost.body.id] = boost;
@@ -474,7 +485,7 @@ class LevelBowlingA {
       const pawn = this.create_pawn(null, null, true, false);
       pawn.team = 1;
       pawn.run();
-      const p = this.map.get_rand_spawnpoint()
+      const p = this.map.get_rand_spawnpoint("pawn")
       pawn.pawn_body.setPosition(
         this.physics.cache.vec3_0.init(p.x, p.y, p.z),
       );
@@ -506,7 +517,7 @@ class LevelBowlingA {
           this.physics.remove(b);
           continue;
         }
-        const position = this.map.get_rand_spawnpoint();
+        const position = this.map.get_rand_spawnpoint("pawn");
         b.setPosition(
           this.physics.cache.vec3_0.init(position.x, position.y, position.z),
         );

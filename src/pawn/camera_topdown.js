@@ -4,6 +4,28 @@ import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
 import { cache, angle_sub, Vec3Up, Vec3Forward } from "../math.js";
 
+const CameraTopdownConfig = {
+  distance: 17,
+  /**
+   * z height
+   */
+  height: 19,
+  /**
+   * rotation
+   */
+  rotation: 0,
+  /**
+   * how fast camera follows target
+   */
+  follow_speed: 0.1,
+  /**
+   * actial camera movement speed
+   */
+  camera_speed: 0.1,
+}
+
+const CameraTopdownConfig_t = Object.setPrototypeOf({}, CameraTopdownConfig);
+
 /**
  * Controls camera.
  *
@@ -26,28 +48,9 @@ class CameraTopdown {
       v3: new Vector3(),
     };
 
-    this.config = {
-      distance: 17,
-      /**
-       * z height
-       */
-      height: 19,
-      /**
-       * rotation
-       */
-      rotation: 0,
-      /**
-       * how fast camera follows target
-       */
-      follow_speed: 0.1,
-      /**
-       * actial camera movement speed
-       */
-      camera_speed: 0.1,
-    };
+    this.config = Object.setPrototypeOf({}, CameraTopdownConfig_t);
 		
-		this.distance = this.config.distance;
-		this.height = this.config.height;
+    this.zoomout = false;
   }
 
 	/**
@@ -55,9 +58,6 @@ class CameraTopdown {
    * @param {THREE.Object3D} target .
 	 */
 	init(camera, target) {
-    this.distance = this.config.distance;
-		this.height = this.config.height;
-    
 		this.set_camera(camera);
 		this.set_target(target);
 	}
@@ -72,8 +72,8 @@ class CameraTopdown {
     // ---
     // construct local position vector
     const pos = this.cache.v3.copy(Vec3Forward);
-    pos.normalize().multiplyScalar(this.distance);
-    pos.y += this.height;
+    pos.normalize().multiplyScalar(this.config.distance);
+    pos.y += this.config.height;
 
     this._target_lpos.lerp(this._target.position, this.config.follow_speed);
 
@@ -94,17 +94,7 @@ class CameraTopdown {
 
 	
 	zoom(zoomout) {
-		if (zoomout) {
-		  // hard to determinate stick aim direction with camera rotation
-			//this.rotation = Math.atan2(dir.x, dir.z);
-			this.distance = this.config.distance * 1.1;
-			this.height = this.config.height * 1.2;
-			return;
-		}
-
-		this.distance = this.config.distance;
-		this.height = this.config.height;
-		this.rotation = 0;
+    this.zoomout = zoomout;
 	}
 
   /**
@@ -129,3 +119,4 @@ class CameraTopdown {
 }
 
 export default CameraTopdown;
+export { CameraTopdown, CameraTopdownConfig_t }
