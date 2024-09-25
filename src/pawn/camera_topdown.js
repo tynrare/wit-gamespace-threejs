@@ -5,11 +5,11 @@ import { Vector2, Vector3 } from "three";
 import { cache, angle_sub, Vec3Up, Vec3Forward } from "../math.js";
 
 const CameraTopdownConfig = {
-  distance: 17,
+  distance: 16,
   /**
    * z height
    */
-  height: 19,
+  height: 16,
   /**
    * rotation
    */
