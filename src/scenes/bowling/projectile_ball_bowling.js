@@ -19,7 +19,7 @@ const ProjectileBallBowlingConfig = {
 
 const ProjectileBallBowlingConfig_t = Object.setPrototypeOf(
   {},
-  ProjectileBallBowlingConfig
+  ProjectileBallBowlingConfig,
 );
 
 class ProjectileBallBowling {
@@ -75,7 +75,7 @@ class ProjectileBallBowling {
         friction: 0.3,
         restitution: 0.7,
         ldamping: this.config.ldamping,
-      }
+      },
     );
 
     body.temporal = true;

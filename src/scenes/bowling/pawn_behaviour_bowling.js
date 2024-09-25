@@ -23,7 +23,7 @@ const PawnBehaviourBowlingAConfig = {
 
 const PawnBehaviourBowlingAConfig_t = Object.setPrototypeOf(
   {},
-  PawnBehaviourBowlingAConfig
+  PawnBehaviourBowlingAConfig,
 );
 
 class PawnBehaviourBowlingA {
@@ -193,7 +193,7 @@ class PawnBehaviourBowlingA {
       this._pawn._physics,
       dt,
       this._pawn.pawn_body,
-      factor
+      factor,
     );
   }
 
@@ -240,7 +240,7 @@ class PawnBehaviourBowlingA {
     this._pawn._level.create_projectile(
       this._pawn,
       direction,
-      this.config.projectile_scale
+      this.config.projectile_scale,
     );
   }
 
@@ -309,7 +309,7 @@ class PawnBehaviourBowlingA {
 
   hurt(amount = 1) {
     if (
-			this.dead ||
+      this.dead ||
       (this.stun && !this.config.recieve_damage_in_stun) ||
       this.invulnerable
     ) {
@@ -378,7 +378,7 @@ class PawnBehaviourBowlingA {
     //const v = physics.cache.vec3_0;
     //body.getAngularVelocityTo(v);
     stabilization.scaleEq(
-      1 - up + PawnBehaviourBowlingAConfig_t.stabilization_base_factor
+      1 - up + PawnBehaviourBowlingAConfig_t.stabilization_base_factor,
     );
     stabilization.y = -r.y * s * up;
     stabilization.scaleEq(body.getMass());
