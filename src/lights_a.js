@@ -22,7 +22,14 @@ class LightsA {
   /**
    * @param {Render} render .
    */
-  run(render, csm = false) {
+  run(
+    render,
+    opts = {
+      csm: render.config.cascaded_shadow_maps,
+      shadows: render.config.shadows,
+			lights: render.config.lights
+    },
+  ) {
     const scene = render.scene;
     const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
@@ -33,13 +40,17 @@ class LightsA {
     const hemisphere = new THREE.HemisphereLight(0xffffbb, 0xffffbb, 0);
     scene.add(hemisphere);
 
+		const lights = opts?.lights ?? render.config.lights;
+		const csm = opts?.csm ?? render.config.cascaded_shadow_maps;
+		const shadows = opts?.shadows ?? render.config.shadows;
+
     this.lights.directional = directional;
     this.lights.ambient = ambient;
     this.lights.hemisphere = hemisphere;
-		this.enable(render.config.lights);
+    this.enable(lights);
 
-    if (render.config.shadows) {
-      if (csm || render.config.cascaded_shadow_maps) {
+    if (shadows) {
+      if (csm) {
         this._run_csm(render.camera, scene);
       } else {
         directional.castShadow = true;
@@ -50,7 +61,7 @@ class LightsA {
         directional.shadow.camera.right = 32;
         directional.shadow.camera.top = 32;
         directional.shadow.camera.far = 10000;
-				directional.shadow.bias = 0.0001
+        directional.shadow.bias = 0.0001;
       }
     }
 
@@ -126,7 +137,8 @@ class LightsA {
       /** @type {THREE.MeshStandardMaterial} */
       const material = /** @type {any} */ (m.material);
       material.lightMap = Loader.instance.get_texture(root_path + path);
-      material.lightMapIntensity = App.instance.render.config.lightmaps_intensity;
+      material.lightMapIntensity =
+        App.instance.render.config.lightmaps_intensity;
       material.lightMap.channel = channel;
       material.lightMap.flipY = false;
     }
@@ -152,7 +164,8 @@ class LightsA {
       }
 
       material.lightMap = texture;
-      material.lightMapIntensity = App.instance.render.config.lightmaps_intensity;
+      material.lightMapIntensity =
+        App.instance.render.config.lightmaps_intensity;
     });
   }
 }

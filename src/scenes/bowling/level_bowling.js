@@ -85,6 +85,9 @@ class LevelBowlingUtils {
         return;
       }
 
+			//m.castShadow = true;
+			//m.receiveShadow = true;
+
       if (!m.name.includes("phys")) {
         return;
       }
@@ -178,10 +181,12 @@ class LevelBowlingMap {
           const scene = gltf.scene;
           render.scene.add(scene);
           this.playscene = scene;
-          if (config) {
-            LightsA.apply_lightmaps(scene, root_path, config);
-          }
-          LightsA.apply_lightmaps_white(scene);
+					if (lightmaps) {
+						if (config) {
+							LightsA.apply_lightmaps(scene, root_path, config);
+						}
+						LightsA.apply_lightmaps_white(scene);
+					}
 
           const opts = this._utils.parse_playscene(scene);
           for (const k in opts.spawnpoints) {
@@ -388,8 +393,11 @@ class LevelBowlingA {
 
   async run(opts = { floor: false }) {
     this.environment = new Environment1();
-    this.environment.run({ floor: opts?.floor ?? false });
+    this.environment.run({ floor: opts?.floor ?? false, csm: false, shadows: false });
     App.instance.render.scene.background = new THREE.Color(0x000);
+		this.environment.lights.lights.directional.intensity = 2;
+		this.environment.lights.lights.ambient.intensity = 1;
+		this.environment.lights.lights.hemisphere.intensity = 1;
 
     this.physics = new Physics().run({ fixed_step: false });
 

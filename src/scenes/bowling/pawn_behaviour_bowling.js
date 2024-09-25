@@ -309,6 +309,7 @@ class PawnBehaviourBowlingA {
 
   hurt(amount = 1) {
     if (
+			this.dead ||
       (this.stun && !this.config.recieve_damage_in_stun) ||
       this.invulnerable
     ) {
