@@ -187,10 +187,6 @@ class PawnBowlingA {
     this.pawn_dbg_mesh.visible = false;
   }
 
-  static stabilizate_body(physics, dt, body, factor = 0.07) {
-    PawnBehaviourBowlingA.stabilizate_body(physics, dt, body, factor);
-  }
-
   /**
    * @returns {Vector3} .
    */

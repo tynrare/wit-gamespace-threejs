@@ -5,11 +5,10 @@ import { Physics, RigidBody } from "../../physics.js";
 
 const PawnBehaviourBowlingAConfig = {
   hearts_limit_recharge_delay: 3000,
-  recieve_damage_in_stun: true,
+  recieve_damage_in_stun: false,
   shoot_limit: 1,
   shoot_limit_recharge: 900,
-  stabilization_factor: 0.2,
-  stabilization_base_factor: 0.05,
+  stabilization_factor: 3,
   projectile_scale: 0.9,
   movespeed: 2.7,
   shoot_instant: true,
@@ -189,12 +188,7 @@ class PawnBehaviourBowlingA {
   }
 
   stabilizate_body(dt, factor = 0.07) {
-    PawnBehaviourBowlingA.stabilizate_body(
-      this._pawn._physics,
-      dt,
-      this._pawn.pawn_body,
-      factor,
-    );
+    this._pawn._level.utils.stabilizate_body(dt, this._pawn.pawn_body, factor);
   }
 
   move(x, z) {
@@ -352,38 +346,7 @@ class PawnBehaviourBowlingA {
     this.dead = false;
   }
 
-  /**
-   *
-   * @param {Physics} physics
-   * @param {number} dt
-   * @param {RigidBody} body
-   * @param {*} factor
-   */
-  static stabilizate_body(physics, dt, body, factor = 0.2) {
-    // locks rotation
-    //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
-
-    // apply rotation stabilization
-    const up = physics.get_body_up_dot(body);
-    const stabilization = physics.cache.vec3_0;
-    const r = body.getRotation().toEulerXyz();
-
-    // torque applied ach step - it has to be frame dependent
-    const df = dt / 30;
-    const f2 = 1;
-    // should it be  inverse-square time?
-    const s = factor * df * f2;
-
-    stabilization.init(-r.x * s, -r.y * s, -r.z * s);
-    //const v = physics.cache.vec3_0;
-    //body.getAngularVelocityTo(v);
-    stabilization.scaleEq(
-      1 - up + PawnBehaviourBowlingAConfig_t.stabilization_base_factor,
-    );
-    stabilization.y = -r.y * s * up;
-    stabilization.scaleEq(body.getMass());
-    body.applyAngularImpulse(stabilization);
-  }
+  
 }
 
 export default PawnBehaviourBowlingA;

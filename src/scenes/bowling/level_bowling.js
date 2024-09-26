@@ -1,4 +1,4 @@
-import { Physics, RigidBodyType } from "../../physics.js";
+import { Physics, RigidBodyType, RigidBody } from "../../physics.js";
 import { get_material_blob_a, update_shaders } from "../../vfx/shaders.js";
 import * as THREE from "three";
 import { Vector3 } from "three";
@@ -111,8 +111,60 @@ class LevelBowlingUtils {
     };
   }
 
-  stabilizate_body(dt, body, factor = 0.07) {
-    PawnBowlingA.stabilizate_body(this._physics, dt, body, factor);
+  /**
+   * @param {number} dt
+   * @param {RigidBody} body
+   * @param {*} factor
+   */
+  stabilizate_body(dt, body, factor = 0.2) {
+    const physics = this._physics;
+    // locks rotation
+    //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
+
+    // apply rotation stabilization
+    const stabilization = physics.cache.vec3_0;
+    const mat = physics.cache.mat3;
+    body.getRotationTo(mat)
+    const r = mat.toEulerXyz();
+
+    stabilization.init(-r.x, -r.y , -r.z);
+    stabilization.scaleEq(factor);
+    body.setAngularVelocity(stabilization);
+  }
+
+  /**
+   * @param {number} dt
+   * @param {RigidBody} body
+   * @param {*} factor
+   */
+  stabilizate_body_b(dt, body, factor = 0.2) {
+    const physics = this._physics;
+    // locks rotation
+    //this.pawn_body.setRotationFactor(this._physics.cache.vec3_0.init(0, 0, 0));
+
+    // apply rotation stabilization
+    const up = physics.get_body_up_dot(body);
+    const stabilization = physics.cache.vec3_0;
+    const mat = physics.cache.mat3;
+    body.getRotationTo(mat)
+    const r = mat.toEulerXyz();
+    const mass = body.getMass();
+
+    // torque applied each step - it has to be frame dependent
+    const df = dt / 30;
+    const f2 = 1;
+    // should it be  inverse-square time?
+    const s = factor * df * f2;
+
+    stabilization.init(-r.x * s, -r.y * s, -r.z * s);
+    //const v = physics.cache.vec3_0;
+    //body.getAngularVelocityTo(v);
+    stabilization.scaleEq(
+      1 - up,
+    );
+    stabilization.y = -r.y * s * up;
+    stabilization.scaleEq(mass);
+    body.applyAngularImpulse(stabilization);
   }
 
   create_motor(body) {
@@ -297,10 +349,10 @@ class LevelBowlingLogo {
     const letters_stabilizate_delay = 5000;
     if (this.elapsed > letters_stabilizate_delay) {
       const e = this.elapsed - letters_stabilizate_delay;
-      const f = Math.min(1, e / 5000) * 0.1;
+      const f = Math.min(1, e / 5000) * 0.2;
       for (const i in this.logo_letters) {
         const ll = this.logo_letters[i];
-        this._utils.stabilizate_body(dt, ll, f);
+        this._utils.stabilizate_body_b(dt, ll, f);
 
         const targ_pos = this._physics.cache.vec3_0;
         const curr_pos = this._physics.cache.vec3_1;

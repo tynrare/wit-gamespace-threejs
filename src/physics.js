@@ -293,8 +293,10 @@ class Physics {
    */
   get_body_up_dot(body) {
     const local_up = this.cache.vec3_0;
+    const mat = this.cache.mat3;
     local_up.init(0, 1, 0);
-    local_up.mulMat3Eq(body.getRotation().transposeEq());
+    body.getRotationTo(mat)
+    local_up.mulMat3Eq(mat.transposeEq());
     const dot = local_up.dot(this.cache.vec3up);
 
     return dot;
