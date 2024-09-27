@@ -41,7 +41,7 @@ class AdPageTestcaseBowling extends PageBase {
 
   run() {
     App.instance.start(this.container.querySelector("render"));
-    App.instance.spashscreen(true);
+    App.instance.splashscreen(true);
 
     const render = App.instance.render;
     const scene = render.scene;
@@ -60,7 +60,7 @@ class AdPageTestcaseBowling extends PageBase {
       this._create_motors(cache.vec3.v0.set(2, 0.2, -3));
       this._create_motors(cache.vec3.v0.set(12, 0.3, -10));
       this._create_motors(cache.vec3.v0.set(-20, 0.4, 10));
-      App.instance.spashscreen(false);
+      App.instance.splashscreen(false);
     });
 
     this.camera_controls = new CameraTopdown();

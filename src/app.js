@@ -34,6 +34,7 @@ import Loop from "./loop.js";
 import Session from "./session.js";
 import Settings from "./settings.js";
 import Scoreboard from "./scoreboard.js";
+import ModeDeathmatchBowling from "./scenes/bowling/mode_deathmatch_bowling.js";
 
 /**
  * Core class. Handles hash changes and switches subapps
@@ -57,9 +58,10 @@ class App {
     this.pages = {
       mainmenu: new PageMainmenu(),
       settings: new PageSettings(),
-      splashscreen_bowling_d: new PageSplashscreenBowlingD240727(),
+
       splashscreen_bowling: new PageSplashscreenBowling(),
-      splashscreen_bowling_d240823: new PageSplashscreenBowlingD240823(),
+      mode_deathmatch_bowling: new ModeDeathmatchBowling(),
+
       minigame_a: new PageMinigameA(),
       blockbreaker: new PageBlockbreaker(),
 
@@ -80,6 +82,9 @@ class App {
       testcase14: new PageTestcase6NetworkD240829(),
       testcase15: new PageTestcase6Network(),
       testcase16: new PageTestcase7Vfx(),
+
+      splashscreen_bowling_d: new PageSplashscreenBowlingD240727(),
+      splashscreen_bowling_d240823: new PageSplashscreenBowlingD240823(),
     };
 
     /** @type {Render} */
@@ -274,7 +279,7 @@ class App {
     this.openpage(pagename);
   }
 
-  spashscreen(visible) {
+  splashscreen(visible) {
     const el1 = document.getElementById("splashscreen");
     const el2 = document.getElementById("splashscreen_loading");
     el1.classList[visible ? "add" : "remove"]("active");

@@ -162,7 +162,7 @@ class PageSplashscreenBowling extends PageBase {
 
   run() {
     App.instance.start(this.container.querySelector("render"));
-    App.instance.spashscreen(true);
+    App.instance.splashscreen(true);
 
     const render = App.instance.render;
     this.camerapos.set(9, 7, 0);
@@ -246,7 +246,7 @@ class PageSplashscreenBowling extends PageBase {
       }),
     );
     Promise.all(p).then(() => {
-      App.instance.spashscreen(false);
+      App.instance.splashscreen(false);
       this.loaded = true;
       this.show_menu();
     });

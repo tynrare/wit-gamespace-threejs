@@ -113,15 +113,7 @@ class ConfigBowling {
 
   save() {
     const hash = window.location.hash;
-    let query = "";
-    let name = hash.substring(1);
-    const query_index = hash.indexOf("?");
-    if (query_index >= 0) {
-      query = hash.substring(query_index);
-      name = hash.substring(1, query_index);
-    }
-
-    const urlParams = new URLSearchParams(query);
+    const urlParams = new URLSearchParams(window.location.search);
 
     for (const confname of this.confignames) {
       const conf = this[confname];

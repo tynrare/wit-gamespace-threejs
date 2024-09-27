@@ -62,7 +62,7 @@ class PageSplashscreenBowlingD240823 extends PageBase {
 
 		const render = App.instance.render;
 
-		App.instance.spashscreen(true);
+		App.instance.splashscreen(true);
 		App.instance.start(this.container.querySelector("render"));
 
 		this.session = new SimpleSession().init(this.container, () =>
@@ -77,7 +77,7 @@ class PageSplashscreenBowlingD240823 extends PageBase {
 
 	async load() {
 		await this.level.run();
-		App.instance.spashscreen(false);
+		App.instance.splashscreen(false);
 		this.loaded = true;
 	}
 

@@ -8,6 +8,8 @@ import {
   SUPERPOWERS_CLASSES,
 } from "./superpowers_bowling.js";
 import { cache, Vec3Up } from "../../math.js";
+import OverlayUiBowling from "./overlay_ui_bowling.js";
+import logger from "../../logger.js";
 
 class SceneBowling {
   constructor() {
@@ -19,6 +21,8 @@ class SceneBowling {
     this.level = null;
     /** @type {CameraBowlingA} */
     this.camera_controls = null;
+    /** @type {OverlayUiBowling} */
+    this.overlay_ui = null;
 
     /** @type {SimpleSession} */
     this._session = null;
@@ -35,7 +39,14 @@ class SceneBowling {
     }
     this.level.step(dt);
     this.camera_controls.step(dt);
+    this.overlay_ui.step(dt);
+
     this.apply_superpowers(dt);
+
+    OverlayUiBowling.set_bars_values(
+      this._session.generic_bars,
+      this.level.pawn,
+    );
   }
 
   reset() {
@@ -61,6 +72,8 @@ class SceneBowling {
       this.input_analog.bind(this)
     );
     this.inputs.run();
+
+    this.overlay_ui.run(this.level);
   }
 
   stop() {
@@ -68,6 +81,7 @@ class SceneBowling {
     this.camera_controls.playstop();
     this.inputs?.stop();
     this.inputs = null;
+    this.overlay_ui.stop();
   }
 
   /**
@@ -81,23 +95,35 @@ class SceneBowling {
     this.level = new LevelBowlingA();
     this.camera_controls = new CameraBowlingA().run();
 
+    this.overlay_ui = new OverlayUiBowling(this._session.ui);
+
     this.loaded = false;
+
 
     return this;
   }
 
-  async load() {
-    await this.level.run();
-    this.loaded = true;
+  async load(opts = { map: null, logo: true }) {
+    App.instance.splashscreen(true);
+
+    return this.level.run(opts).then(() => {
+      this.loaded = true;
+    }).catch((e) => {
+      logger.error("level loading error, ", e)
+    }).finally(() => {
+      App.instance.splashscreen(false);
+    })
   }
 
   dispose() {
     this.stop();
     this.level?.stop();
     this.level = null;
+    
     this.camera_controls?.playstop();
     this.camera_controls = null;
     this._session = null;
+    this.overlay_ui = null;
   }
 
   input(type, start) {

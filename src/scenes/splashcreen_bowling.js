@@ -2,9 +2,6 @@ import PageBase from "../page_base.js";
 import { SimpleSession, SimpleSessionElementStyle } from "./simple_session.js";
 import App from "../app.js";
 import Scoreboard from "../scoreboard.js";
-import * as THREE from "three";
-import { Color, Vector3 } from "three";
-import OverlayUiBowling from "./bowling/overlay_ui_bowling.js";
 import {
   SUPERPOWERS_BOWLING
 } from "./bowling/superpowers_bowling.js";
@@ -14,8 +11,13 @@ import SceneBowling from "./bowling/scene_bowling.js";
 const PLAYLIST_BOWLING = {
   dust2: {
     header: "Dust 2",
-    description: "Not that one",
-    href: "dust2"
+    description: "hah. Not that one",
+    href: ""
+  },
+  mode_deathmatch: {
+    header: "Map 1",
+    description: "deathmatch",
+    href: "mode_deathmatch_bowling?map=d"
   }
 }
 
@@ -28,9 +30,6 @@ class PageSplashscreenBowling extends PageBase {
 
     /** @type {SimpleSession} */
     this.session = null;
-
-    /** @type {OverlayUiBowling} */
-    this.overlay_ui = null;
 
     this.gameover_elapsed = 0;
 
@@ -48,19 +47,10 @@ class PageSplashscreenBowling extends PageBase {
         this.playstop();
       }
     }
-    
-    this.overlay_ui.step(dt);
-    OverlayUiBowling.set_bars_values(
-      this.session.generic_bars,
-      this.scene.level.pawn,
-    );
   }
 
   run() {
     this.score = 0;
-
-    App.instance.spashscreen(true);
-    App.instance.start(this.container.querySelector("render"));
 
     this.session = new SimpleSession(
       {
@@ -68,15 +58,13 @@ class PageSplashscreenBowling extends PageBase {
       },
       "bowling-xd0",
       SUPERPOWERS_BOWLING,
-      //PLAYLIST_BOWLING
+      PLAYLIST_BOWLING
     ).init(this.container, () => this.playstart());
 
-    this.overlay_ui = new OverlayUiBowling(this.session.ui);
+    App.instance.start(this.session.container.querySelector("render"));
 
     this.scene = new SceneBowling().init(this.session);
-    this.scene.load().then(() => {
-      App.instance.spashscreen(false);
-    })
+    this.scene.load();
   }
 
   playstart() {
@@ -84,15 +72,12 @@ class PageSplashscreenBowling extends PageBase {
     this.gameover_elapsed = 0;
     this.scene.play();
     this.scene.reset();
-
-    this.overlay_ui.run(this.scene.level);
   }
 
   playstop() {
     this.inplay = false;
     this.scene.stop();
     this.session.endplay(this.score);
-    this.overlay_ui.stop();
   }
 
   stop() {

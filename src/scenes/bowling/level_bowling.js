@@ -47,7 +47,7 @@ class LevelBowlingUtils {
       this._physics,
       mesh,
       dynamic,
-      opts,
+      opts
     );
   }
 
@@ -124,10 +124,10 @@ class LevelBowlingUtils {
     // apply rotation stabilization
     const stabilization = physics.cache.vec3_0;
     const mat = physics.cache.mat3;
-    body.getRotationTo(mat)
+    body.getRotationTo(mat);
     const r = mat.toEulerXyz();
 
-    stabilization.init(-r.x, -r.y , -r.z);
+    stabilization.init(-r.x, -r.y, -r.z);
     stabilization.scaleEq(factor);
     body.setAngularVelocity(stabilization);
   }
@@ -146,7 +146,7 @@ class LevelBowlingUtils {
     const up = physics.get_body_up_dot(body);
     const stabilization = physics.cache.vec3_0;
     const mat = physics.cache.mat3;
-    body.getRotationTo(mat)
+    body.getRotationTo(mat);
     const r = mat.toEulerXyz();
     const mass = body.getMass();
 
@@ -159,9 +159,7 @@ class LevelBowlingUtils {
     stabilization.init(-r.x * s, -r.y * s, -r.z * s);
     //const v = physics.cache.vec3_0;
     //body.getAngularVelocityTo(v);
-    stabilization.scaleEq(
-      1 - up,
-    );
+    stabilization.scaleEq(1 - up);
     stabilization.y = -r.y * s * up;
     stabilization.scaleEq(mass);
     body.applyAngularImpulse(stabilization);
@@ -206,10 +204,10 @@ class LevelBowlingMap {
       size.x,
       size.x,
       size.y,
-      opts?.sides ?? 6,
+      opts?.sides ?? 6
     );
     let material = get_material_blob_a(
-      Loader.instance.get_texture("tex_noise0.png"),
+      Loader.instance.get_texture("tex_noise0.png")
     );
 
     let mesh = new THREE.Mesh(geometry, material);
@@ -245,24 +243,27 @@ class LevelBowlingMap {
       const load = (config) => {
         this.close_playscene();
 
-        Loader.instance.get_gltf(root_path + `scene.glb`).then((gltf) => {
-          const scene = gltf.scene;
-          render.scene.add(scene);
-          this.playscene = scene;
-          if (lightmaps) {
-            if (config) {
-              LightsA.apply_lightmaps(scene, root_path, config);
+        Loader.instance
+          .get_gltf(root_path + `scene.glb`)
+          .then((gltf) => {
+            const scene = gltf.scene;
+            render.scene.add(scene);
+            this.playscene = scene;
+            if (lightmaps) {
+              if (config) {
+                LightsA.apply_lightmaps(scene, root_path, config);
+              }
+              LightsA.apply_lightmaps_white(scene);
             }
-            LightsA.apply_lightmaps_white(scene);
-          }
 
-          const opts = this._utils.parse_playscene(scene);
-          for (const k in opts.spawnpoints) {
-            this.spawnpoints[k] = Array.from(opts.spawnpoints[k]);
-          }
+            const opts = this._utils.parse_playscene(scene);
+            for (const k in opts.spawnpoints) {
+              this.spawnpoints[k] = Array.from(opts.spawnpoints[k]);
+            }
 
-          resolve();
-        });
+            resolve();
+          })
+          .catch(reject);
       };
 
       if (lightmaps) {
@@ -410,14 +411,18 @@ class LevelBowlingA {
 
     this.guids = 0;
     this.bots_count = 0;
+    this.bots_active = true;
+    this.physics_active = true;
 
     /** @type {LevelBowlingConfig} */
     this.config = Object.setPrototypeOf({}, LevelBowlingConfig_t);
   }
 
   step(dt) {
-    this.physics.step(dt);
-    this.logo.step(dt);
+    if (this.physics_active) {
+      this.physics.step(dt);
+    }
+    this.logo?.step(dt);
     this.map.step(dt);
 
     for (const k in this.pawns) {
@@ -425,9 +430,11 @@ class LevelBowlingA {
       pawn.step(dt);
     }
 
-    for (const k in this.bots) {
-      const bot = this.bots[k];
-      bot.step(dt);
+    if (this.bots_active) {
+      for (const k in this.bots) {
+        const bot = this.bots[k];
+        bot.step(dt);
+      }
     }
 
     for (const k in this.projectiles) {
@@ -458,7 +465,7 @@ class LevelBowlingA {
     }
   }
 
-  async run(opts = { floor: false }) {
+  async run(opts = { floor: false, map: null, logo: true }) {
     this.environment = new Environment1();
     this.environment.run({
       floor: opts?.floor ?? false,
@@ -474,14 +481,17 @@ class LevelBowlingA {
 
     this.utils = new LevelBowlingUtils(this.physics);
     this.map = new LevelBowlingMap(this.physics, this.utils);
-    this.logo = new LevelBowlingLogo(this.physics, this.utils);
 
     this.pawn = this.create_pawn(null, null, false);
 
     await ProjectileBallBowling.preload();
     await this.pawn.load();
-    await this.map.run(this.config.map);
-    await this.logo.run();
+    await this.map.run(opts?.map ?? this.config.map);
+
+    if (opts?.logo ?? true) {
+      this.logo = new LevelBowlingLogo(this.physics, this.utils);
+      await this.logo.run();
+    }
 
     this.create_bots(this.config.bots_count);
   }
@@ -498,7 +508,7 @@ class LevelBowlingA {
     this.pawns[id] = pawn;
     if (run && position) {
       pawn.pawn_body.setPosition(
-        this.physics.cache.vec3_0.init(position.x, position.y, position.z),
+        this.physics.cache.vec3_0.init(position.x, position.y, position.z)
       );
     }
     if (load) {
@@ -521,7 +531,7 @@ class LevelBowlingA {
     const projectile = new ProjectileBallBowling(pawn.id, this).run(
       pawn.pawn_draw._target.position,
       direction,
-      scale,
+      scale
     );
 
     this.projectiles[projectile.body.id] = projectile;
@@ -596,7 +606,7 @@ class LevelBowlingA {
         }
         const position = this.map.get_rand_spawnpoint("pawn");
         b.setPosition(
-          this.physics.cache.vec3_0.init(position.x, position.y, position.z),
+          this.physics.cache.vec3_0.init(position.x, position.y, position.z)
         );
       }
 
@@ -626,7 +636,7 @@ class LevelBowlingA {
 
     this.physics.stop();
     this.map.stop();
-    this.logo.stop();
+    this.logo?.stop();
 
     this.physics = null;
     this.logo = null;

@@ -44,20 +44,47 @@ page {
     width: 100%;
   }
 
+  a.btn.btn-style-a {
+    text-decoration: none;
+  }
+
+  .btn-style-a-colors(@color) {
+    --color: @color;
+    background-color: #f3f3d6;
+		text-shadow: 
+			0px 1px #fffa,
+			0px 3px darken(@color, 10%);
+    box-shadow:
+      0px 8px darken(@color, 10%),
+			0px 8px 0px 8px @color;
+
+    &:active {
+      position: relative;
+      top: 8px;
+      box-shadow:
+				0px 0px 0px 8px @color,
+        0px 0px 100px 50px #fffa;
+    }
+  }
+
+  .btn-style-a.aqua {
+    .btn-style-a-colors(#3ecbb1);
+  }
+
+  .btn-style-a.purple {
+    .btn-style-a-colors(#b93ecb);
+	}
+  .btn-style-a.black {
+    .btn-style-a-colors(#333);
+	}
+
   .btn-style-a {
     cursor: pointer;
     font-size: large;
     font-family: inherit;
     font-weight: bold;
-		--color: #3ecbb1;
     color: var(--color);
-    background-color: #f3f3d6;
-		text-shadow: 
-			0px 1px #fffa,
-			0px 3px #2b9166;
-    box-shadow:
-      0px 8px #4db39c,
-			0px 8px 0px 8px var(--color);
+    .btn-style-a-colors(#3ecbb1);
 			
     padding: 0.4em 2em;
     border-radius: 10em;
@@ -72,24 +99,8 @@ page {
         0px 0px 100px 50px #fffa;
     }
   }
-  .btn-style-a.purple {
-		--color: #b93ecb;
-    background-color: #f3f3d6;
-		text-shadow: 
-			0px 1px #fffa,
-			0px 3px #912b86;
-    box-shadow:
-      0px 8px #8a3297,
-			0px 8px 0px 8px var(--color);
 
-    &:active {
-      position: relative;
-      top: 8px;
-      box-shadow:
-				0px 0px 0px 8px var(--color),
-        0px 0px 100px 50px #fffa;
-    }
-	}
+
 
 	.btn-style-a.locked {
 		filter: grayscale(1) contrast(0.5) brightness(1.3);
