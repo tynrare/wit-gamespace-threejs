@@ -234,12 +234,12 @@ class PawnBotBowlingA {
     }
   }
 
-  find_closest(list, getpos) {
+  find_closest(list, getpos, getvalid) {
     let closest = null;
     let closest_dist = Infinity;
     for (const k in list) {
       const o = list[k];
-      if (o.pawn_behaviour?.dead || o == this._pawn) {
+      if (o == this._pawn || (getvalid && !getvalid(o))) {
         continue;
       }
 
@@ -259,6 +259,8 @@ class PawnBotBowlingA {
   find_closest_enemy(pawns) {
     return this.find_closest(pawns, (p) => {
       return p.pawn_dbg_mesh.position;
+    }, (p) => {
+      return !p.pawn_behaviour.dead;
     });
   }
 
