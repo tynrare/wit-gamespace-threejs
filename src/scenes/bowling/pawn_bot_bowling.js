@@ -239,7 +239,7 @@ class PawnBotBowlingA {
     let closest_dist = Infinity;
     for (const k in list) {
       const o = list[k];
-      if (o.pawn_behaviour.dead || o == this._pawn) {
+      if (o.pawn_behaviour?.dead || o == this._pawn) {
         continue;
       }
 
