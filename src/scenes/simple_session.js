@@ -127,6 +127,7 @@ class SimpleSession {
     },
     name = "dx",
     superpowers = {},
+    playlist = null
   ) {
     /** @type {SimpleSessionState} */
     this.state = SimpleSessionState.MENU;
@@ -137,6 +138,7 @@ class SimpleSession {
     this.stats = new Session(name);
 
     this.superpowers_opts = superpowers;
+    this.playlist_opts = playlist;
     this.superpowers_list = {};
     for (const k in this.superpowers_opts) {
       this.superpowers_list[k] = false;
@@ -150,6 +152,7 @@ class SimpleSession {
     const ui = container.querySelector(".gp-ui");
     const menu = container.querySelector(".gp-menu");
     const card_superpowers = container.querySelector(".gp-card-superpowers");
+    const card_playlist = container.querySelector(".gp-card-playlist");
     const inputs = container.querySelector(".gp-inputs");
     const hearts = ui.querySelector(".gp-ui-hearts");
     const energy = ui.querySelector(".gp-ui-energy");
@@ -163,6 +166,7 @@ class SimpleSession {
     this.ui = ui;
     this.menu = menu;
     this.card_superpowers = card_superpowers;
+    this.card_playlist = card_playlist;
     this.inputs = inputs;
     this.hearts = hearts;
     this.energy = energy;
@@ -173,7 +177,13 @@ class SimpleSession {
     this.scoreboard = scoreboard;
     this.onplay = onplay;
 
-    this._playbtn_click_event = this.startplay.bind(this);
+    this._playbtn_click_event = () => {
+      if (this.playlist_opts) {
+        this.show_card("gp-card-playlist")
+      } else {
+        this.startplay();
+      }
+    };
     playbtn.addEventListener("click", this._playbtn_click_event);
     this._superbtn_click_event = () => this.show_card("gp-card-superpowers");
     superbtn.addEventListener("click", this._superbtn_click_event);
@@ -192,6 +202,7 @@ class SimpleSession {
     }
 
     this.print_superpowers(this.superpowers_opts);
+    this.print_playlist(this.playlist_opts);
     this.printscore(0);
     this.generic_bars.run(null, this.hearts, this.energy);
 
@@ -267,6 +278,22 @@ class SimpleSession {
       entry.dataset["spkey"] = k;
       this.card_superpowers.appendChild(entry);
       entry.classList[this.superpowers_list[k] ? "add" : "remove"]("active");
+    }
+  }
+
+  print_playlist(list) {
+    this.card_playlist.innerHTML = "";
+    for (const k in list) {
+      const playentry = list[k];
+      const entry = document.createElement("a");
+      entry.classList.add("entry");
+      entry.href = "#" + playentry.href;
+      entry.innerHTML = `
+				<pic>.</pic>
+				<header>${playentry.header}</header>
+				<description>${playentry.description}</description>
+			`;
+      this.card_playlist.appendChild(entry);
     }
   }
 

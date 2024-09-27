@@ -11,6 +11,7 @@ const SUPERPOWERS_BOWLING = {
   },
 };
 
+
 class SuperpowerImmortality {
   /**
    * @param {PageSplashscreenBowling} psb

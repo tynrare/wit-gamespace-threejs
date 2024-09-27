@@ -202,7 +202,7 @@
 			}
 		}
 
-		card entry {
+		card entry, card .entry {
 			& > * {
 				pointer-events: none;
 			}
@@ -257,6 +257,11 @@
 				margin: auto;
 			}
 		}
+
+    card a.entry {
+      text-decoration: none;
+      color: black;
+    }
 
     .scoreboard-style-a {
       margin: auto;
@@ -344,7 +349,7 @@
 		}
   }
 
-	.gp-card-superpowers {
+	.gp-card-superpowers, .gp-card-playlist {
 		gap: 6px;
 	}
 }
