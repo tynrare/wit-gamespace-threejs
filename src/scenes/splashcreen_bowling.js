@@ -17,7 +17,7 @@ const PLAYLIST_BOWLING = {
   mode_deathmatch: {
     header: "Map 1",
     description: "deathmatch",
-    href: "mode_deathmatch_bowling?map=d"
+    href: "mode_deathmatch_bowling?map=e"
   }
 }
 

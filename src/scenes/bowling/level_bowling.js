@@ -88,6 +88,10 @@ class LevelBowlingUtils {
       //m.castShadow = true;
       //m.receiveShadow = true;
 
+      if (m.name.includes("hidden")) {
+        m.visible = false;
+      }
+
       if (!m.name.includes("phys")) {
         return;
       }
