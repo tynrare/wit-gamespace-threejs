@@ -58,7 +58,7 @@ class PawnVisualsBowlingA {
 		const highlight = createImagePlane("bowling/circle0.png", false, this.highlight_tint);
 		this.highlight_mesh = new THREE.Object3D();
 		this.highlight_mesh.add(highlight);
-		highlight.position.y = -0.4;
+		highlight.position.y = -0.3;
 		highlight.rotateX(-Math.PI * 0.5);
 		App.instance.render.scene.add(this.highlight_mesh);
 	}

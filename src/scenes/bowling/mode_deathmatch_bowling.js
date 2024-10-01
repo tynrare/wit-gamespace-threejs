@@ -39,8 +39,9 @@ class ModeDeathmatchBowling extends PageBase {
 
     this.scene = new SceneBowling().init(this.session);
 
-    this.scene.load({ map, logo: false }).then(() => {
+    this.scene.load({ map, logo: false, rand_player_spawnpos: true }).then(() => {
       this.scene.level.bots_active = false;
+			this.scene.camera_controls.playstart(this.scene.level.pawn.pawn_dbg_mesh);
     });
   }
 

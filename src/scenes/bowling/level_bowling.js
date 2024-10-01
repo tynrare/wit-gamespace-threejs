@@ -47,7 +47,7 @@ class LevelBowlingUtils {
       this._physics,
       mesh,
       dynamic,
-      opts
+      opts,
     );
   }
 
@@ -208,10 +208,10 @@ class LevelBowlingMap {
       size.x,
       size.x,
       size.y,
-      opts?.sides ?? 6
+      opts?.sides ?? 6,
     );
     let material = get_material_blob_a(
-      Loader.instance.get_texture("tex_noise0.png")
+      Loader.instance.get_texture("tex_noise0.png"),
     );
 
     let mesh = new THREE.Mesh(geometry, material);
@@ -295,6 +295,18 @@ class LevelBowlingMap {
     return this.spawnpoints[key][
       Math.floor(Math.random() * this.spawnpoints[key].length)
     ];
+  }
+
+  get_next_spawnpoint(key = "all") {
+    if (!this._spawnpoints_usages) {
+      this._spawnpoints_usages = {};
+    }
+    const index =
+      ((this._spawnpoints_usages[key] ?? 0) + 1) %
+      (this.spawnpoints[key]?.length ?? 0);
+		this._spawnpoints_usages[key] = index;
+
+    return this.spawnpoints[key][index];
   }
 
   close_playscene() {
@@ -469,7 +481,9 @@ class LevelBowlingA {
     }
   }
 
-  async run(opts = { floor: false, map: null, logo: true }) {
+  async run(
+    opts = { floor: false, map: null, logo: true, rand_player_spawnpos: false },
+  ) {
     this.environment = new Environment1();
     this.environment.run({
       floor: opts?.floor ?? false,
@@ -498,6 +512,13 @@ class LevelBowlingA {
     }
 
     this.create_bots(this.config.bots_count);
+
+    if (opts?.rand_player_spawnpos ?? false) {
+      const p = this.map.get_next_spawnpoint("pawn");
+      this.pawn.pawn_body.setPosition(
+        this.physics.cache.vec3_0.init(p.x, p.y, p.z),
+      );
+    }
   }
 
   /**
@@ -512,7 +533,7 @@ class LevelBowlingA {
     this.pawns[id] = pawn;
     if (run && position) {
       pawn.pawn_body.setPosition(
-        this.physics.cache.vec3_0.init(position.x, position.y, position.z)
+        this.physics.cache.vec3_0.init(position.x, position.y, position.z),
       );
     }
     if (load) {
@@ -535,7 +556,7 @@ class LevelBowlingA {
     const projectile = new ProjectileBallBowling(pawn.id, this).run(
       pawn.pawn_draw._target.position,
       direction,
-      scale
+      scale,
     );
 
     this.projectiles[projectile.body.id] = projectile;
@@ -556,7 +577,9 @@ class LevelBowlingA {
     const typei = Math.floor(BOOST_EFFECT_TYPES_LIST.length * Math.random());
     const typekey = BOOST_EFFECT_TYPES_LIST[typei];
     const type = BOOST_EFFECT_TYPE[typekey];
-    const position = this.map.get_rand_spawnpoint("boost");
+    const position = this.map.get_next_spawnpoint("boost");
+		position.x += Math.random() - 0.5;
+		position.y += Math.random() - 0.5;
     const boost = new BoostPropBowling(type, this).run(position);
 
     this.boosts[boost.body.id] = boost;
@@ -578,7 +601,7 @@ class LevelBowlingA {
       const pawn = this.create_pawn(null, null, true, false);
       pawn.team = 1;
       pawn.run();
-      const p = this.map.get_rand_spawnpoint("pawn");
+      const p = this.map.get_next_spawnpoint("pawn");
       pawn.pawn_body.setPosition(this.physics.cache.vec3_0.init(p.x, p.y, p.z));
       const bot = new PawnBotBowlingA(pawn, this);
       bot.run();
@@ -608,9 +631,9 @@ class LevelBowlingA {
           this.physics.remove(b);
           continue;
         }
-        const position = this.map.get_rand_spawnpoint("pawn");
+        const position = this.map.get_next_spawnpoint("pawn");
         b.setPosition(
-          this.physics.cache.vec3_0.init(position.x, position.y, position.z)
+          this.physics.cache.vec3_0.init(position.x, position.y, position.z),
         );
       }
 
