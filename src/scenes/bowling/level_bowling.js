@@ -85,8 +85,8 @@ class LevelBowlingUtils {
         return;
       }
 
-      m.castShadow = true;
-      m.receiveShadow = true;
+      //m.castShadow = true;
+      //m.receiveShadow = true;
 
       if (m.name.includes("hidden")) {
         m.visible = false;
@@ -494,9 +494,9 @@ class LevelBowlingA {
       shadows: false,
     });
     App.instance.render.scene.background = new THREE.Color(0x000);
-    this.environment.lights.lights.directional.intensity = 2;
-    this.environment.lights.lights.ambient.intensity = 1;
-    this.environment.lights.lights.hemisphere.intensity = 1;
+    this.environment.lights.lights.directional.intensity = 1;
+    this.environment.lights.lights.ambient.intensity = 0.9;
+    this.environment.lights.lights.hemisphere.intensity = 0.7;
 
     this.physics = new Physics().run({ fixed_step: false });
 
