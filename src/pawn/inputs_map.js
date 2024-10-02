@@ -37,12 +37,14 @@ function InputsMap(container, render, input, input_analog) {
   const pointer = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
   const pos = cache.vec3.v0;
+  const up_plane = new THREE.Plane(Vec3Up);
 
   function trace(sx, sy) {
     pointer.x = (sx / container.clientWidth) * 2 - 1;
     pointer.y = -(sy / container.clientHeight) * 2 + 1;
+    console.log(pointer);
     raycaster.setFromCamera(pointer, render.camera);
-    if (raycaster.ray.intersectPlane(new THREE.Plane(Vec3Up), pos)) {
+    if (raycaster.ray.intersectPlane(up_plane, pos)) {
       return pos;
     }
 

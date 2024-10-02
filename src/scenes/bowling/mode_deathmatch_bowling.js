@@ -1,4 +1,5 @@
 import PageBase from "../../page_base.js";
+import * as THREE from "three";
 import { SimpleSession, SimpleSessionElementStyle } from "../simple_session.js";
 import SceneBowling from "./scene_bowling.js";
 import App from "../../app.js";
@@ -42,6 +43,10 @@ class ModeDeathmatchBowling extends PageBase {
     this.scene.load({ map, logo: false, rand_player_spawnpos: true }).then(() => {
       this.scene.level.bots_active = false;
 			this.scene.camera_controls.playstart(this.scene.level.pawn.pawn_dbg_mesh);
+
+			const bounds_min = new THREE.Vector2().set(-15, -15);
+			const bounds_max = new THREE.Vector2().set(15, 15);
+			this.scene.camera_controls.set_bounds(bounds_min, bounds_max);
     });
   }
 

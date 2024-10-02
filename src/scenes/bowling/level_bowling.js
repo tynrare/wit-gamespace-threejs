@@ -298,12 +298,15 @@ class LevelBowlingMap {
   }
 
   get_next_spawnpoint(key = "all") {
+    if (!this.spawnpoints[key]?.length) {
+			return this.get_rand_spawnpoint(key);
+		}
     if (!this._spawnpoints_usages) {
       this._spawnpoints_usages = {};
     }
     const index =
       ((this._spawnpoints_usages[key] ?? 0) + 1) %
-      (this.spawnpoints[key]?.length ?? 0);
+      (this.spawnpoints[key]?.length ?? 1);
 		this._spawnpoints_usages[key] = index;
 
     return this.spawnpoints[key][index];

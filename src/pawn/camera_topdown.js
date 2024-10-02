@@ -21,9 +21,10 @@ const CameraTopdownConfig = {
   /**
    * actial camera movement speed
    */
-  camera_speed: 0.1,
+  camera_speed: 0.5,
 }
 
+/** @type {CameraTopdownConfig} */
 const CameraTopdownConfig_t = Object.setPrototypeOf({}, CameraTopdownConfig);
 
 /**
@@ -37,6 +38,8 @@ class CameraTopdown {
     this._camera = null;
     /** @type {THREE.Object3D} */
     this._target = null;
+
+		this.shift = new Vector3();
 
     this._target_lpos = new Vector3();
     this._camera_lpos = new Vector3();
@@ -74,6 +77,7 @@ class CameraTopdown {
     const pos = this.cache.v3.copy(Vec3Forward);
     pos.normalize().multiplyScalar(this.config.distance);
     pos.y += this.config.height;
+		pos.add(this.shift);
 
     this._target_lpos.lerp(this._target.position, this.config.follow_speed);
 
@@ -84,7 +88,9 @@ class CameraTopdown {
     this._camera.position.copy(this._camera_lpos);
     this._camera.up = Vec3Up;
 
-    this._camera.lookAt(this._target.position);
+		pos.copy(this._target.position);
+		pos.add(this.shift);
+    this._camera.lookAt(pos);
   }
 
   dispose() {
@@ -103,10 +109,12 @@ class CameraTopdown {
   set_camera(camera) {
     this._camera = camera;
 		this._camera_lpos.copy(camera.position);
+		/*
     const v = cache.vec3.v0;
     camera.getWorldDirection(v);
     const camera_rot = Math.atan2(-v.x, -v.z);
 		this.rotation = camera_rot;
+		*/
   }
 
   /**
@@ -115,6 +123,7 @@ class CameraTopdown {
   set_target(target) {
     this._target = target;
     this._target_lpos.copy(this._target.position);
+		this.shift.setScalar(0);
   }
 }
 

@@ -1,6 +1,6 @@
  /** @namespace Core */
 
-import { Object3D, Quaternion, Matrix4, Vector3, Color } from "three";
+import { Plane, Raycaster, Object3D, Quaternion, Matrix4, Vector3, Color, Vector2 } from "three";
 
 export const Vec3Up = new Vector3(0, 1, 0);
 export const Vec3Forward = new Vector3(0, 0, 1);
@@ -82,6 +82,13 @@ export const PERFECT_NUMBER = Math.sin(Math.PI / Math.pow(2, 2)); // 0.707
 export const DEFAULT_GEOM_THRESHOLD = Math.pow(PERFECT_NUMBER, 2) * 0.1; // 0.049
 
 export const cache = {
+	vec2: {
+		v0: new Vector2(),
+		v1: new Vector2(),
+		v2: new Vector2(),
+		v3: new Vector2(),
+		v5: new Vector2(),
+	},
 	vec3: {
 		v0: new Vector3(),
 		v1: new Vector3(),
@@ -95,7 +102,9 @@ export const cache = {
 		v9: new Vector3()
 	},
 	color0: new Color(),
-	quaternion0: new Quaternion()
+	quaternion0: new Quaternion(),
+	raycaster: new Raycaster(),
+	planeup: new Plane(Vec3Up)
 };
 
 // buffer vectors
@@ -351,4 +360,52 @@ export function barycentric_to_cartesian(a, b, c, bc_point) {
 	const fc = vec2.copy(c).multiplyScalar(bc_point.z);
 
 	return vecR.copy(fa).add(fb).add(fc);
+}
+
+// line intercept math by Paul Bourke http://paulbourke.net/geometry/pointlineplane/
+// Determine the intersection point of two line segments
+/**
+ * @param {Vector2} l1a
+ * @param {Vector2} l1b
+ * @param {Vector2} l2a
+ * @param {Vector2} l2b
+ */
+export function intersect_line_line_2d(l1a, l1b, l2a, l2b) {
+//x1, y1, x2, y2, x3, y3, x4, y4
+	const x1 = l1a.x;
+	const y1 = l1a.y;
+	const x2 = l1b.x;
+	const y2 = l1b.y;
+	const x3 = l2a.x;
+	const y3 = l2a.y;
+	const x4 = l2b.x;
+	const y4 = l2b.y;
+
+  // Check if none of the lines are of length 0
+	if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+		return null
+	}
+
+	let denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+
+  // Lines are parallel
+	if (denominator === 0) {
+		return null
+	}
+
+	let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+	let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+
+  // is the intersection along the segments
+	/*
+	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+		return null
+	}
+	*/
+
+  // Return a object with the x and y coordinates of the intersection
+	let x = x1 + ua * (x2 - x1)
+	let y = y1 + ua * (y2 - y1)
+
+	return cache.vec2.v5.set(x, y);
 }
