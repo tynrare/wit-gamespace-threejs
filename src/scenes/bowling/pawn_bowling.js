@@ -183,6 +183,16 @@ class PawnBowlingA {
   _create_pawn_draw() {
     this.pawn_draw = new PawnDrawA();
     this.pawn_draw.init(this.character_gltf, this.character_scene);
+		this.character_scene.traverse((o) => {
+      /** @type {THREE.Mesh} */
+      const m = /** @type {any} */ (o);
+      if (!m.isMesh) {
+        return;
+      }
+
+      m.castShadow = true;
+      m.receiveShadow = true;
+		});
     App.instance.render.scene.add(this.character_scene);
     this.pawn_dbg_mesh.visible = false;
   }
