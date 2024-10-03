@@ -14,6 +14,12 @@ const BOOST_EFFECT_TYPE = {
   SHIELD: "SHIELD",
 };
 
+const BOOST_EFFECT_SHAPE = {
+  SPEED: "shape",
+  ATTACK: "shape",
+  SHIELD: "square",
+}
+
 const BOOST_EFFECT_TYPES_LIST = Object.keys(BOOST_EFFECT_TYPE);
 
 const BOOST_EFFECT_TYPE_COLORS = {
@@ -33,7 +39,7 @@ class BoostPropBowling {
    * @param {BOOST_EFFECT_TYPE} type
    * @param {LevelBowlingA} level
    */
-  constructor(type, level) {
+  constructor(type, level, shape = "round") {
     /** @type {LevelBowlingA} */
     this._level = level;
     /** @type {Physics} */
@@ -44,6 +50,8 @@ class BoostPropBowling {
     this.body = null;
 
     this.type = type;
+
+		this.shape = "shape";
   }
 
   step(dt) {}
@@ -55,12 +63,24 @@ class BoostPropBowling {
   }
 
   run(position) {
-    const id = this._physics.utils.create_physics_sphere(
-      position,
-      0.4,
-      RigidBodyType.DYNAMIC,
-      { friction: 1, restitution: 2.9, density: 0.2, ldamping: 1 },
-    );
+		let id = null;
+		if (this.shape = "square") {
+			const shape = this._physics.cache.vec3_0.init(1, 1, 1);
+			id = this._physics.utils.create_physics_box(
+				position,
+				shape,
+				RigidBodyType.DYNAMIC,
+				{ friction: 2, restitution: 0.9, density: 2.2, ldamping: 0 },
+			);
+		} else if (true || this.shape === "shape") {
+			const shape = 0.4;
+			id = this._physics.utils.create_physics_sphere(
+				position,
+				shape,
+				RigidBodyType.DYNAMIC,
+				{ friction: 1, restitution: 2.9, density: 0.2, ldamping: 1 },
+			);
+		} 
 
     this.body = this._physics.bodylist[id];
     this.mesh = this._physics.meshlist[id];
@@ -102,6 +122,9 @@ class BoostPropBowling {
 
     this._physics = null;
   }
+}
+
+class BoostSquarePropBowling extends BoostPropBowling {
 }
 
 class BoostEffectBowling {
@@ -229,6 +252,8 @@ class BoostEffectBowling {
 export {
   BoostPropBowling,
   BoostEffectBowling,
+	BoostSquarePropBowling,
   BOOST_EFFECT_TYPE,
   BOOST_EFFECT_TYPES_LIST,
+	BOOST_EFFECT_SHAPE
 };

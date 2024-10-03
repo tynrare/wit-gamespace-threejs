@@ -11,6 +11,7 @@ import PawnBotBowlingA from "./pawn_bot_bowling.js";
 import ProjectileBallBowling from "./projectile_ball_bowling.js";
 import {
   BOOST_EFFECT_TYPE,
+	BOOST_EFFECT_SHAPE,
   BOOST_EFFECT_TYPES_LIST,
   BoostPropBowling,
 } from "./boost_bowling.js";
@@ -602,10 +603,11 @@ class LevelBowlingA {
     const typei = Math.floor(BOOST_EFFECT_TYPES_LIST.length * Math.random());
     const typekey = BOOST_EFFECT_TYPES_LIST[typei];
     const type = BOOST_EFFECT_TYPE[typekey];
+		const shape = BOOST_EFFECT_SHAPE[type];
     const position = this.map.get_next_spawnpoint("boost");
 		position.x += Math.random() - 0.5;
 		position.y += Math.random() - 0.5;
-    const boost = new BoostPropBowling(type, this).run(position);
+    const boost = new BoostPropBowling(type, this, shape).run(position);
 
     this.boosts[boost.body.id] = boost;
   }
