@@ -2,9 +2,10 @@ import App from "../../app.js";
 import * as THREE from "three";
 import { lerp } from "../../math.js";
 import { createImagePlane } from "../../tests/utils.js";
+import { config } from "./index.js";
 
-const FAKE_BOT_NAMES = ["Ivan", "Roman", "Andrey", "Anton", "Oleg", "Tim", "Pavel", "Vlad"];
-let _pawn_names_iterator = Math.floor(Math.random() * FAKE_BOT_NAMES.length);
+const botnames = ["Ivan", "Roman", "Andrey", "Anton", "Oleg", "Tim", "Pavel", "Vlad"];
+let _pawn_names_iterator = Math.floor(Math.random() * botnames.length);
 
 class PawnVisualsBowlingA {
 	/**
@@ -22,7 +23,8 @@ class PawnVisualsBowlingA {
 
 		this.highlight_tint = highlight_tint;
 
-		this.name = FAKE_BOT_NAMES[_pawn_names_iterator++ % FAKE_BOT_NAMES.length];
+		const txt = botnames[_pawn_names_iterator++ % botnames.length];
+		this.name = config.nicknames ? txt : pawn.id;
 	}
 
 	step(dt) {

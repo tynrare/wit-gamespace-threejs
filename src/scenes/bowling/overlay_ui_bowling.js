@@ -6,10 +6,13 @@ import {
 import * as THREE from "three";
 import { cache, clamp } from "../../math.js";
 import App from "../../app.js";
+import { config as bconfig } from "./index.js";
 
 const OverlayUiBowlingConfig = {
 	show_enemy_energy: false,
-	split_bars: true
+	split_bars: true,
+	print_nicknames: bconfig.nicknames
+
 }
 
 const OverlayUiBowlingConfig_t = Object.setPrototypeOf({}, OverlayUiBowlingConfig);
@@ -60,7 +63,8 @@ class OverlayUiBowling {
 		root.classList.add("gp-ui-floating", "small");
 		const name = document.createElement("label");
 		name.classList.add("gp-ui-name");
-		name.innerHTML = !enemy ? "You" : pawn.pawn_visuals.name;
+		const txt = this.config.print_nicknames ? pawn.pawn_visuals.name : pawn.id;
+		name.innerHTML = !enemy ? "You" : txt;
 		const hearts = document.createElement("container");
 		hearts.classList.add("gp-ui-hearts");
 		const energy = document.createElement("container");

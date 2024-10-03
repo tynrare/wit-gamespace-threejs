@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { SimpleSession, SimpleSessionElementStyle } from "../simple_session.js";
 import SceneBowling from "./scene_bowling.js";
 import App from "../../app.js";
+import { config } from "./index.js";
 
 class ModeDeathmatchBowling extends PageBase {
   constructor() {
@@ -37,7 +38,8 @@ class ModeDeathmatchBowling extends PageBase {
 		const rating = [];
 		for (const k in this.score) {
 			const p = this.scene.level.pawns[k];
-			const name = p == this.scene.level.pawn ? "You" : p.pawn_visuals.name;
+			const txt = config.nicknames ? p.pawn_visuals.name : p.id;
+			const name = p == this.scene.level.pawn ? "You" : txt;
 			rating.push({
 				name,
 				score: this.score[k]

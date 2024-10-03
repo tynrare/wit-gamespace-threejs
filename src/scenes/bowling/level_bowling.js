@@ -555,9 +555,9 @@ class LevelBowlingA {
     delete this.pawns[id];
   }
 
-	respawn_pawn(id) {
+	respawn_pawn(id, pos) {
 		const pawn = this.pawns[id];
-		const p = this.map.get_next_spawnpoint("pawn");
+		const p = pos || this.map.get_next_spawnpoint("pawn");
 		pawn.pawn_body.setPosition(this.physics.cache.vec3_0.init(p.x, p.y, p.z));
 		pawn.pawn_behaviour.revive();
 	}
