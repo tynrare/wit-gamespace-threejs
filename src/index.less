@@ -48,17 +48,26 @@ page {
     text-decoration: none;
   }
 
+	.enable-txt-borders a.btn.btn-style-a {
+		border: 8px white solid;
+	}
+
   .btn-style-a-colors(@color) {
     --color: @color;
-    background-color: #f3f3d6;
+		background-color: #000000;
+		.enable-exstra-colors {
+			background-color: #f3f3d6;
+		}
 		text-shadow: 
 			0px 1px #fffa,
 			0px 3px darken(@color, 10%);
-    box-shadow:
-      0px 8px darken(@color, 10%),
-			0px 8px 0px 8px @color;
+		&.enable-txt-shadows {
+			box-shadow:
+				0px 8px darken(@color, 10%),
+				0px 8px 0px 8px @color;
+		}
 
-    &:active {
+    &.enable-txt-shadows:active{
       position: relative;
       top: 8px;
       box-shadow:
@@ -78,6 +87,13 @@ page {
     .btn-style-a-colors(#333);
 	}
 
+  .disable-txt-shadows .btn-style-a {
+		box-shadow: none;
+    &:active {
+			box-shadow: none;
+		}
+	}
+
   .btn-style-a {
     cursor: pointer;
     font-size: large;
@@ -87,7 +103,9 @@ page {
     .btn-style-a-colors(#3ecbb1);
 			
     padding: 0.4em 2em;
-    border-radius: 10em;
+		.enable-btn-borders & {
+			border-radius: 10em;
+		}
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 
@@ -110,7 +128,9 @@ page {
 	}
 
   .label-style-a {
-		font-family: "Rubik";
+		.enable-extra-fonts & {
+			font-family: "Rubik";
+		}
 		.theme(@color) {
 			color: @color;
 			text-shadow:

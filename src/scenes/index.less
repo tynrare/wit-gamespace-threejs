@@ -87,7 +87,9 @@
           display: block;
         }
         font-size: 2em;
-        font-family: "Rubik";
+				.enable-extra-fonts & {
+					font-family: "Rubik";
+				}
         color: #f0c755;
         text-shadow:
           0px 1px #ffe59e,
@@ -147,20 +149,38 @@
 					inset 0px -4px lighten(@color, 20%);
 			}
 
-			&.green::before {
-				.bar-style(#45BF55);
-			}
+				&.green::before {
+					.bar-style(#00ff00);
+				}
 
-			&.pink::before {
-				.bar-style(#FF7166);
-			}
+				&.pink::before {
+					.bar-style(#ff00ff);
+				}
 
-      &.red::before {
-				.bar-style(#ff3324);
-			}
+				&.red::before {
+					.bar-style(#ff0000);
+				}
 
-			&.blue::before {
-				.bar-style(#1f91b3);
+				&.blue::before {
+					.bar-style(#0000ff);
+				}
+
+			.enable-extra-colors {
+				&.green::before {
+					.bar-style(#45BF55);
+				}
+
+				&.pink::before {
+					.bar-style(#FF7166);
+				}
+
+				&.red::before {
+					.bar-style(#ff3324);
+				}
+
+				&.blue::before {
+					.bar-style(#1f91b3);
+				}
 			}
 
 			&::before {
@@ -330,7 +350,9 @@
       margin-top: 1em;
       transition-duration: 1s;
       transition-property: opacity;
-      font-family: "Rubik";
+			.enable-extra-fonts & {
+				font-family: "Rubik";
+			}
       &.show {
         transition-delay: 1s;
         opacity: 1;
@@ -421,7 +443,9 @@
           display: block;
         }
         font-size: 2em;
-        font-family: "Rubik";
+				.enable-extra-fonts & {
+					font-family: "Rubik";
+				}
         color: #f0c755;
         text-shadow:
           0px 1px #ffe59e,
