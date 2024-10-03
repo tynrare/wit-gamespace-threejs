@@ -555,6 +555,13 @@ class LevelBowlingA {
     delete this.pawns[id];
   }
 
+	respawn_pawn(id) {
+		const pawn = this.pawns[id];
+		const p = this.map.get_next_spawnpoint("pawn");
+		pawn.pawn_body.setPosition(this.physics.cache.vec3_0.init(p.x, p.y, p.z));
+		pawn.pawn_behaviour.revive();
+	}
+
   create_projectile(pawn, direction, scale = 1) {
     const projectile = new ProjectileBallBowling(pawn.id, this).run(
       pawn.pawn_draw._target.position,

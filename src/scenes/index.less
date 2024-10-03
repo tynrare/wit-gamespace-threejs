@@ -23,6 +23,7 @@
 			display: none;
 		}
 
+
     container.gp-ui-floating {
 			position: absolute;
 			transform: translate(-50%, -50%);
@@ -32,6 +33,12 @@
       min-width: 100px;
 			& > * {
 				margin: auto;
+			}
+
+			label.gp-ui-name {
+				font-size: 2em;
+				color: white;
+				text-shadow: 1px 1px black;
 			}
 		}
 
@@ -49,13 +56,15 @@
       margin-left: 0;
       min-width: 100px;
 		}
-    container.gp-ui-hearts,
-    container.gp-ui-score {
-      display: flex;
-      flex-direction: row;
-    }
+
+		container.gp-ui-leftgui,
+		container.gp-ui-rightgui {
+			z-index: 1;
+		}
 
     container.gp-ui-score {
+      display: flex;
+      flex-direction: column;
       margin: auto;
       margin-top: 0;
       margin-right: 0;
@@ -65,7 +74,7 @@
         display: flex;
         flex-direction: row;
         &::after {
-          margin: auto;
+          margin: auto 0;
           padding-left: 8px;
           content: "";
           background-image: url("../../assets/pic/star.png");
@@ -85,6 +94,30 @@
           0px 3px #c35002;
       }
     }
+
+    container.gp-ui-score .ratingboard {
+      display: flex;
+      flex-direction: column;
+			font-size: 1.2em;
+			padding: 4px 8px;
+
+			background-color: #00000055;
+			border-radius: 4px;
+			color: white;
+			text-shadow: 1px 1px black;
+			backdrop-filter: blur(8px);
+
+			entry {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+				gap: 20px;
+			}
+
+			entry:first-child {
+				font-size: 1.25em;
+			}
+		}
 
     container.gp-ui-energy, container.gp-ui-hearts {
 			display: flex;

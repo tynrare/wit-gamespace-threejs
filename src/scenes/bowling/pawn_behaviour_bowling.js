@@ -55,6 +55,7 @@ class PawnBehaviourBowlingA {
     this.hearts_recharge_t = 0;
     this.hearts_recharge_delay_t = 0;
     this.dead = false;
+		this.killedby = null;
 
     this.timescale = 1;
 
@@ -102,7 +103,7 @@ class PawnBehaviourBowlingA {
       this.contacts += 1;
 
       if (other.userData?.type_projectile) {
-        this.hurt(other.userData?.damage ?? 1);
+        this.hurt(other.userData?.damage ?? 1, other.userData?.owner);
         const projectile = this._pawn._level.projectiles[other.id];
         projectile?.crush();
 
@@ -301,7 +302,7 @@ class PawnBehaviourBowlingA {
     return true;
   }
 
-  hurt(amount = 1) {
+  hurt(amount = 1, by) {
     if (
       this.dead ||
       (this.stun && !this.config.recieve_damage_in_stun) ||
@@ -322,6 +323,7 @@ class PawnBehaviourBowlingA {
       this.stun_time = Infinity;
       this._pawn.pawn_draw.stun = true;
       this.dead = true;
+			this.killedby = by;
     }
   }
 
@@ -344,9 +346,8 @@ class PawnBehaviourBowlingA {
     this._pawn.pawn_draw.stun = false;
     this.stun = false;
     this.dead = false;
+		this.killedby = null;
   }
-
-  
 }
 
 export default PawnBehaviourBowlingA;

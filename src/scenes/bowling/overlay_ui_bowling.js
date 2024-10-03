@@ -43,7 +43,7 @@ class OverlayUiBowling {
 				continue;
 			}
 			if (!ov) {
-				ov = this.make_overlay_element(pawn != this._level.pawn);
+				ov = this.make_overlay_element(pawn, pawn != this._level.pawn);
 				this.container.appendChild(ov.container);
 				this.overlays[k] = ov;
 			}
@@ -55,13 +55,17 @@ class OverlayUiBowling {
 		}
 	}
 
-	make_overlay_element(enemy = true) {
+	make_overlay_element(pawn, enemy = true) {
 		const root = document.createElement("container");
 		root.classList.add("gp-ui-floating", "small");
+		const name = document.createElement("label");
+		name.classList.add("gp-ui-name");
+		name.innerHTML = !enemy ? "You" : pawn.pawn_visuals.name;
 		const hearts = document.createElement("container");
 		hearts.classList.add("gp-ui-hearts");
 		const energy = document.createElement("container");
 		energy.classList.add("gp-ui-energy");
+		root.appendChild(name);
 		root.appendChild(hearts);
 		root.appendChild(energy);
 

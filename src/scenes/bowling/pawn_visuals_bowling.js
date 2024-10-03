@@ -3,6 +3,9 @@ import * as THREE from "three";
 import { lerp } from "../../math.js";
 import { createImagePlane } from "../../tests/utils.js";
 
+const FAKE_BOT_NAMES = ["Ivan", "Roman", "Andrey", "Anton", "Oleg", "Tim", "Pavel", "Vlad"];
+let _pawn_names_iterator = Math.floor(Math.random() * FAKE_BOT_NAMES.length);
+
 class PawnVisualsBowlingA {
 	/**
 	 * @param {PawnBowlingA} pawn
@@ -18,6 +21,8 @@ class PawnVisualsBowlingA {
 		this.highlight_mesh = null;
 
 		this.highlight_tint = highlight_tint;
+
+		this.name = FAKE_BOT_NAMES[_pawn_names_iterator++ % FAKE_BOT_NAMES.length];
 	}
 
 	step(dt) {

@@ -157,6 +157,7 @@ class SimpleSession {
     const hearts = ui.querySelector(".gp-ui-hearts");
     const energy = ui.querySelector(".gp-ui-energy");
     const score = ui.querySelector(".gp-ui-score .score");
+    const ratingboard = ui.querySelector(".gp-ui-score .ratingboard");
     const playbtn = menu.querySelector(".playbtn");
     const superbtn = menu.querySelector(".superbtn");
     const backbtn = menu.querySelector(".backbtn");
@@ -176,7 +177,10 @@ class SimpleSession {
     this.backbtn = backbtn;
     this.superbtn = superbtn;
     this.menubtn = menubtn;
+		// menu score
     this.scoreboard = scoreboard;
+		// ingame score
+    this.ratingboard = ratingboard;
     this.onplay = onplay;
 
     this._playbtn_click_event = () => {
@@ -262,6 +266,22 @@ class SimpleSession {
 
   printscore(score) {
     this.score.innerHTML = score;
+  }
+
+	/**
+	 * @type {Array<{name: string, score: number}>} rating
+	 */
+  printrating(rating) {
+		rating.sort((a, b) => {
+			return b.score - a.score;
+		});
+
+    this.ratingboard.innerHTML = '';
+		for (const i in rating) {
+			const r = rating[i];
+			this.ratingboard.innerHTML += 
+				`<entry><name>${r.name}</name><score>${r.score}</score></entry>`
+		}
   }
 
   printhearts(total, hurt) {

@@ -13,7 +13,39 @@ class ModeDeathmatchBowling extends PageBase {
 
     /** @type {SimpleSession} */
     this.session = null;
+
+		this.score = {};
+		this.goalscore = 5;
   }
+
+	routine() {
+		let print = false;
+		for (const k in this.scene.level.pawns) {
+			const p = this.scene.level.pawns[k];
+			if (p.pawn_behaviour.dead) {
+				print = true;
+				this.score[p.pawn_behaviour.killedby] += 1;
+				this.scene.level.respawn_pawn(k);
+			}
+		}
+		if (print) {
+			this.print_rating();
+		}
+	}
+
+	print_rating() {
+		const rating = [];
+		for (const k in this.score) {
+			const p = this.scene.level.pawns[k];
+			const name = p == this.scene.level.pawn ? "You" : p.pawn_visuals.name;
+			rating.push({
+				name,
+				score: this.score[k]
+			});
+		}
+
+		this.session.printrating(rating);
+	}
 
   step(dt) {
     this.scene.step(dt);
@@ -30,6 +62,8 @@ class ModeDeathmatchBowling extends PageBase {
     this.session.superbtn.classList.add("hidden");
     this.session.backbtn.href = "#splashscreen_bowling";
     this.session.playbtn.innerHTML = "READY.";
+		this.session.ratingboard.classList.remove("hidden");
+		this.session.printscore(this.goalscore);
 
     App.instance.start(this.session.container.querySelector("render"));
 
@@ -40,7 +74,7 @@ class ModeDeathmatchBowling extends PageBase {
 
     this.scene = new SceneBowling().init(this.session);
 
-    this.scene.load({ floor: true, map, logo: false, rand_player_spawnpos: true }).then(() => {
+    this.scene.load({ floor: false, map, logo: false, rand_player_spawnpos: true }).then(() => {
       this.scene.level.bots_active = false;
 			this.scene.camera_controls.playstart(this.scene.level.pawn.pawn_dbg_mesh);
 
@@ -51,6 +85,12 @@ class ModeDeathmatchBowling extends PageBase {
   }
 
   playstart() {
+		this.score = {};
+		for (const k in this.scene.level.pawns) {
+			const p = this.scene.level.pawns[k];
+			this.score[k] = 0;
+		}
+		this.print_rating();
     this.scene.play();
     this.scene.level.bots_active = true;
   }
