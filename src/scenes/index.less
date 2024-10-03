@@ -92,8 +92,8 @@
 				}
         color: #f0c755;
         text-shadow:
-          0px 1px #ffe59e,
-          0px 3px #c35002;
+          0px -1px #ffe59e,
+          0px 2px #c35002;
       }
     }
 
@@ -104,7 +104,9 @@
 			padding: 4px 8px;
 
 			background-color: #00000055;
+			.enable-border-radius & {
 			border-radius: 4px;
+		}
 			color: white;
 			text-shadow: 1px 1px black;
 			backdrop-filter: blur(8px);
@@ -144,9 +146,11 @@
 
 			.bar-style(@color) {
 				background-color: @color;
-				box-shadow: 
-					inset 0px -3px darken(@color, 10%),
-					inset 0px -4px lighten(@color, 20%);
+				.enable-box-shadow & {
+					box-shadow: 
+						inset 0px -3px darken(@color, 10%),
+						inset 0px -4px lighten(@color, 20%);
+				}
 			}
 
 				&.green::before {
@@ -251,7 +255,9 @@
 			&.background {
 				background-color: #000a;
 				backdrop-filter: blur(4px);
-				border-radius: 8px;
+				.enable-border-radius & {
+					border-radius: 8px;
+				}
 			}
 		}
 
@@ -264,7 +270,9 @@
 			cursor: pointer;
 			background-color: #f3f3d6;
 			padding: 2px 8px;
-			border-radius: 1em;
+			.enable-border-radius & {
+				border-radius: 1em;
+			}
 
 			display: grid;
 			grid-template-areas:
@@ -284,16 +292,16 @@
 				font-family: "Rubik";
         color: #333;
         text-shadow:
-          0px 1px #000,
-          0px 3px #0005;
+          0px -1px #000,
+          0px 2px #0005;
 			}
 
 			&.active {
 				&::after, header {
 					color: #f0c755;
 					text-shadow:
-					0px 1px #ffe59e,
-					0px 3px #c35002;
+						0px -1px #ffe59e,
+						0px 2px #c35002;
 				}
 				description {
 					opacity: 1;
@@ -384,7 +392,9 @@
 								background-color: #000a;
 								padding: 6px;
 								width: 100%;
+			.enable-border-radius & {
 								border-radius: 6px;
+							}
 								filter: brightness(2);
 								color: white;
 								text-shadow: 0px 2px #333;
@@ -448,8 +458,8 @@
 				}
         color: #f0c755;
         text-shadow:
-          0px 1px #ffe59e,
-          0px 3px #c35002;
+          0px -1px #ffe59e,
+          0px 2px #c35002;
       }
     }
     pic.heart {
@@ -502,7 +512,7 @@
       transition-duration: 1s;
       transition-property: opacity;
       font-family: "Rubik";
-      text-shadow: 0px 3px #2b917e;
+      text-shadow: 0px 2px #2b917e;
       &.show {
         transition-delay: 1s;
         opacity: 1;
@@ -567,7 +577,9 @@
     flex-direction: row;
     gap: 1ch;
     background-color: #00000055;
+			.enable-border-radius & {
     border-radius: 4px;
+	}
     padding: 2px 8px;
     backdrop-filter: blur(8px);
 

@@ -485,7 +485,7 @@ class LevelBowlingA {
   }
 
   async run(
-    opts = { floor: false, map: null, logo: true, rand_player_spawnpos: false },
+    opts = { floor_null: false, floor: false, map: null, logo: true, rand_player_spawnpos: false },
   ) {
     this.environment = new Environment1();
     this.environment.run({
@@ -522,6 +522,21 @@ class LevelBowlingA {
         this.physics.cache.vec3_0.init(p.x, p.y, p.z),
       );
     }
+
+		const render = App.instance.render;
+		if (true || opts?.floor_null === true) {
+			console.log("floor_null log.");
+			render.scene.traverse((o) => {
+      /** @type {THREE.Mesh} */
+      const m = /** @type {any} */ (o);
+
+				console.log("> " + m.name);
+
+				if (m.name.includes("floor")) {
+					m.visible = false;
+				}
+			});
+		}
   }
 
   /**

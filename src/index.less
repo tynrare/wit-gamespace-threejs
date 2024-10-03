@@ -77,7 +77,11 @@ page {
   }
 
   .btn-style-a.aqua {
-    .btn-style-a-colors(#3ecbb1);
+		@color: #3ecbb1;
+    .btn-style-a-colors(@color);
+		text-shadow: 
+			0px -1px #fff3,
+			0px 2px darken(@color, 10%);
   }
 
   .btn-style-a.purple {
@@ -85,6 +89,9 @@ page {
 	}
   .btn-style-a.black {
     .btn-style-a-colors(#333);
+		text-shadow: 
+			0px -1px #fff3,
+			0px 2px darken(#333, 10%);
 	}
 
   .disable-txt-shadows .btn-style-a {

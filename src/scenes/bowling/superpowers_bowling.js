@@ -9,6 +9,10 @@ const SUPERPOWERS_BOWLING = {
     header: "Big Bro",
     description: "You are bigger",
   },
+  floor_null: {
+    header: "floor_null",
+    description: "Disables floor",
+  },
 };
 
 
@@ -75,9 +79,16 @@ class SuperpowerBigbro {
   }
 }
 
+class SpFloorNull {
+	enable() {}
+	step(dt) {}
+  disable() {}
+}
+
 const SUPERPOWERS_CLASSES = {
 	immortality: SuperpowerImmortality,
 	bigbrother: SuperpowerBigbro,
+	floor_null: SpFloorNull
 }
 
 export { SUPERPOWERS_BOWLING, SUPERPOWERS_CLASSES };
