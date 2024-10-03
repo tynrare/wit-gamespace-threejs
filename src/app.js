@@ -1,4 +1,5 @@
 /** @namespace ty */
+import { config } from "./config.js";
 
 import PageBase from "./page_base.js";
 import PageMainmenu from "./page_mainmenu.js";
@@ -287,6 +288,10 @@ class App {
   }
 
   fullscreen(enabled, element = document) {
+		if (config.enable_fullscreen !== true) {
+			return;
+		}
+
 		if (this.DEBUG) {
 			logger.log("fullscreen requested. Ignored in DEBUG mode");
 			return;

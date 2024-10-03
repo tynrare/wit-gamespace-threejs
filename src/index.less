@@ -15,6 +15,27 @@ page {
   height: 100%;
 }
 
+#approot.non-styled {
+	color: white;
+	text-shadow: 0px 1px black;
+}
+
+#approot.btns-styled {
+	a.btn, btn, .playbtn {
+		user-select: none;
+		background-color: black;
+		color: #333;
+		font-weight: bold;
+		text-shadow: 
+			0px -1px #fff5;
+	}
+	.playbtn {
+		color: #555;
+		text-shadow: 
+			0px -1px #fff7;
+	}
+}
+
 #approot {
   font-family: "Source Code Pro", "Lucida Console", "Courier New",
     "Droid Sans Mono", monospace;
@@ -30,6 +51,11 @@ page {
   .hidden {
     display: none !important;
   }
+}
+
+#approot.wipe-extra-fonts {
+  font-family: "Source Code Pro", "Lucida Console", "Courier New",
+    "Droid Sans Mono", monospace !important;
 }
 
 #approot.styled {
@@ -257,7 +283,7 @@ page {
   pointer-events: none;
   display: flex;
   backdrop-filter: blur(8px);
-  background-color: #d6decdaa;
+  background-color: linear-gradient(0% #d6decdaa, 100% #fff);
   //font-family: "Rubik";
   //color: #50aacb;
   //text-shadow: 0px 0.2em #37758c;
@@ -275,6 +301,10 @@ page {
     }
   }
   header {
+		color: #333;
+		text-shadow: 
+			0px -1px #fffa,
+			0px 2px #111;
     margin: auto;
     font-size: min(15vh, 15vw);
     position: relative;

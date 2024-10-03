@@ -11,4 +11,8 @@ const RenderConfig = {
 	cascaded_shadow_maps: false
 };
 
-export { RenderConfig };
+const config = {
+	enable_fullscreen: false
+}
+
+export { RenderConfig, config };
