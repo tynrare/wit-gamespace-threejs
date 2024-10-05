@@ -525,7 +525,7 @@ class LevelBowlingA {
     }
 
 		const render = App.instance.render;
-		if (true || opts?.floor_null === true) {
+		if (opts?.floor_null === true) {
 			console.log("floor_null log.");
 			render.scene.traverse((o) => {
       /** @type {THREE.Mesh} */
