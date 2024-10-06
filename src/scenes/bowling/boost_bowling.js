@@ -64,7 +64,7 @@ class BoostPropBowling {
 
   run(position) {
 		let id = null;
-		if (this.shape = "square") {
+		if (this.shape == "square") {
 			const shape = this._physics.cache.vec3_0.init(1, 1, 1);
 			id = this._physics.utils.create_physics_box(
 				position,

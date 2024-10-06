@@ -7,19 +7,8 @@ import {
 } from "./bowling/superpowers_bowling.js";
 import logger from "../logger.js";
 import SceneBowling from "./bowling/scene_bowling.js";
+import playset_bowling from "../playset_bowling.js"
 
-const PLAYLIST_BOWLING = {
-  dust2: {
-    header: "Dust 2",
-    description: "hah. Not that one",
-    href: ""
-  },
-  mode_deathmatch: {
-    header: "Map 1",
-    description: "deathmatch",
-    href: "mode_deathmatch_bowling?map=e"
-  }
-}
 
 class PageSplashscreenBowling extends PageBase {
   constructor() {
@@ -58,7 +47,7 @@ class PageSplashscreenBowling extends PageBase {
       },
       "bowling-xd0",
       SUPERPOWERS_BOWLING,
-      PLAYLIST_BOWLING
+      playset_bowling
     ).init(this.container, () => this.playstart());
 
     App.instance.start(this.session.container.querySelector("render"));
