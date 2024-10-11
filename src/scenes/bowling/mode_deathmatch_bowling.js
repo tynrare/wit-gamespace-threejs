@@ -77,7 +77,7 @@ class ModeDeathmatchBowling extends PageBase {
     this.session.printscore(this.goalscore);
 
     App.instance.start(this.session.container.querySelector("render"));
-    App.instance.render.pixelate(true, { gtao: false, pixelate: false, bokeh: true });
+    App.instance.render.pixelate(true, { gtao: false, pixelate: false, bokeh: false });
 
     const hash = document.location.hash;
     const query = hash.substring(hash.indexOf("?"));
