@@ -72,6 +72,10 @@ class Render {
     renderer.shadowMap.enabled = this.config.shadows;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    renderer.toneMapping = THREE.LinearToneMapping;
+    renderer.toneMappingExposure = 1.5;
+
+
     this.htmlcontainer.appendChild(renderer.domElement);
 
     this.renderer = renderer;

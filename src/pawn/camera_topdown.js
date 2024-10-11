@@ -54,6 +54,17 @@ class CameraTopdown {
     this.config = Object.setPrototypeOf({}, CameraTopdownConfig_t);
 		
     this.zoomout = false;
+
+    /** @type {Box3} */
+    this.bounds = null;
+  }
+
+  /**
+  * @param {Vector3} min .
+  * @param {Vector3} max .
+  */
+  set_bounds(min, max) {
+      this.bounds = new Box3(min, max);
   }
 
 	/**
@@ -83,6 +94,9 @@ class CameraTopdown {
 
     pos.applyAxisAngle(Vec3Up, this.config.rotation + this.rotation);
     pos.add(this._target_lpos);
+    if (this.bounds) {
+      pos.clamp(this.bounds.min, this.bounds.max);
+    }
     this._camera_lpos.lerp(pos, this.config.camera_speed);
 
     this._camera.position.copy(this._camera_lpos);

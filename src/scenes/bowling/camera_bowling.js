@@ -22,6 +22,9 @@ class CameraBowlingA {
    */
   set_bounds(min, max) {
 		this.bounds = new Box2(min, max);
+    const _min = cache.vec3.v0.set(min.x, -10, min.y);
+    const _max = cache.vec3.v1.set(max.x, 10, max.y);
+    this.controls?.set_bounds(_min, _max);
   }
 
   calc_bounds() {
@@ -57,6 +60,7 @@ class CameraBowlingA {
     if (this.controls) {
 			const dist = render.camera.position.distanceTo(this.controls._target.position);
       const bounds_shift = this.calc_bounds();
+      bounds_shift.clamp(this.bounds.min, this.bounds.max);
 			const pshift = cache.vec3.v0.set(bounds_shift.x, 0, bounds_shift.y);
       this.controls.shift.lerp(pshift, 0.1);
       this.controls.step(dt);
