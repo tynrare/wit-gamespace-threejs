@@ -12,6 +12,7 @@ import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import RenderUtils from "./render_utils.js";
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
 export class RenderCache {
   constructor() {
@@ -73,7 +74,7 @@ class Render {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.toneMapping = THREE.LinearToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    renderer.toneMappingExposure = 1;
 
 
     this.htmlcontainer.appendChild(renderer.domElement);
@@ -138,7 +139,7 @@ class Render {
    * @param {boolean|number} enable
    * @param gtao
    */
-  pixelate(enable, { gtao = false, bokeh = false } = {}) {
+  pixelate(enable, { pixelate = true, gtao = false, bokeh = false } = {}) {
     if (!enable) {
       this.bokehPass = null;
       this.composer = null;
@@ -147,18 +148,24 @@ class Render {
       return;
     }
 
-    this.scale = typeof enable == "number" ? enable : 0.5;
-    this.scale /= this.renderer.getPixelRatio();
-
     this.composer = new EffectComposer(this.renderer);
-    const renderPixelatedPass = new RenderPixelatedPass(
-      1,
-      this.scene,
-      this.camera,
-    );
-    renderPixelatedPass.normalEdgeStrength = 1;
-    renderPixelatedPass.depthEdgeStrength = 1;
-    this.composer.addPass(renderPixelatedPass);
+
+    if (pixelate) {
+      this.scale = typeof enable == "number" ? enable : 0.5;
+      this.scale /= this.renderer.getPixelRatio();
+
+      const renderPixelatedPass = new RenderPixelatedPass(
+        1,
+        this.scene,
+        this.camera,
+      );
+      renderPixelatedPass.normalEdgeStrength = 1;
+      renderPixelatedPass.depthEdgeStrength = 1;
+      this.composer.addPass(renderPixelatedPass);
+    } else {
+      const renderPass = new RenderPass( this.scene, this.camera );
+      this.composer.addPass( renderPass );
+    }
 
     if (gtao) {
       const renderGTAOPass = new GTAOPass(
@@ -174,7 +181,7 @@ class Render {
     if (bokeh) {
       const bokehPass = new BokehPass( this.scene, this.camera, {
         focus: 10.0,
-        aperture: 0.001,
+        aperture: 0.0008,
         maxblur: 0.01
       } );
       this.bokehPass = bokehPass;

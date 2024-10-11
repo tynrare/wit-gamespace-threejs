@@ -15,6 +15,7 @@ const ProjectileBallBowlingConfig = {
   scale: 0.9,
   density: 10,
   hearts_hurt_damage: 1,
+  crush_chunks_effect: false
 };
 
 const ProjectileBallBowlingConfig_t = Object.setPrototypeOf(
@@ -104,6 +105,10 @@ class ProjectileBallBowling {
   }
 
   crush() {
+    if (!this.config.crush_chunks_effect) {
+      this.stop();
+      return;
+    }
     const sceneref = Loader.instance.cache.gltfs[FILENAME_VFX_FRACTURED].scene;
     const scene = sceneref.clone();
     scene.position.copy(this.mesh.position);

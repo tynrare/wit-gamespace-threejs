@@ -230,7 +230,7 @@ class LevelBowlingMap {
     if (!scene) {
       this.create_default_playscene();
     } else {
-      await this.open_playscene(scene, false);
+      await this.open_playscene(scene, true);
     }
   }
 
@@ -495,8 +495,8 @@ class LevelBowlingA {
       shadows: false,
     });
     App.instance.render.scene.background = new THREE.Color(0x000);
-    this.environment.lights.lights.directional.intensity = 1;
-    this.environment.lights.lights.ambient.intensity = 0.9;
+    this.environment.lights.lights.directional.intensity = 0;
+    this.environment.lights.lights.ambient.intensity = 2;
     this.environment.lights.lights.hemisphere.intensity = 0.7;
 
     this.physics = new Physics().run({ fixed_step: false });
@@ -526,10 +526,10 @@ class LevelBowlingA {
 
 		const render = App.instance.render;
 		if (opts?.floor_null === true) {
-			console.log("floor_null log.");
-			render.scene.traverse((o) => {
-      /** @type {THREE.Mesh} */
-      const m = /** @type {any} */ (o);
+      console.log("floor_null log.");
+      render.scene.traverse((o) => {
+        /** @type {THREE.Mesh} */
+        const m = /** @type {any} */ (o);
 
 				console.log("> " + m.name);
 

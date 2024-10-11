@@ -30,7 +30,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.4em;
-      min-width: 100px;
+      min-width: 70px;
 			& > * {
 				margin: auto;
 			}
@@ -130,7 +130,7 @@
 		}
 
     bar {
-      height: 1.2em;
+      height: 1em;
 			display: block;
 			background-color: gray;
 			--progress: 100%;
@@ -153,39 +153,21 @@
 				}
 			}
 
-				&.green::before {
-					.bar-style(#00ff00);
-				}
+      &.green::before {
+        .bar-style(#0ee60e);
+      }
 
-				&.pink::before {
-					.bar-style(#ff00ff);
-				}
+      &.pink::before {
+        .bar-style(#FF7166);
+      }
 
-				&.red::before {
-					.bar-style(#ff0000);
-				}
+      &.red::before {
+        .bar-style(#ff3324);
+      }
 
-				&.blue::before {
-					.bar-style(#0000ff);
-				}
-
-			.enable-extra-colors {
-				&.green::before {
-					.bar-style(#45BF55);
-				}
-
-				&.pink::before {
-					.bar-style(#FF7166);
-				}
-
-				&.red::before {
-					.bar-style(#ff3324);
-				}
-
-				&.blue::before {
-					.bar-style(#1f91b3);
-				}
-			}
+      &.blue::before {
+        .bar-style(#42d4cd);
+      }
 
 			&::before {
 				content: '';

@@ -51,6 +51,15 @@ class ModeDeathmatchBowling extends PageBase {
 
   step(dt) {
     this.scene.step(dt);
+
+    if (App.instance.render.bokehPass) {
+      const campos = App.instance.render.camera.position;
+      const pawnpos = this.scene?.level?.pawn?.pawn_dbg_mesh?.position;
+      if (pawnpos) {
+        const dist = pawnpos.distanceTo(campos) - 1;
+        App.instance.render.bokehPass.uniforms[ 'focus' ].value = dist;
+      }
+    }
   }
 
   run() {
@@ -68,6 +77,7 @@ class ModeDeathmatchBowling extends PageBase {
     this.session.printscore(this.goalscore);
 
     App.instance.start(this.session.container.querySelector("render"));
+    App.instance.render.pixelate(true, { gtao: false, pixelate: false, bokeh: true });
 
     const hash = document.location.hash;
     const query = hash.substring(hash.indexOf("?"));

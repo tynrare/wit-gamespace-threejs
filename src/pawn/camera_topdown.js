@@ -1,7 +1,7 @@
 /** @namespace PawnControllers */
 
 import * as THREE from "three";
-import { Vector2, Vector3 } from "three";
+import { Box3, Vector3 } from "three";
 import { cache, angle_sub, Vec3Up, Vec3Forward } from "../math.js";
 
 const CameraTopdownConfig = {
@@ -64,7 +64,8 @@ class CameraTopdown {
   * @param {Vector3} max .
   */
   set_bounds(min, max) {
-      this.bounds = new Box3(min, max);
+      this.bounds = new Box3();
+      this.bounds.set(min, max);
   }
 
 	/**
