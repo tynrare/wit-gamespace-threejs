@@ -468,7 +468,8 @@ class LevelBowlingA {
     }
 
     this.boosts_spawn_timestamp += dt;
-    if (this.boosts_spawn_timestamp > 10000) {
+    const nikogda = Infinity;
+    if (this.boosts_spawn_timestamp > nikogda) {
       this.boosts_spawn_timestamp = 0;
       this.create_boost();
     }
